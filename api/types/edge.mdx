@@ -1,0 +1,437 @@
+---
+title: Edge Types
+description: Type definitions and interfaces for Vue Flow edges
+---
+
+## Edge
+
+Union type for all edge types in Vue Flow.
+
+```typescript
+type Edge<Data = ElementData, CustomEvents = any, Type extends string = string> =
+  | DefaultEdge<Data, CustomEvents, Type>
+  | SmoothStepEdgeType<Data, CustomEvents>
+  | BezierEdgeType<Data, CustomEvents>
+```
+
+---
+
+## DefaultEdge
+
+The base interface for defining edges in Vue Flow.
+
+<ParamField path="id" type="string" required>
+  Unique edge identifier
+</ParamField>
+
+<ParamField path="source" type="string" required>
+  Source node id
+</ParamField>
+
+<ParamField path="target" type="string" required>
+  Target node id
+</ParamField>
+
+<ParamField path="sourceHandle" type="string | null">
+  Source handle id
+</ParamField>
+
+<ParamField path="targetHandle" type="string | null">
+  Target handle id
+</ParamField>
+
+<ParamField path="type" type="string">
+  Edge type - can be a default type or a custom type
+</ParamField>
+
+<ParamField path="label" type="string | VNode | Component<EdgeTextProps>">
+  Edge label
+</ParamField>
+
+<ParamField path="data" type="any">
+  Additional data passed to your custom components
+</ParamField>
+
+### Interaction Properties
+
+<ParamField path="animated" type="boolean">
+  Whether the edge is animated
+</ParamField>
+
+<ParamField path="selectable" type="boolean">
+  Enable or disable selecting this edge
+</ParamField>
+
+<ParamField path="focusable" type="boolean">
+  Enable or disable focusing this edge (accessibility)
+</ParamField>
+
+<ParamField path="deletable" type="boolean">
+  Enable or disable deleting this edge
+</ParamField>
+
+<ParamField path="updatable" type="EdgeUpdatable">
+  Enable or disable updating edge. Can be `boolean`, `'target'`, or `'source'`
+</ParamField>
+
+<ParamField path="interactionWidth" type="number">
+  Radius of mouse event triggers (to ease selecting edges). Defaults to 2
+</ParamField>
+
+### Markers
+
+<ParamField path="markerStart" type="EdgeMarkerType">
+  Edge marker at the start. Can be `string`, `MarkerType`, or `EdgeMarker` object
+</ParamField>
+
+<ParamField path="markerEnd" type="EdgeMarkerType">
+  Edge marker at the end. Can be `string`, `MarkerType`, or `EdgeMarker` object
+</ParamField>
+
+### Label Styling
+
+<ParamField path="labelStyle" type="CSSProperties">
+  Label styles
+</ParamField>
+
+<ParamField path="labelShowBg" type="boolean">
+  Show label background
+</ParamField>
+
+<ParamField path="labelBgStyle" type="CSSProperties">
+  Label background styles
+</ParamField>
+
+<ParamField path="labelBgPadding" type="[number, number]">
+  Label background padding as `[horizontal, vertical]`
+</ParamField>
+
+<ParamField path="labelBgBorderRadius" type="number">
+  Label background border radius
+</ParamField>
+
+### Styling
+
+<ParamField path="class" type="string | string[] | Record<string, any> | ClassFunc<GraphEdge>">
+  Additional class names. Can be a string, array, object, or callback
+</ParamField>
+
+<ParamField path="style" type="Styles | StyleFunc<GraphEdge>">
+  Additional styles. Can be an object or a callback
+</ParamField>
+
+<ParamField path="hidden" type="boolean">
+  Hide or show the edge
+</ParamField>
+
+<ParamField path="zIndex" type="number">
+  z-index for the edge
+</ParamField>
+
+### Accessibility
+
+<ParamField path="ariaLabel" type="string | null">
+  Aria label for the edge
+</ParamField>
+
+<ParamField path="domAttributes" type="SVGAttributes">
+  General escape hatch for adding custom attributes to the edge's DOM element
+</ParamField>
+
+### Deprecated Properties
+
+<ParamField path="template" type="EdgeComponent">
+  Overwrites current edge type
+</ParamField>
+
+<ParamField path="events" type="Partial<EdgeEventsHandler>">
+  <Warning>Deprecated - will be removed in next major release</Warning>
+  Contextual and custom events
+</ParamField>
+
+---
+
+## SmoothStepEdgeType
+
+Smooth step edge with configurable path options.
+
+```typescript
+type SmoothStepEdgeType<Data = ElementData, CustomEvents = any> = 
+  DefaultEdge<Data, CustomEvents> & {
+    type: 'smoothstep'
+    pathOptions?: SmoothStepPathOptions
+  }
+```
+
+### SmoothStepPathOptions
+
+<ParamField path="offset" type="number">
+  Offset for the smooth step path
+</ParamField>
+
+<ParamField path="borderRadius" type="number">
+  Border radius for corners
+</ParamField>
+
+---
+
+## BezierEdgeType
+
+Bezier edge with configurable curvature.
+
+```typescript
+type BezierEdgeType<Data = ElementData, CustomEvents = any> = 
+  DefaultEdge<Data, CustomEvents> & {
+    type: 'default'
+    pathOptions?: BezierPathOptions
+  }
+```
+
+### BezierPathOptions
+
+<ParamField path="curvature" type="number">
+  Curvature of the bezier curve
+</ParamField>
+
+---
+
+## GraphEdge
+
+Internal edge type that extends `Edge` with computed properties.
+
+<ResponseField name="selected" type="boolean">
+  Whether the edge is currently selected
+</ResponseField>
+
+<ResponseField name="sourceNode" type="GraphNode">
+  Reference to the source node
+</ResponseField>
+
+<ResponseField name="targetNode" type="GraphNode">
+  Reference to the target node
+</ResponseField>
+
+<ResponseField name="sourceX" type="number">
+  X coordinate of source position
+</ResponseField>
+
+<ResponseField name="sourceY" type="number">
+  Y coordinate of source position
+</ResponseField>
+
+<ResponseField name="targetX" type="number">
+  X coordinate of target position
+</ResponseField>
+
+<ResponseField name="targetY" type="number">
+  Y coordinate of target position
+</ResponseField>
+
+---
+
+## EdgeProps
+
+Props passed to edge components when rendering custom edges.
+
+<ResponseField name="id" type="string">
+  Edge identifier
+</ResponseField>
+
+<ResponseField name="source" type="string">
+  Source node id
+</ResponseField>
+
+<ResponseField name="target" type="string">
+  Target node id
+</ResponseField>
+
+<ResponseField name="sourceNode" type="GraphNode">
+  Source node object
+</ResponseField>
+
+<ResponseField name="targetNode" type="GraphNode">
+  Target node object
+</ResponseField>
+
+<ResponseField name="type" type="string">
+  Edge type
+</ResponseField>
+
+<ResponseField name="label" type="string | VNode | Component | object">
+  Edge label
+</ResponseField>
+
+<ResponseField name="selected" type="boolean">
+  Whether edge is selected
+</ResponseField>
+
+<ResponseField name="animated" type="boolean">
+  Whether edge is animated
+</ResponseField>
+
+<ResponseField name="updatable" type="boolean">
+  Whether edge is updatable
+</ResponseField>
+
+<ResponseField name="sourcePosition" type="Position">
+  Source handle position
+</ResponseField>
+
+<ResponseField name="targetPosition" type="Position">
+  Target handle position
+</ResponseField>
+
+<ResponseField name="sourceHandleId" type="string">
+  Source handle id
+</ResponseField>
+
+<ResponseField name="targetHandleId" type="string">
+  Target handle id
+</ResponseField>
+
+<ResponseField name="sourceX" type="number">
+  Source X coordinate
+</ResponseField>
+
+<ResponseField name="sourceY" type="number">
+  Source Y coordinate
+</ResponseField>
+
+<ResponseField name="targetX" type="number">
+  Target X coordinate
+</ResponseField>
+
+<ResponseField name="targetY" type="number">
+  Target Y coordinate
+</ResponseField>
+
+<ResponseField name="markerStart" type="string">
+  Marker URL for start
+</ResponseField>
+
+<ResponseField name="markerEnd" type="string">
+  Marker URL for end
+</ResponseField>
+
+<ResponseField name="style" type="CSSProperties">
+  Edge styles
+</ResponseField>
+
+<ResponseField name="data" type="any">
+  Additional data
+</ResponseField>
+
+---
+
+## MarkerType
+
+Enum for edge marker types.
+
+```typescript
+enum MarkerType {
+  Arrow = 'arrow',
+  ArrowClosed = 'arrowclosed'
+}
+```
+
+---
+
+## EdgeMarker
+
+Detailed edge marker definition.
+
+<ParamField path="type" type="MarkerType" required>
+  Marker type
+</ParamField>
+
+<ParamField path="id" type="string">
+  Unique marker id
+</ParamField>
+
+<ParamField path="color" type="string">
+  Marker color
+</ParamField>
+
+<ParamField path="width" type="number">
+  Marker width
+</ParamField>
+
+<ParamField path="height" type="number">
+  Marker height
+</ParamField>
+
+<ParamField path="markerUnits" type="string">
+  Marker units
+</ParamField>
+
+<ParamField path="orient" type="string">
+  Marker orientation
+</ParamField>
+
+<ParamField path="strokeWidth" type="number">
+  Marker stroke width
+</ParamField>
+
+---
+
+## EdgeMarkerType
+
+Type for edge marker specification.
+
+```typescript
+type EdgeMarkerType = string | MarkerType | EdgeMarker
+```
+
+---
+
+## EdgeUpdatable
+
+Type for edge updatable property.
+
+```typescript
+type EdgeUpdatable = boolean | 'target' | 'source'
+```
+
+- `true` - both ends can be updated
+- `false` - edge cannot be updated
+- `'target'` - only target can be updated
+- `'source'` - only source can be updated
+
+---
+
+## Type Utilities
+
+### ToGraphEdge
+
+Transform an Edge type to a GraphEdge type.
+
+```typescript
+type ToGraphEdge<T extends Edge> = GraphEdge<
+  T extends Edge<infer Data> ? Data : never,
+  T extends Edge<never, infer CustomEvents> ? CustomEvents : never,
+  T extends Edge<never, never, infer Type> ? Type : never
+>
+```
+
+### Example Usage
+
+```typescript
+interface MyEdgeData {
+  label: string
+  weight: number
+}
+
+type MyEdge = Edge<MyEdgeData>
+
+const edge: MyEdge = {
+  id: 'e1-2',
+  source: '1',
+  target: '2',
+  data: { 
+    label: 'Connection', 
+    weight: 5 
+  },
+  animated: true,
+  markerEnd: MarkerType.ArrowClosed
+}
+```

@@ -1,0 +1,474 @@
+---
+title: Event Types
+description: Type definitions for Vue Flow events and event handlers
+---
+
+## FlowEvents
+
+All available events in Vue Flow.
+
+### Node Events
+
+<ResponseField name="nodeClick" type="NodeMouseEvent">
+  Fired when a node is clicked
+</ResponseField>
+
+<ResponseField name="nodeDoubleClick" type="NodeMouseEvent">
+  Fired when a node is double clicked
+</ResponseField>
+
+<ResponseField name="nodeMouseEnter" type="NodeMouseEvent">
+  Fired when mouse enters a node
+</ResponseField>
+
+<ResponseField name="nodeMouseMove" type="NodeMouseEvent">
+  Fired when mouse moves over a node
+</ResponseField>
+
+<ResponseField name="nodeMouseLeave" type="NodeMouseEvent">
+  Fired when mouse leaves a node
+</ResponseField>
+
+<ResponseField name="nodeContextMenu" type="NodeMouseEvent">
+  Fired when right-clicking a node
+</ResponseField>
+
+<ResponseField name="nodeDragStart" type="NodeDragEvent">
+  Fired when starting to drag a node
+</ResponseField>
+
+<ResponseField name="nodeDrag" type="NodeDragEvent">
+  Fired while dragging a node
+</ResponseField>
+
+<ResponseField name="nodeDragStop" type="NodeDragEvent">
+  Fired when stopping dragging a node
+</ResponseField>
+
+<ResponseField name="nodesInitialized" type="GraphNode[]">
+  Fired when all nodes have been initialized with dimensions
+</ResponseField>
+
+### Edge Events
+
+<ResponseField name="edgeClick" type="EdgeMouseEvent">
+  Fired when an edge is clicked
+</ResponseField>
+
+<ResponseField name="edgeDoubleClick" type="EdgeMouseEvent">
+  Fired when an edge is double clicked
+</ResponseField>
+
+<ResponseField name="edgeMouseEnter" type="EdgeMouseEvent">
+  Fired when mouse enters an edge
+</ResponseField>
+
+<ResponseField name="edgeMouseMove" type="EdgeMouseEvent">
+  Fired when mouse moves over an edge
+</ResponseField>
+
+<ResponseField name="edgeMouseLeave" type="EdgeMouseEvent">
+  Fired when mouse leaves an edge
+</ResponseField>
+
+<ResponseField name="edgeContextMenu" type="EdgeMouseEvent">
+  Fired when right-clicking an edge
+</ResponseField>
+
+<ResponseField name="edgeUpdate" type="EdgeUpdateEvent">
+  Fired when an edge is updated (reconnected)
+</ResponseField>
+
+<ResponseField name="edgeUpdateStart" type="EdgeMouseEvent">
+  Fired when starting to update an edge
+</ResponseField>
+
+<ResponseField name="edgeUpdateEnd" type="EdgeMouseEvent">
+  Fired when ending edge update
+</ResponseField>
+
+### Connection Events
+
+<ResponseField name="connect" type="Connection">
+  Fired when a new connection is created
+</ResponseField>
+
+<ResponseField name="connectStart" type="{ event?: MouseEvent | TouchEvent } & OnConnectStartParams">
+  Fired when starting to create a connection
+</ResponseField>
+
+<ResponseField name="connectEnd" type="MouseEvent | TouchEvent | undefined">
+  Fired when ending connection attempt
+</ResponseField>
+
+<ResponseField name="clickConnectStart" type="{ event?: MouseEvent | TouchEvent } & OnConnectStartParams">
+  Fired when starting click-based connection
+</ResponseField>
+
+<ResponseField name="clickConnectEnd" type="MouseEvent | TouchEvent | undefined">
+  Fired when ending click-based connection
+</ResponseField>
+
+### Viewport Events
+
+<ResponseField name="move" type="{ event: D3ZoomEvent | WheelEvent; flowTransform: ViewportTransform }">
+  Fired while moving the viewport
+</ResponseField>
+
+<ResponseField name="moveStart" type="{ event: D3ZoomEvent | WheelEvent; flowTransform: ViewportTransform }">
+  Fired when starting to move the viewport
+</ResponseField>
+
+<ResponseField name="moveEnd" type="{ event: D3ZoomEvent | WheelEvent; flowTransform: ViewportTransform }">
+  Fired when ending viewport movement
+</ResponseField>
+
+<ResponseField name="viewportChange" type="ViewportTransform">
+  Fired when viewport changes
+</ResponseField>
+
+<ResponseField name="viewportChangeStart" type="ViewportTransform">
+  Fired when starting viewport change
+</ResponseField>
+
+<ResponseField name="viewportChangeEnd" type="ViewportTransform">
+  Fired when ending viewport change
+</ResponseField>
+
+### Pane Events
+
+<ResponseField name="paneClick" type="MouseEvent">
+  Fired when clicking the pane
+</ResponseField>
+
+<ResponseField name="paneContextMenu" type="MouseEvent">
+  Fired when right-clicking the pane
+</ResponseField>
+
+<ResponseField name="paneScroll" type="WheelEvent | undefined">
+  Fired when scrolling on the pane
+</ResponseField>
+
+<ResponseField name="paneMouseEnter" type="PointerEvent">
+  Fired when mouse enters the pane
+</ResponseField>
+
+<ResponseField name="paneMouseMove" type="PointerEvent">
+  Fired when mouse moves over the pane
+</ResponseField>
+
+<ResponseField name="paneMouseLeave" type="PointerEvent">
+  Fired when mouse leaves the pane
+</ResponseField>
+
+### Selection Events
+
+<ResponseField name="selectionStart" type="MouseEvent">
+  Fired when starting selection
+</ResponseField>
+
+<ResponseField name="selectionEnd" type="MouseEvent">
+  Fired when ending selection
+</ResponseField>
+
+<ResponseField name="selectionDragStart" type="NodeDragEvent">
+  Fired when starting to drag selected nodes
+</ResponseField>
+
+<ResponseField name="selectionDrag" type="NodeDragEvent">
+  Fired while dragging selected nodes
+</ResponseField>
+
+<ResponseField name="selectionDragStop" type="NodeDragEvent">
+  Fired when stopping dragging selected nodes
+</ResponseField>
+
+<ResponseField name="selectionContextMenu" type="{ event: MouseEvent; nodes: GraphNode[] }">
+  Fired when right-clicking selection
+</ResponseField>
+
+### Minimap Events
+
+<ResponseField name="miniMapNodeClick" type="NodeMouseEvent">
+  Fired when clicking a node on the minimap
+</ResponseField>
+
+<ResponseField name="miniMapNodeDoubleClick" type="NodeMouseEvent">
+  Fired when double clicking a node on the minimap
+</ResponseField>
+
+<ResponseField name="miniMapNodeMouseEnter" type="NodeMouseEvent">
+  Fired when mouse enters a node on the minimap
+</ResponseField>
+
+<ResponseField name="miniMapNodeMouseMove" type="NodeMouseEvent">
+  Fired when mouse moves over a node on the minimap
+</ResponseField>
+
+<ResponseField name="miniMapNodeMouseLeave" type="NodeMouseEvent">
+  Fired when mouse leaves a node on the minimap
+</ResponseField>
+
+### Change Events
+
+<ResponseField name="nodesChange" type="NodeChange[]">
+  Fired when nodes change (add, remove, position, etc.)
+</ResponseField>
+
+<ResponseField name="edgesChange" type="EdgeChange[]">
+  Fired when edges change (add, remove, select, etc.)
+</ResponseField>
+
+### Lifecycle Events
+
+<ResponseField name="init" type="VueFlowStore">
+  Fired when Vue Flow is initialized
+</ResponseField>
+
+<ResponseField name="paneReady" type="VueFlowStore">
+  <Warning>Deprecated - use `init` instead</Warning>
+  Fired when the pane is ready
+</ResponseField>
+
+<ResponseField name="updateNodeInternals" type="string[]">
+  Fired when node internals are updated
+</ResponseField>
+
+<ResponseField name="error" type="VueFlowError">
+  Fired when an error occurs
+</ResponseField>
+
+---
+
+## Event Object Types
+
+### NodeMouseEvent
+
+Mouse event on a node.
+
+```typescript
+interface NodeMouseEvent {
+  event: MouseTouchEvent
+  node: GraphNode
+}
+```
+
+<ParamField path="event" type="MouseEvent | TouchEvent" required>
+  The native mouse or touch event
+</ParamField>
+
+<ParamField path="node" type="GraphNode" required>
+  The node that was interacted with
+</ParamField>
+
+---
+
+### NodeDragEvent
+
+Drag event on node(s).
+
+```typescript
+interface NodeDragEvent {
+  event: MouseTouchEvent
+  node: GraphNode
+  nodes: GraphNode[]
+}
+```
+
+<ParamField path="event" type="MouseEvent | TouchEvent" required>
+  The native mouse or touch event
+</ParamField>
+
+<ParamField path="node" type="GraphNode" required>
+  The primary node being dragged
+</ParamField>
+
+<ParamField path="nodes" type="GraphNode[]" required>
+  All nodes being dragged (including multi-selection)
+</ParamField>
+
+---
+
+### EdgeMouseEvent
+
+Mouse event on an edge.
+
+```typescript
+interface EdgeMouseEvent {
+  event: MouseTouchEvent
+  edge: GraphEdge
+}
+```
+
+<ParamField path="event" type="MouseEvent | TouchEvent" required>
+  The native mouse or touch event
+</ParamField>
+
+<ParamField path="edge" type="GraphEdge" required>
+  The edge that was interacted with
+</ParamField>
+
+---
+
+### EdgeUpdateEvent
+
+Event when an edge is updated (reconnected).
+
+```typescript
+interface EdgeUpdateEvent {
+  event: MouseTouchEvent
+  edge: GraphEdge
+  connection: Connection
+}
+```
+
+<ParamField path="event" type="MouseEvent | TouchEvent" required>
+  The native mouse or touch event
+</ParamField>
+
+<ParamField path="edge" type="GraphEdge" required>
+  The edge being updated
+</ParamField>
+
+<ParamField path="connection" type="Connection" required>
+  The new connection parameters
+</ParamField>
+
+---
+
+## Event Handlers
+
+### NodeEventsHandler
+
+Event handlers available on nodes.
+
+```typescript
+type NodeEventsHandler<CustomEvents = object> = {
+  doubleClick: (event: NodeMouseEvent) => void | { off: () => void }
+  click: (event: NodeMouseEvent) => void | { off: () => void }
+  mouseEnter: (event: NodeMouseEvent) => void | { off: () => void }
+  mouseMove: (event: NodeMouseEvent) => void | { off: () => void }
+  mouseLeave: (event: NodeMouseEvent) => void | { off: () => void }
+  contextMenu: (event: NodeMouseEvent) => void | { off: () => void }
+  dragStart: (event: NodeDragEvent) => void | { off: () => void }
+  drag: (event: NodeDragEvent) => void | { off: () => void }
+  dragStop: (event: NodeDragEvent) => void | { off: () => void }
+} & CustomEventHandlers<CustomEvents>
+```
+
+---
+
+### EdgeEventsHandler
+
+Event handlers available on edges.
+
+```typescript
+type EdgeEventsHandler<CustomEvents = object> = {
+  doubleClick: (event: EdgeMouseEvent) => void | { off: () => void }
+  click: (event: EdgeMouseEvent) => void | { off: () => void }
+  mouseEnter: (event: EdgeMouseEvent) => void | { off: () => void }
+  mouseMove: (event: EdgeMouseEvent) => void | { off: () => void }
+  mouseLeave: (event: EdgeMouseEvent) => void | { off: () => void }
+  contextMenu: (event: EdgeMouseEvent) => void | { off: () => void }
+  updateStart: (event: EdgeMouseEvent) => void | { off: () => void }
+  update: (event: EdgeUpdateEvent) => void | { off: () => void }
+  updateEnd: (event: EdgeMouseEvent) => void | { off: () => void }
+} & CustomEventHandlers<CustomEvents>
+```
+
+---
+
+## Custom Events
+
+Define custom events for your nodes and edges.
+
+```typescript
+type CustomEvent<Args extends any[] = any[], Return = any> = 
+  (...args: Args) => Return
+```
+
+### Example
+
+```typescript
+import type { Node, CustomEvent } from '@vue-flow/core'
+
+interface MyCustomEvents {
+  expand: CustomEvent<[expanded: boolean], void>
+  delete: CustomEvent<[], void>
+}
+
+type MyNode = Node<MyData, MyCustomEvents>
+
+const node: MyNode = {
+  id: '1',
+  position: { x: 0, y: 0 },
+  data: { label: 'Custom Node' },
+  events: {
+    expand: (expanded) => {
+      console.log('Expanded:', expanded)
+    },
+    delete: () => {
+      console.log('Delete node')
+    }
+  }
+}
+```
+
+---
+
+## FlowHooks
+
+Hook interfaces for all Flow events.
+
+```typescript
+type FlowHooks = Readonly<{
+  [key in keyof FlowEvents]: EventHookExtended<FlowEvents[key]>
+}>
+```
+
+### Example Usage
+
+```typescript
+import { useVueFlow } from '@vue-flow/core'
+
+const { hooks } = useVueFlow()
+
+// Listen to node click events
+hooks.value.nodeClick.on(({ node, event }) => {
+  console.log('Node clicked:', node.id)
+})
+
+// Listen to connection events
+hooks.value.connect.on((connection) => {
+  console.log('Connected:', connection)
+})
+```
+
+---
+
+## FlowHooksOn
+
+Convenience type with `on` prefix for event handlers.
+
+```typescript
+type FlowHooksOn = Readonly<{
+  [key in keyof FlowEvents as `on${Capitalize<key>}`]: 
+    EventHookOn<FlowEvents[key]>
+}>
+```
+
+### Example
+
+```typescript
+import { useVueFlow } from '@vue-flow/core'
+
+const { onNodeClick, onConnect } = useVueFlow()
+
+onNodeClick(({ node }) => {
+  console.log('Clicked:', node.id)
+})
+
+onConnect((connection) => {
+  console.log('Connected:', connection)
+})
+```

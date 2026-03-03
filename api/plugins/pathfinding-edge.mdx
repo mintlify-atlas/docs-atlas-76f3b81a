@@ -1,0 +1,327 @@
+---
+title: PathfindingEdge
+description: API reference for the PathfindingEdge plugin component
+---
+
+The PathfindingEdge component creates smart edges that automatically route around nodes to avoid overlaps.
+
+## Installation
+
+<CodeGroup>
+```bash npm
+npm install @vue-flow/pathfinding-edge
+```
+
+```bash pnpm
+pnpm add @vue-flow/pathfinding-edge
+```
+
+```bash yarn
+yarn add @vue-flow/pathfinding-edge
+```
+</CodeGroup>
+
+## Usage
+
+```vue
+<script setup>
+import { VueFlow } from '@vue-flow/core'
+import { PathFindingEdge } from '@vue-flow/pathfinding-edge'
+
+const nodes = ref([
+  { id: '1', position: { x: 0, y: 0 }, data: { label: 'Node 1' } },
+  { id: '2', position: { x: 200, y: 0 }, data: { label: 'Node 2' } },
+  { id: '3', position: { x: 100, y: 100 }, data: { label: 'Node 3' } },
+])
+
+const edges = ref([
+  { 
+    id: 'e1-2', 
+    source: '1', 
+    target: '2',
+    type: 'pathfinding'
+  },
+])
+
+const edgeTypes = {
+  pathfinding: PathFindingEdge
+}
+</script>
+
+<template>
+  <VueFlow 
+    :nodes="nodes" 
+    :edges="edges"
+    :edge-types="edgeTypes"
+  />
+</template>
+```
+
+## Props
+
+PathfindingEdge extends the standard `EdgeProps` from Vue Flow core.
+
+<ParamField path="id" type="string" required>
+  Unique identifier for the edge.
+</ParamField>
+
+<ParamField path="source" type="string" required>
+  ID of the source node.
+</ParamField>
+
+<ParamField path="target" type="string" required>
+  ID of the target node.
+</ParamField>
+
+<ParamField path="sourceX" type="number" required>
+  X coordinate of the source position.
+</ParamField>
+
+<ParamField path="sourceY" type="number" required>
+  Y coordinate of the source position.
+</ParamField>
+
+<ParamField path="targetX" type="number" required>
+  X coordinate of the target position.
+</ParamField>
+
+<ParamField path="targetY" type="number" required>
+  Y coordinate of the target position.
+</ParamField>
+
+<ParamField path="sourcePosition" type="Position" default="Position.Bottom">
+  Position of the source handle on the node.
+  
+  Options: `Position.Top` | `Position.Right` | `Position.Bottom` | `Position.Left`
+</ParamField>
+
+<ParamField path="targetPosition" type="Position" default="Position.Top">
+  Position of the target handle on the node.
+</ParamField>
+
+<ParamField path="selected" type="boolean" default="false">
+  Whether the edge is currently selected.
+</ParamField>
+
+<ParamField path="animated" type="boolean" default="false">
+  Whether to show animation on the edge path.
+</ParamField>
+
+<ParamField path="label" type="string | Component">
+  Label to display on the edge.
+</ParamField>
+
+<ParamField path="labelStyle" type="CSSProperties">
+  Inline styles for the edge label.
+</ParamField>
+
+<ParamField path="labelShowBg" type="boolean" default="true">
+  Whether to show a background behind the label.
+</ParamField>
+
+<ParamField path="labelBgStyle" type="CSSProperties">
+  Inline styles for the label background.
+</ParamField>
+
+<ParamField path="labelBgPadding" type="[number, number]">
+  Padding around the label background `[horizontal, vertical]`.
+</ParamField>
+
+<ParamField path="labelBgBorderRadius" type="number">
+  Border radius for the label background.
+</ParamField>
+
+<ParamField path="style" type="CSSProperties">
+  Inline styles for the edge path.
+</ParamField>
+
+<ParamField path="markerEnd" type="string">
+  ID of the marker to use at the edge end (arrow).
+</ParamField>
+
+<ParamField path="markerStart" type="string">
+  ID of the marker to use at the edge start.
+</ParamField>
+
+<ParamField path="sourceHandleId" type="string">
+  ID of the specific source handle to connect from.
+</ParamField>
+
+<ParamField path="targetHandleId" type="string">
+  ID of the specific target handle to connect to.
+</ParamField>
+
+## How It Works
+
+The PathfindingEdge component:
+
+1. Creates a 2D grid representation of the flow canvas
+2. Marks areas occupied by nodes as obstacles
+3. Uses the A* pathfinding algorithm to find the shortest path around obstacles
+4. Renders a smooth path that avoids overlapping with nodes
+5. Falls back to a standard Bezier edge if the path is very short (2 or fewer points)
+
+<Note>
+  The pathfinding calculation is performed on each render. For large graphs with many nodes, consider the performance implications.
+</Note>
+
+## Examples
+
+### Basic Pathfinding Edge
+
+```vue
+<script setup>
+const edges = ref([
+  { 
+    id: 'e1-2',
+    source: '1',
+    target: '2',
+    type: 'pathfinding'
+  }
+])
+
+const edgeTypes = {
+  pathfinding: PathFindingEdge
+}
+</script>
+
+<template>
+  <VueFlow :edges="edges" :edge-types="edgeTypes" />
+</template>
+```
+
+### Styled Pathfinding Edge
+
+```vue
+<script setup>
+const edges = ref([
+  { 
+    id: 'e1-2',
+    source: '1',
+    target: '2',
+    type: 'pathfinding',
+    style: { stroke: '#ff6b6b', strokeWidth: 3 },
+    animated: true
+  }
+])
+</script>
+```
+
+### With Label
+
+```vue
+<script setup>
+const edges = ref([
+  { 
+    id: 'e1-2',
+    source: '1',
+    target: '2',
+    type: 'pathfinding',
+    label: 'Smart Connection',
+    labelStyle: { fill: '#555', fontWeight: 600 },
+    labelBgStyle: { fill: '#fff' }
+  }
+])
+</script>
+```
+
+### Custom Markers
+
+```vue
+<script setup>
+const edges = ref([
+  { 
+    id: 'e1-2',
+    source: '1',
+    target: '2',
+    type: 'pathfinding',
+    markerEnd: 'arrow-red',
+  }
+])
+</script>
+
+<template>
+  <VueFlow :edges="edges">
+    <template #edge-pathfinding="props">
+      <PathFindingEdge v-bind="props" />
+    </template>
+    
+    <svg>
+      <defs>
+        <marker
+          id="arrow-red"
+          viewBox="0 0 10 10"
+          refX="5"
+          refY="5"
+          markerWidth="6"
+          markerHeight="6"
+          orient="auto-start-reverse"
+        >
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#ff0000" />
+        </marker>
+      </defs>
+    </svg>
+  </VueFlow>
+</template>
+```
+
+## PerfectArrow Component
+
+The package also exports a `PerfectArrow` component that creates elegant curved arrows between nodes using the `perfect-arrows` library.
+
+### Usage
+
+```vue
+<script setup>
+import { PerfectArrow } from '@vue-flow/pathfinding-edge'
+
+const edges = ref([
+  { 
+    id: 'e1-2',
+    source: '1',
+    target: '2',
+    type: 'perfect-arrow'
+  }
+])
+
+const edgeTypes = {
+  'perfect-arrow': PerfectArrow
+}
+</script>
+
+<template>
+  <VueFlow :edges="edges" :edge-types="edgeTypes" />
+</template>
+```
+
+### PerfectArrow Props
+
+Inherits all props from `PathFindingEdgeProps`, plus:
+
+<ParamField path="options" type="ArrowOptions">
+  Configuration options for the perfect-arrows library.
+  
+  ```typescript
+  interface ArrowOptions {
+    padStart?: number
+    padEnd?: number
+    straights?: boolean
+    bow?: number
+    stretch?: number
+  }
+  ```
+</ParamField>
+
+## TypeScript
+
+```typescript
+import type { PathFindingEdgeProps, PerfectArrowProps } from '@vue-flow/pathfinding-edge'
+import type { EdgeProps, Position } from '@vue-flow/core'
+```
+
+## Exports
+
+- `PathFindingEdge` - Smart pathfinding edge component
+- `PerfectArrow` - Curved arrow edge component
+- `PathFindingEdgeProps` - TypeScript interface for PathFindingEdge props
+- `PerfectArrowProps` - TypeScript interface for PerfectArrow props

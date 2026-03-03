@@ -1,80 +1,411 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quick Start
+description: Build your first interactive flowchart with Vue Flow
 ---
 
-## Get started in three steps
+# Quick Start
 
-Get your documentation site running locally and make your first customization.
+This guide will help you create your first interactive flowchart with Vue Flow. You'll learn the basic concepts and see a complete working example.
 
-### Step 1: Set up your local environment
+## Core Concepts
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
+Vue Flow applications are built with two main element types:
 
-### Step 2: Deploy your changes
+- **Nodes**: Visual elements positioned on the canvas with x/y coordinates
+- **Edges**: Connections between nodes that show relationships
 
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+<Info>
+Every node and edge must have a unique `id`. Nodes require a `position` object with x and y coordinates, while edges need `source` and `target` properties that reference node IDs.
+</Info>
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+## Basic Example
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+Here's a complete working example to get you started:
 
-### Step 3: Go live
+<Steps>
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+### Create the Component
 
-## Next steps
+Create a new Vue component with nodes and edges:
 
-Now that you have your docs running, explore these key features:
+<CodeGroup>
 
-<CardGroup cols={2}>
+```vue Flowchart.vue (JavaScript)
+<script setup>
+import { ref } from 'vue'
+import { VueFlow } from '@vue-flow/core'
 
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
+const nodes = ref([
+  { id: '1', type: 'input', label: 'Node 1', position: { x: 250, y: 5 } },
+  { id: '2', label: 'Node 2', position: { x: 100, y: 100 } },
+  { id: '3', label: 'Node 3', position: { x: 400, y: 100 } },
+  { id: '4', label: 'Node 4', position: { x: 400, y: 200 } },
+])
 
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
+const edges = ref([
+  { id: 'e1-2', source: '1', target: '2', animated: true },
+  { id: 'e1-3', source: '1', target: '3' },
+])
+</script>
 
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
+<template>
+  <VueFlow v-model:nodes="nodes" v-model:edges="edges" />
+</template>
+```
 
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
+```vue Flowchart.vue (TypeScript)
+<script setup lang="ts">
+import { ref } from 'vue'
+import type { Node, Edge } from '@vue-flow/core'
+import { VueFlow } from '@vue-flow/core'
 
-</CardGroup>
+const nodes = ref<Node[]>([
+  { id: '1', type: 'input', label: 'Node 1', position: { x: 250, y: 5 } },
+  { id: '2', label: 'Node 2', position: { x: 100, y: 100 } },
+  { id: '3', label: 'Node 3', position: { x: 400, y: 100 } },
+  { id: '4', label: 'Node 4', position: { x: 400, y: 200 } },
+])
+
+const edges = ref<Edge[]>([
+  { id: 'e1-2', source: '1', target: '2', animated: true },
+  { id: 'e1-3', source: '1', target: '3' },
+])
+</script>
+
+<template>
+  <VueFlow v-model:nodes="nodes" v-model:edges="edges" />
+</template>
+```
+
+</CodeGroup>
+
+### Import Required Styles
+
+Add the Vue Flow styles to your component or main application file:
+
+```css
+/* Required styles for Vue Flow */
+@import '@vue-flow/core/dist/style.css';
+
+/* Default theme (optional but recommended) */
+@import '@vue-flow/core/dist/theme-default.css';
+```
+
+<Warning>
+Do not scope these styles with `scoped` in your component. They need to be available globally.
+</Warning>
+
+### Set Container Height
+
+Make sure your VueFlow component has a defined height:
+
+```vue
+<template>
+  <div style="height: 600px">
+    <VueFlow v-model:nodes="nodes" v-model:edges="edges" />
+  </div>
+</template>
+```
+
+</Steps>
+
+## Enhanced Example with Additional Features
+
+Let's build a more feature-rich example with Background, Controls, and MiniMap:
 
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+Make sure you have installed the optional packages: `@vue-flow/background`, `@vue-flow/controls`, and `@vue-flow/minimap`
 </Note>
+
+<CodeGroup>
+
+```vue App.vue (JavaScript)
+<script setup>
+import { ref } from 'vue'
+import { VueFlow, useVueFlow } from '@vue-flow/core'
+import { Background } from '@vue-flow/background'
+import { Controls } from '@vue-flow/controls'
+import { MiniMap } from '@vue-flow/minimap'
+
+const { onInit, onConnect, addEdges } = useVueFlow()
+
+const nodes = ref([
+  {
+    id: '1',
+    type: 'input',
+    position: { x: 250, y: 5 },
+    data: { label: 'Input Node' },
+  },
+  {
+    id: '2',
+    position: { x: 100, y: 100 },
+    data: { label: 'Default Node' },
+  },
+  {
+    id: '3',
+    type: 'output',
+    position: { x: 400, y: 100 },
+    data: { label: 'Output Node' },
+  },
+])
+
+const edges = ref([
+  {
+    id: 'e1->2',
+    source: '1',
+    target: '2',
+    animated: true,
+  },
+])
+
+// Fit the view when the flow is initialized
+onInit((vueFlowInstance) => {
+  vueFlowInstance.fitView()
+})
+
+// Handle new connections
+onConnect((connection) => {
+  addEdges(connection)
+})
+</script>
+
+<template>
+  <VueFlow
+    v-model:nodes="nodes"
+    v-model:edges="edges"
+    class="vue-flow-container"
+  >
+    <Background pattern-color="#aaa" :gap="16" />
+    <MiniMap />
+    <Controls />
+  </VueFlow>
+</template>
+
+<style>
+@import '@vue-flow/core/dist/style.css';
+@import '@vue-flow/core/dist/theme-default.css';
+
+.vue-flow-container {
+  height: 600px;
+}
+</style>
+```
+
+```vue App.vue (TypeScript)
+<script setup lang="ts">
+import { ref } from 'vue'
+import type { Node, Edge, Connection } from '@vue-flow/core'
+import { VueFlow, useVueFlow } from '@vue-flow/core'
+import { Background } from '@vue-flow/background'
+import { Controls } from '@vue-flow/controls'
+import { MiniMap } from '@vue-flow/minimap'
+
+const { onInit, onConnect, addEdges } = useVueFlow()
+
+const nodes = ref<Node[]>([
+  {
+    id: '1',
+    type: 'input',
+    position: { x: 250, y: 5 },
+    data: { label: 'Input Node' },
+  },
+  {
+    id: '2',
+    position: { x: 100, y: 100 },
+    data: { label: 'Default Node' },
+  },
+  {
+    id: '3',
+    type: 'output',
+    position: { x: 400, y: 100 },
+    data: { label: 'Output Node' },
+  },
+])
+
+const edges = ref<Edge[]>([
+  {
+    id: 'e1->2',
+    source: '1',
+    target: '2',
+    animated: true,
+  },
+])
+
+// Fit the view when the flow is initialized
+onInit((vueFlowInstance) => {
+  vueFlowInstance.fitView()
+})
+
+// Handle new connections
+onConnect((connection: Connection) => {
+  addEdges(connection)
+})
+</script>
+
+<template>
+  <VueFlow
+    v-model:nodes="nodes"
+    v-model:edges="edges"
+    class="vue-flow-container"
+  >
+    <Background pattern-color="#aaa" :gap="16" />
+    <MiniMap />
+    <Controls />
+  </VueFlow>
+</template>
+
+<style>
+@import '@vue-flow/core/dist/style.css';
+@import '@vue-flow/core/dist/theme-default.css';
+
+.vue-flow-container {
+  height: 600px;
+}
+</style>
+```
+
+</CodeGroup>
+
+## Understanding Node Types
+
+Vue Flow provides three built-in node types:
+
+- **`input`**: A node with a handle on the bottom (source)
+- **`default`**: A node with handles on top (target) and bottom (source)
+- **`output`**: A node with a handle on top (target)
+
+<Tip>
+You can create custom node types by using Vue component slots. We'll cover this in the Custom Nodes guide.
+</Tip>
+
+## Understanding Edges
+
+Edges connect nodes and can be customized with various properties:
+
+```javascript
+const edges = ref([
+  {
+    id: 'e1-2',
+    source: '1',      // Source node ID
+    target: '2',      // Target node ID
+    animated: true,   // Animated dashed line
+    label: 'Edge',    // Edge label text
+    type: 'smoothstep' // Edge type: 'default', 'straight', 'step', 'smoothstep'
+  },
+])
+```
+
+## Using the `useVueFlow` Composable
+
+The `useVueFlow` composable provides powerful methods and event hooks:
+
+```javascript
+import { useVueFlow } from '@vue-flow/core'
+
+const {
+  // Methods
+  fitView,           // Fit all nodes in the viewport
+  addNodes,          // Add new nodes
+  addEdges,          // Add new edges
+  setViewport,       // Set viewport position and zoom
+  toObject,          // Export graph data
+  
+  // Event hooks
+  onInit,            // Called when flow is initialized
+  onConnect,         // Called when nodes are connected
+  onNodeDragStop,    // Called when node drag ends
+  onNodeClick,       // Called when node is clicked
+  
+  // State
+  nodes,             // Reactive nodes array
+  edges,             // Reactive edges array
+  viewport,          // Current viewport state
+} = useVueFlow()
+```
+
+## Interactive Features
+
+Your flow now has these built-in features:
+
+- **Pan**: Click and drag the canvas background
+- **Zoom**: Use mouse wheel or trackpad to zoom in/out
+- **Drag Nodes**: Click and drag nodes to reposition them
+- **Select**: Click nodes or edges to select them
+- **Multi-select**: Hold Shift and click to select multiple elements
+- **Box Selection**: Hold Shift and drag to select multiple elements
+- **Connect Nodes**: Drag from a node handle to another node to create a connection
+
+<Tip>
+Use the Controls component to add zoom buttons and fit-view functionality to your flow.
+</Tip>
+
+## Common Patterns
+
+### Adding Nodes Dynamically
+
+```javascript
+import { useVueFlow } from '@vue-flow/core'
+
+const { addNodes } = useVueFlow()
+
+function addNewNode() {
+  const newNode = {
+    id: `node-${Date.now()}`,
+    position: { x: Math.random() * 400, y: Math.random() * 400 },
+    data: { label: 'New Node' },
+  }
+  addNodes([newNode])
+}
+```
+
+### Handling Connections
+
+```javascript
+import { useVueFlow } from '@vue-flow/core'
+
+const { onConnect, addEdges } = useVueFlow()
+
+onConnect((connection) => {
+  // Add custom properties to the connection
+  addEdges({
+    ...connection,
+    animated: true,
+    type: 'smoothstep',
+  })
+})
+```
+
+### Responding to Node Events
+
+```javascript
+import { useVueFlow } from '@vue-flow/core'
+
+const { onNodeClick, onNodeDragStop } = useVueFlow()
+
+onNodeClick(({ node }) => {
+  console.log('Clicked node:', node.id)
+})
+
+onNodeDragStop(({ node }) => {
+  console.log('Node drag ended at position:', node.position)
+})
+```
+
+## Next Steps
+
+Now that you have a working flow, explore more advanced features:
+
+<CardGroup cols={2}>
+  <Card title="Custom Nodes" icon="shapes" href="/guides/custom-nodes">
+    Create custom node components with your own UI and logic
+  </Card>
+  <Card title="Custom Edges" icon="link" href="/guides/custom-edges">
+    Design custom edge styles and add interactive elements
+  </Card>
+  <Card title="State Management" icon="database" href="/concepts/state-management">
+    Learn how to manage and persist your graph state
+  </Card>
+  <Card title="Examples" icon="code" href="/examples/overview">
+    Browse example implementations for common use cases
+  </Card>
+</CardGroup>

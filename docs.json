@@ -1,122 +1,137 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
-  "name": "Mint Starter Kit",
+  "name": "Vue Flow",
+  "theme": "palm",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#42b883",
+    "light": "#42d392",
+    "dark": "#359268"
   },
-  "favicon": "/favicon.svg",
+  "navbar": {
+    "primary": {
+      "type": "github",
+      "href": "https://github.com/bcakmakoglu/vue-flow"
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/bcakmakoglu/vue-flow"
+    }
+  },
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "Documentation",
         "groups": [
           {
-            "group": "Getting started",
+            "group": "Get Started",
             "pages": [
-              "index",
-              "quickstart",
-              "development"
+              "introduction",
+              "installation",
+              "quickstart"
             ]
           },
           {
-            "group": "Customization",
+            "group": "Core Concepts",
             "pages": [
-              "essentials/settings",
-              "essentials/navigation"
+              "concepts/nodes",
+              "concepts/edges",
+              "concepts/handles",
+              "concepts/viewport",
+              "concepts/state-management"
             ]
           },
           {
-            "group": "Writing content",
+            "group": "Guides",
             "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
+              "guides/custom-nodes",
+              "guides/custom-edges",
+              "guides/styling-theming",
+              "guides/controlled-flow",
+              "guides/typescript",
+              "guides/troubleshooting"
             ]
           },
           {
-            "group": "AI tools",
+            "group": "Components",
             "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
+              "components/vue-flow",
+              "components/background",
+              "components/controls",
+              "components/minimap",
+              "components/node-resizer",
+              "components/node-toolbar",
+              "components/panel"
             ]
           }
         ]
       },
       {
-        "tab": "API reference",
+        "tab": "API Reference",
         "groups": [
           {
-            "group": "API documentation",
+            "group": "Core API",
             "pages": [
-              "api-reference/introduction"
+              "api/components",
+              "api/composables",
+              "api/types",
+              "api/utilities"
             ]
           },
           {
-            "group": "Endpoint examples",
+            "group": "Composables",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "api/composables/use-vue-flow",
+              "api/composables/use-node",
+              "api/composables/use-edge",
+              "api/composables/use-handle",
+              "api/composables/use-zoom-pan-helper",
+              "api/composables/use-nodes-data",
+              "api/composables/use-edges-data"
+            ]
+          },
+          {
+            "group": "Types",
+            "pages": [
+              "api/types/node",
+              "api/types/edge",
+              "api/types/connection",
+              "api/types/flow",
+              "api/types/events"
+            ]
+          },
+          {
+            "group": "Plugin APIs",
+            "pages": [
+              "api/plugins/background",
+              "api/plugins/controls",
+              "api/plugins/minimap",
+              "api/plugins/node-resizer",
+              "api/plugins/node-toolbar",
+              "api/plugins/pathfinding-edge"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Examples",
+        "groups": [
+          {
+            "group": "Examples",
+            "pages": [
+              "examples/overview",
+              "examples/basic-flow",
+              "examples/custom-nodes",
+              "examples/custom-edges",
+              "examples/validation",
+              "examples/drag-and-drop",
+              "examples/save-restore",
+              "examples/interaction",
+              "examples/nested-flows"
             ]
           }
         ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
-  },
-  "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
-  },
-  "navbar": {
-    "links": [
-      {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
-      }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
-    }
-  },
-  "contextual": {
-    "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
-  },
-  "footer": {
-    "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
-    }
+    ]
   }
 }

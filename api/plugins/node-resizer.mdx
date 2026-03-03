@@ -1,0 +1,283 @@
+---
+title: NodeResizer
+description: API reference for the NodeResizer plugin component
+---
+
+The NodeResizer component adds interactive resize handles to nodes, allowing users to dynamically resize them.
+
+## Installation
+
+<CodeGroup>
+```bash npm
+npm install @vue-flow/node-resizer
+```
+
+```bash pnpm
+pnpm add @vue-flow/node-resizer
+```
+
+```bash yarn
+yarn add @vue-flow/node-resizer
+```
+</CodeGroup>
+
+<Note>Don't forget to import the styles: `import '@vue-flow/node-resizer/dist/style.css'`</Note>
+
+## Usage
+
+```vue
+<script setup>
+import { VueFlow } from '@vue-flow/core'
+import { NodeResizer } from '@vue-flow/node-resizer'
+import '@vue-flow/node-resizer/dist/style.css'
+
+const nodes = ref([
+  {
+    id: '1',
+    type: 'custom',
+    position: { x: 100, y: 100 }
+  }
+])
+</script>
+
+<template>
+  <VueFlow :nodes="nodes">
+    <template #node-custom="{ data }">
+      <NodeResizer />
+      <div>{{ data.label }}</div>
+    </template>
+  </VueFlow>
+</template>
+```
+
+## Props
+
+<ParamField path="nodeId" type="string">
+  ID of the node to resize. If not provided, the component will use the node ID from context (when used inside a node template).
+</ParamField>
+
+<ParamField path="color" type="string">
+  Color of the resize handles and lines. Accepts any valid CSS color value.
+</ParamField>
+
+<ParamField path="handleClassName" type="string">
+  Custom CSS class name for resize handles (corner controls).
+</ParamField>
+
+<ParamField path="handleStyle" type="CSSProperties">
+  Custom inline styles for resize handles.
+</ParamField>
+
+<ParamField path="lineClassName" type="string">
+  Custom CSS class name for resize lines (edge controls).
+</ParamField>
+
+<ParamField path="lineStyle" type="CSSProperties">
+  Custom inline styles for resize lines.
+</ParamField>
+
+<ParamField path="isVisible" type="boolean" default="true">
+  Show or hide the resize controls.
+</ParamField>
+
+<ParamField path="minWidth" type="number">
+  Minimum width constraint for the node.
+</ParamField>
+
+<ParamField path="minHeight" type="number">
+  Minimum height constraint for the node.
+</ParamField>
+
+<ParamField path="maxWidth" type="number">
+  Maximum width constraint for the node.
+</ParamField>
+
+<ParamField path="maxHeight" type="number">
+  Maximum height constraint for the node.
+</ParamField>
+
+<ParamField path="keepAspectRatio" type="boolean | number">
+  Maintain aspect ratio during resize. 
+  
+  - `true` - Keep the original aspect ratio
+  - `false` - Allow free resizing
+  - `number` - Use a specific aspect ratio value
+</ParamField>
+
+<ParamField path="shouldResize" type="ShouldResize">
+  Callback function to control whether resizing should occur.
+  
+  ```typescript
+  type ShouldResize = (
+    event: ResizeDragEvent,
+    params: ResizeParamsWithDirection
+  ) => boolean
+  
+  interface ResizeParamsWithDirection {
+    x: number
+    y: number
+    width: number
+    height: number
+    direction: number[]
+  }
+  ```
+</ParamField>
+
+<ParamField path="autoScale" type="boolean" default="true">
+  Automatically scale the resize controls with the zoom level.
+</ParamField>
+
+## Events
+
+<ParamField path="@resize-start" type="(event: OnResizeStart) => void">
+  Emitted when resizing starts.
+  
+  ```typescript
+  interface OnResizeStart {
+    event: ResizeDragEvent
+    params: ResizeParams
+  }
+  
+  interface ResizeParams {
+    x: number
+    y: number
+    width: number
+    height: number
+  }
+  ```
+</ParamField>
+
+<ParamField path="@resize" type="(event: OnResize) => void">
+  Emitted during resizing.
+  
+  ```typescript
+  interface OnResize {
+    event: ResizeDragEvent
+    params: ResizeParamsWithDirection
+  }
+  ```
+</ParamField>
+
+<ParamField path="@resize-end" type="(event: OnResizeEnd) => void">
+  Emitted when resizing ends.
+  
+  ```typescript
+  interface OnResizeEnd {
+    event: ResizeDragEvent
+    params: ResizeParams
+  }
+  ```
+</ParamField>
+
+## Examples
+
+### Basic Resizable Node
+
+```vue
+<template #node-custom>
+  <NodeResizer :min-width="100" :min-height="50" />
+  <div>Resizable Content</div>
+</template>
+```
+
+### Constrained Resize
+
+```vue
+<NodeResizer 
+  :min-width="100" 
+  :max-width="400"
+  :min-height="50" 
+  :max-height="300"
+/>
+```
+
+### Keep Aspect Ratio
+
+```vue
+<NodeResizer :keep-aspect-ratio="true" />
+```
+
+### Custom Aspect Ratio
+
+```vue
+<NodeResizer :keep-aspect-ratio="16/9" />
+```
+
+### Custom Colors and Styles
+
+```vue
+<NodeResizer 
+  color="#ff6b6b"
+  :handle-style="{ width: '12px', height: '12px' }"
+  handle-class-name="custom-handle"
+/>
+```
+
+### Handle Resize Events
+
+```vue
+<script setup>
+function onResizeStart({ params }) {
+  console.log('Start size:', params.width, params.height)
+}
+
+function onResize({ params }) {
+  console.log('Resizing:', params.width, params.height)
+}
+
+function onResizeEnd({ params }) {
+  console.log('Final size:', params.width, params.height)
+}
+</script>
+
+<template>
+  <NodeResizer
+    @resize-start="onResizeStart"
+    @resize="onResize"
+    @resize-end="onResizeEnd"
+  />
+</template>
+```
+
+### Conditional Resizing
+
+```vue
+<script setup>
+function shouldResize(event, params) {
+  // Only allow resizing if width is less than 500px
+  return params.width < 500
+}
+</script>
+
+<template>
+  <NodeResizer :should-resize="shouldResize" />
+</template>
+```
+
+## TypeScript
+
+```typescript
+import type { 
+  NodeResizerProps, 
+  ResizeParams,
+  ResizeParamsWithDirection,
+  OnResizeStart,
+  OnResize,
+  OnResizeEnd,
+  ShouldResize,
+  ControlPosition,
+  ControlLinePosition
+} from '@vue-flow/node-resizer'
+
+export enum ResizeControlVariant {
+  Line = 'line',
+  Handle = 'handle',
+}
+```
+
+## Exports
+
+- `NodeResizer` - The main NodeResizer component with handles and lines
+- `NodeResizeControl` - Individual resize control component for custom implementations
+- `NodeResizerProps` - TypeScript interface for NodeResizer props
+- `ResizeControlVariant` - Enum for resize control variants

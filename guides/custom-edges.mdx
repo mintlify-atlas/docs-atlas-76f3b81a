@@ -1,0 +1,573 @@
+---
+title: 'Creating custom edge components'
+description: 'Build custom edge components with labels, buttons, and advanced styling in Vue Flow.'
+keywords: ['custom edges', 'vue flow', 'edge components', 'connections']
+---
+
+Custom edges let you create unique connection styles and add interactive elements to edges. This guide shows you how to build custom edges from basic paths to complex interactive components.
+
+## Basic custom edge
+
+Create a custom edge by defining an edge type, building a component, and registering it with Vue Flow.
+
+<Steps>
+  <Step title="Define your edge type">
+    Create an edge with a custom type:
+
+    ```typescript
+    const edges = ref([
+      {
+        id: 'e1-2',
+        source: '1',
+        target: '2',
+        type: 'custom',
+      },
+    ])
+    ```
+  </Step>
+
+  <Step title="Create the edge component">
+    Build your edge using the `BezierEdge` component as a base:
+
+    ```vue
+    <script setup lang="ts">
+    import type { EdgeProps } from '@vue-flow/core'
+    import { BezierEdge } from '@vue-flow/core'
+
+    const props = defineProps<EdgeProps>()
+    </script>
+
+    <template>
+      <BezierEdge
+        :id="props.id"
+        :source-x="props.sourceX"
+        :source-y="props.sourceY"
+        :target-x="props.targetX"
+        :target-y="props.targetY"
+        :source-position="props.sourcePosition"
+        :target-position="props.targetPosition"
+      />
+    </template>
+    ```
+  </Step>
+
+  <Step title="Register the component">
+    Register your custom edge using a template slot:
+
+    ```vue
+    <script setup>
+    import { VueFlow } from '@vue-flow/core'
+    import CustomEdge from './CustomEdge.vue'
+    </script>
+
+    <template>
+      <VueFlow :nodes="nodes" :edges="edges">
+        <template #edge-custom="props">
+          <CustomEdge v-bind="props" />
+        </template>
+      </VueFlow>
+    </template>
+    ```
+  </Step>
+</Steps>
+
+## Edge types object
+
+Register multiple edge types using the `edgeTypes` prop:
+
+```vue
+<script setup>
+import { markRaw } from 'vue'
+import CustomEdge from './CustomEdge.vue'
+import AnimatedEdge from './AnimatedEdge.vue'
+
+const edgeTypes = {
+  custom: markRaw(CustomEdge),
+  animated: markRaw(AnimatedEdge),
+}
+</script>
+
+<template>
+  <VueFlow :nodes="nodes" :edges="edges" :edge-types="edgeTypes" />
+</template>
+```
+
+<Warning>
+Wrap edge components with `markRaw()` to prevent Vue from making them reactive. This improves performance and prevents warnings.
+</Warning>
+
+## Edge props
+
+Custom edges receive position data, node references, and styling props:
+
+```vue
+<script setup lang="ts">
+import type { EdgeProps } from '@vue-flow/core'
+
+interface CustomData {
+  label: string
+  color: string
+}
+
+const props = defineProps<EdgeProps<CustomData>>()
+</script>
+```
+
+### Available edge props
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `id` | string | Unique edge identifier |
+| `source` | string | Source node ID |
+| `target` | string | Target node ID |
+| `sourceNode` | GraphNode | Source node object |
+| `targetNode` | GraphNode | Target node object |
+| `sourceX` | number | X coordinate of source point |
+| `sourceY` | number | Y coordinate of source point |
+| `targetX` | number | X coordinate of target point |
+| `targetY` | number | Y coordinate of target point |
+| `sourcePosition` | Position | Source handle position (Top, Right, Bottom, Left) |
+| `targetPosition` | Position | Target handle position |
+| `data` | object | Custom data passed to the edge |
+| `selected` | boolean | Whether edge is selected |
+| `markerStart` | string | Start marker ID |
+| `markerEnd` | string | End marker ID |
+
+## Built-in edge types
+
+Vue Flow provides several edge types you can extend:
+
+<Accordion title="BezierEdge">
+Smooth curved edge (default):
+
+```vue
+<script setup>
+import { BezierEdge } from '@vue-flow/core'
+</script>
+
+<template>
+  <BezierEdge v-bind="props" />
+</template>
+```
+</Accordion>
+
+<Accordion title="SmoothStepEdge">
+Rounded step edge:
+
+```vue
+<script setup>
+import { SmoothStepEdge } from '@vue-flow/core'
+</script>
+
+<template>
+  <SmoothStepEdge v-bind="props" />
+</template>
+```
+</Accordion>
+
+<Accordion title="StepEdge">
+Right-angled step edge:
+
+```vue
+<script setup>
+import { StepEdge } from '@vue-flow/core'
+</script>
+
+<template>
+  <StepEdge v-bind="props" />
+</template>
+```
+</Accordion>
+
+<Accordion title="StraightEdge">
+Direct straight line:
+
+```vue
+<script setup>
+import { StraightEdge } from '@vue-flow/core'
+</script>
+
+<template>
+  <StraightEdge v-bind="props" />
+</template>
+```
+</Accordion>
+
+## Custom path rendering
+
+Create a fully custom edge by rendering the SVG path directly:
+
+```vue
+<script setup lang="ts">
+import type { EdgeProps, Position } from '@vue-flow/core'
+import { getBezierPath } from '@vue-flow/core'
+
+interface CustomEdgeProps extends EdgeProps {
+  id: string
+  sourceX: number
+  sourceY: number
+  targetX: number
+  targetY: number
+  sourcePosition: Position
+  targetPosition: Position
+  markerEnd: string
+}
+
+const props = defineProps<CustomEdgeProps>()
+
+const path = computed(() => getBezierPath(props))
+</script>
+
+<template>
+  <path 
+    :id="id" 
+    :d="path[0]" 
+    :marker-end="markerEnd"
+    class="vue-flow__edge-path"
+    :style="{ stroke: '#ff0072', strokeWidth: 2 }"
+  />
+</template>
+```
+
+## Edge labels
+
+Add labels using the `EdgeLabelRenderer`:
+
+```vue
+<script setup lang="ts">
+import type { EdgeProps } from '@vue-flow/core'
+import { getBezierPath, EdgeLabelRenderer } from '@vue-flow/core'
+
+const props = defineProps<EdgeProps>()
+
+const path = computed(() => getBezierPath(props))
+</script>
+
+<template>
+  <path 
+    :id="id" 
+    :d="path[0]" 
+    :marker-end="markerEnd"
+    class="vue-flow__edge-path"
+  />
+  
+  <EdgeLabelRenderer>
+    <div
+      :style="{
+        position: 'absolute',
+        transform: `translate(-50%, -50%) translate(${path[1]}px, ${path[2]}px)`,
+        pointerEvents: 'all',
+      }"
+      class="nodrag nopan"
+    >
+      <div class="edge-label">
+        {{ data.label }}
+      </div>
+    </div>
+  </EdgeLabelRenderer>
+</template>
+
+<style scoped>
+.edge-label {
+  background: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  font-size: 12px;
+}
+</style>
+```
+
+<Tip>
+Use `EdgeLabelRenderer` to position labels and buttons at the center of the edge path. The computed path returns `[pathString, labelX, labelY]`.
+</Tip>
+
+## Interactive edges
+
+Add buttons and interactive elements to edges:
+
+```vue
+<script setup lang="ts">
+import type { EdgeProps } from '@vue-flow/core'
+import { getBezierPath, EdgeLabelRenderer, useVueFlow } from '@vue-flow/core'
+
+const props = defineProps<EdgeProps>()
+const { removeEdges } = useVueFlow()
+
+const path = computed(() => getBezierPath(props))
+
+function onDeleteClick() {
+  removeEdges(props.id)
+}
+</script>
+
+<template>
+  <path 
+    :id="id" 
+    :d="path[0]" 
+    :marker-end="markerEnd"
+    class="vue-flow__edge-path"
+  />
+  
+  <EdgeLabelRenderer>
+    <div
+      :style="{
+        position: 'absolute',
+        transform: `translate(-50%, -50%) translate(${path[1]}px, ${path[2]}px)`,
+        pointerEvents: 'all',
+      }"
+      class="nodrag nopan"
+    >
+      <button class="edge-button" @click="onDeleteClick">
+        ×
+      </button>
+    </div>
+  </EdgeLabelRenderer>
+</template>
+
+<style scoped>
+.edge-button {
+  width: 24px;
+  height: 24px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.edge-button:hover {
+  background: #f05f75;
+  color: white;
+  border-color: #f05f75;
+}
+</style>
+```
+
+## Updating edge data
+
+Use the `useEdge` composable to access and update edge data:
+
+```vue
+<script setup lang="ts">
+import { useEdge } from '@vue-flow/core'
+
+const { edge } = useEdge()
+
+function updateEdgeData(newData: any) {
+  edge.data = {
+    ...edge.data,
+    ...newData,
+  }
+}
+
+function toggleAnimated() {
+  edge.animated = !edge.animated
+}
+</script>
+```
+
+## Path helpers
+
+Vue Flow provides helper functions to generate edge paths:
+
+```typescript
+import { 
+  getBezierPath,
+  getSmoothStepPath,
+  getStraightPath,
+} from '@vue-flow/core'
+
+// Bezier curve
+const [path, labelX, labelY] = getBezierPath({
+  sourceX: props.sourceX,
+  sourceY: props.sourceY,
+  targetX: props.targetX,
+  targetY: props.targetY,
+  sourcePosition: props.sourcePosition,
+  targetPosition: props.targetPosition,
+  curvature: 0.25,  // Optional: 0-1, default is 0.25
+})
+
+// Smooth step path
+const [path, labelX, labelY] = getSmoothStepPath({
+  sourceX: props.sourceX,
+  sourceY: props.sourceY,
+  targetX: props.targetX,
+  targetY: props.targetY,
+  sourcePosition: props.sourcePosition,
+  targetPosition: props.targetPosition,
+  borderRadius: 8,  // Optional
+  offset: 20,       // Optional
+})
+
+// Straight path
+const [path, labelX, labelY] = getStraightPath({
+  sourceX: props.sourceX,
+  sourceY: props.sourceY,
+  targetX: props.targetX,
+  targetY: props.targetY,
+})
+```
+
+## Styling edges
+
+Style edges using CSS or inline styles:
+
+```css
+.vue-flow__edge-custom {
+  stroke: #ff0072;
+  stroke-width: 2px;
+}
+
+.vue-flow__edge-custom.selected {
+  stroke: #ff6b9d;
+  stroke-width: 3px;
+}
+
+.vue-flow__edge-custom .vue-flow__edge-path {
+  stroke-dasharray: 5, 5;
+  animation: dash 1s linear infinite;
+}
+
+@keyframes dash {
+  to {
+    stroke-dashoffset: -10;
+  }
+}
+```
+
+Or in edge definitions:
+
+```typescript
+const edges = ref([
+  {
+    id: 'e1-2',
+    source: '1',
+    target: '2',
+    type: 'custom',
+    style: {
+      stroke: '#ff0072',
+      strokeWidth: 2,
+    },
+    animated: true,
+  },
+])
+```
+
+## Markers
+
+Add arrow markers to edges:
+
+```typescript
+import { MarkerType } from '@vue-flow/core'
+
+const edges = ref([
+  {
+    id: 'e1-2',
+    source: '1',
+    target: '2',
+    markerEnd: {
+      type: MarkerType.ArrowClosed,
+      color: '#ff0072',
+      width: 20,
+      height: 20,
+    },
+    markerStart: {
+      type: MarkerType.Arrow,
+      color: '#0041d0',
+    },
+  },
+])
+```
+
+## Complete example
+
+Here's a complete custom edge with a delete button:
+
+```vue CustomEdge.vue
+<script setup lang="ts">
+import type { EdgeProps, Position } from '@vue-flow/core'
+import { EdgeLabelRenderer, getBezierPath, useVueFlow } from '@vue-flow/core'
+import type { CSSProperties } from 'vue'
+
+interface CustomEdgeProps extends EdgeProps {
+  id: string
+  sourceX: number
+  sourceY: number
+  targetX: number
+  targetY: number
+  sourcePosition: Position
+  targetPosition: Position
+  data: any
+  markerEnd: string
+  style?: CSSProperties
+}
+
+const props = defineProps<CustomEdgeProps>()
+const { removeEdges } = useVueFlow()
+
+const path = computed(() => getBezierPath(props))
+</script>
+
+<script lang="ts">
+export default {
+  inheritAttrs: false,
+}
+</script>
+
+<template>
+  <path 
+    :id="id" 
+    :style="style" 
+    class="vue-flow__edge-path" 
+    :d="path[0]" 
+    :marker-end="markerEnd" 
+  />
+
+  <EdgeLabelRenderer>
+    <div
+      :style="{
+        pointerEvents: 'all',
+        position: 'absolute',
+        transform: `translate(-50%, -50%) translate(${path[1]}px, ${path[2]}px)`,
+      }"
+      class="nodrag nopan"
+    >
+      <button class="edge-button" @click="removeEdges(id)">×</button>
+    </div>
+  </EdgeLabelRenderer>
+</template>
+
+<style scoped>
+.edge-button {
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  background: white;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.edge-button:hover {
+  box-shadow: 0 0 0 2px pink, 0 0 0 4px #f05f75;
+}
+</style>
+```
+
+## Next steps
+
+<Columns cols={2}>
+  <Card title="Edge events" icon="mouse-pointer" href="/api-reference/edges">
+    Handle edge interactions and events
+  </Card>
+  <Card title="Styling guide" icon="palette" href="/guides/styling-theming">
+    Advanced styling and theming
+  </Card>
+</Columns>

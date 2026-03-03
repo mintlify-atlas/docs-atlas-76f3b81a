@@ -1,0 +1,250 @@
+---
+title: Installation
+description: Install Vue Flow in your Vue 3 project
+---
+
+# Installation
+
+Vue Flow is distributed as an npm package. You can install it using your preferred package manager.
+
+## Prerequisites
+
+Before installing Vue Flow, make sure you have:
+
+- **Node.js** v20 or above installed
+- **Vue 3.3** or above in your project
+
+<Warning>
+Vue Flow requires Vue 3.3 or higher. It does not support Vue 2 as it uses features exclusive to Vue 3.
+</Warning>
+
+## Install the Package
+
+Choose your preferred package manager to install the core Vue Flow package:
+
+<CodeGroup>
+
+```bash npm
+npm install @vue-flow/core
+```
+
+```bash pnpm
+pnpm add @vue-flow/core
+```
+
+```bash yarn
+yarn add @vue-flow/core
+```
+
+</CodeGroup>
+
+## Import Required Styles
+
+Vue Flow requires CSS styles to work correctly. Import these styles in your main application file or component:
+
+```css
+/* Required styles for Vue Flow */
+@import '@vue-flow/core/dist/style.css';
+
+/* Default theme (optional but recommended) */
+@import '@vue-flow/core/dist/theme-default.css';
+```
+
+<Info>
+The base styles (`style.css`) are required for Vue Flow to function properly. The default theme (`theme-default.css`) is optional but provides sensible defaults for nodes and edges.
+</Info>
+
+<Warning>
+Do not scope these styles with the `scoped` attribute in your Vue components. They need to be globally available.
+</Warning>
+
+### Example Setup
+
+Here's how to import the styles in your main application file:
+
+<CodeGroup>
+
+```js main.js
+import { createApp } from 'vue'
+import App from './App.vue'
+
+// Import Vue Flow styles
+import '@vue-flow/core/dist/style.css'
+import '@vue-flow/core/dist/theme-default.css'
+
+const app = createApp(App)
+app.mount('#app')
+```
+
+```vue App.vue
+<script setup>
+import { VueFlow } from '@vue-flow/core'
+</script>
+
+<template>
+  <VueFlow />
+</template>
+
+<style>
+/* Import Vue Flow styles in your root component */
+@import '@vue-flow/core/dist/style.css';
+@import '@vue-flow/core/dist/theme-default.css';
+</style>
+```
+
+</CodeGroup>
+
+## Optional Packages
+
+Vue Flow offers additional packages for extended functionality:
+
+### Background
+
+Add customizable background patterns to your flow:
+
+<CodeGroup>
+
+```bash npm
+npm install @vue-flow/background
+```
+
+```bash pnpm
+pnpm add @vue-flow/background
+```
+
+```bash yarn
+yarn add @vue-flow/background
+```
+
+</CodeGroup>
+
+### MiniMap
+
+Display a mini overview map of your flow:
+
+<CodeGroup>
+
+```bash npm
+npm install @vue-flow/minimap
+```
+
+```bash pnpm
+pnpm add @vue-flow/minimap
+```
+
+```bash yarn
+yarn add @vue-flow/minimap
+```
+
+</CodeGroup>
+
+### Controls
+
+Add interactive zoom and control buttons:
+
+<CodeGroup>
+
+```bash npm
+npm install @vue-flow/controls
+```
+
+```bash pnpm
+pnpm add @vue-flow/controls
+```
+
+```bash yarn
+yarn add @vue-flow/controls
+```
+
+</CodeGroup>
+
+### Node Toolbar
+
+Add contextual toolbars to your nodes:
+
+<CodeGroup>
+
+```bash npm
+npm install @vue-flow/node-toolbar
+```
+
+```bash pnpm
+pnpm add @vue-flow/node-toolbar
+```
+
+```bash yarn
+yarn add @vue-flow/node-toolbar
+```
+
+</CodeGroup>
+
+### Node Resizer
+
+Enable node resizing functionality:
+
+<CodeGroup>
+
+```bash npm
+npm install @vue-flow/node-resizer
+```
+
+```bash pnpm
+pnpm add @vue-flow/node-resizer
+```
+
+```bash yarn
+yarn add @vue-flow/node-resizer
+```
+
+</CodeGroup>
+
+<Tip>
+You can install multiple packages at once:
+```bash
+npm install @vue-flow/core @vue-flow/background @vue-flow/controls @vue-flow/minimap
+```
+</Tip>
+
+## TypeScript Support
+
+Vue Flow is written entirely in TypeScript and includes type definitions out of the box. No additional packages are needed for TypeScript support.
+
+```typescript
+import type { Node, Edge } from '@vue-flow/core'
+import { VueFlow } from '@vue-flow/core'
+```
+
+<Note>
+For the best developer experience and to catch common errors early, we highly recommend using TypeScript with Vue Flow.
+</Note>
+
+## Verify Installation
+
+To verify that Vue Flow is installed correctly, create a simple flow:
+
+```vue
+<script setup>
+import { ref } from 'vue'
+import { VueFlow } from '@vue-flow/core'
+
+const nodes = ref([
+  { id: '1', position: { x: 0, y: 0 }, label: 'Node 1' }
+])
+</script>
+
+<template>
+  <div style="height: 400px">
+    <VueFlow :nodes="nodes" />
+  </div>
+</template>
+```
+
+<Info>
+Make sure to set a height on the VueFlow container element. Without a defined height, the component won't be visible.
+</Info>
+
+## Next Steps
+
+<Card title="Quick Start Guide" icon="rocket" href="/quickstart">
+  Learn how to create your first interactive flowchart with Vue Flow
+</Card>

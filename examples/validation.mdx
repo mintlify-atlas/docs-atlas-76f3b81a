@@ -1,0 +1,412 @@
+---
+title: Validation
+description: Validate connections between nodes before they are created
+---
+
+This example demonstrates how to validate connections between nodes in Vue Flow. You can control which nodes can connect to each other using validation functions.
+
+## Live Demo
+
+View the [live demo](https://vueflow.dev/examples/#/validation) on vueflow.dev.
+
+## Complete Example
+
+<CodeGroup>
+```vue ValidationExample.vue
+<script lang="ts" setup>
+import type { Connection, OnConnectStartParams } from '@vue-flow/core'
+import { VueFlow, useVueFlow } from '@vue-flow/core'
+import CustomInput from './CustomInput.vue'
+import CustomNode from './CustomNode.vue'
+
+const { addEdges } = useVueFlow({
+  nodes: [
+    { 
+      id: '0', 
+      type: 'custominput', 
+      position: { x: 0, y: 150 }, 
+      isValidTargetPos: (connection) => connection.target === 'B' 
+    },
+    {
+      id: 'A',
+      type: 'customnode',
+      position: { x: 250, y: 0 },
+      isValidSourcePos: () => false,
+    },
+    { 
+      id: 'B', 
+      type: 'customnode', 
+      position: { x: 250, y: 150 }, 
+      isValidSourcePos: (connection) => connection.target === 'B' 
+    },
+    { 
+      id: 'C', 
+      type: 'customnode', 
+      position: { x: 250, y: 300 }, 
+      isValidSourcePos: (connection) => connection.target === 'B' 
+    },
+  ],
+})
+
+function onConnectStart({ nodeId, handleType }: OnConnectStartParams) {
+  console.log('on connect start', { nodeId, handleType })
+}
+
+function onConnectEnd(event: MouseEvent) {
+  console.log('on connect end', event)
+}
+
+function onConnect(params: Connection) {
+  console.log('on connect', params)
+  addEdges(params)
+}
+</script>
+
+<template>
+  <VueFlow
+    :select-nodes-on-drag="false"
+    class="validationflow"
+    @connect="onConnect"
+    @connect-start="onConnectStart"
+    @connect-end="onConnectEnd"
+  >
+    <template #node-custominput="props">
+      <CustomInput v-bind="props" />
+    </template>
+    <template #node-customnode="props">
+      <CustomNode v-bind="props" />
+    </template>
+  </VueFlow>
+</template>
+```
+
+```vue CustomInput.vue
+<script lang="ts" setup>
+import type { ValidConnectionFunc } from '@vue-flow/core'
+import { Handle, Position } from '@vue-flow/core'
+
+interface CustomInputProps {
+  isValidTargetPos: ValidConnectionFunc
+}
+const props = defineProps<CustomInputProps>()
+</script>
+
+<script lang="ts">
+export default {
+  inheritAttrs: false,
+}
+</script>
+
+<template>
+  <div>Only connectable with B</div>
+  <Handle 
+    type="source" 
+    :position="Position.Right" 
+    :is-valid-connection="props.isValidTargetPos" 
+  />
+</template>
+```
+
+```vue CustomNode.vue
+<script lang="ts" setup>
+import type { NodeProps, ValidConnectionFunc } from '@vue-flow/core'
+import { Handle, Position } from '@vue-flow/core'
+
+interface CustomNodeProps extends NodeProps {
+  id: string
+  isValidSourcePos: ValidConnectionFunc
+}
+
+const props = defineProps<CustomNodeProps>()
+</script>
+
+<script lang="ts">
+export default {
+  inheritAttrs: false,
+}
+</script>
+
+<template>
+  <Handle 
+    type="target" 
+    :position="Position.Left" 
+    :is-valid-connection="props.isValidSourcePos" 
+  />
+  <div>{{ props.id }}</div>
+</template>
+```
+</CodeGroup>
+
+## Key Concepts
+
+### Validation Functions
+
+Validation functions determine whether a connection is allowed. They receive a connection object and return a boolean:
+
+```typescript
+type ValidConnectionFunc = (connection: Connection) => boolean
+
+interface Connection {
+  source: string
+  target: string
+  sourceHandle?: string | null
+  targetHandle?: string | null
+}
+```
+
+### Node-Level Validation
+
+Set validation on individual nodes:
+
+```typescript
+const nodes = ref([
+  {
+    id: 'A',
+    type: 'customnode',
+    position: { x: 250, y: 0 },
+    // This node cannot be a source
+    isValidSourcePos: () => false,
+  },
+  {
+    id: 'B',
+    type: 'customnode',
+    position: { x: 250, y: 150 },
+    // This node can only connect to node 'B'
+    isValidSourcePos: (connection) => connection.target === 'B',
+  },
+])
+```
+
+### Handle-Level Validation
+
+Pass validation to individual handles:
+
+```vue
+<Handle 
+  type="source" 
+  :position="Position.Right" 
+  :is-valid-connection="isValidConnection" 
+/>
+```
+
+```typescript
+function isValidConnection(connection: Connection) {
+  // Only allow connections to node 'B'
+  return connection.target === 'B'
+}
+```
+
+## Validation Types
+
+<Tabs>
+  <Tab title="isValidSourcePos">
+    Validates when this node is the **source** of a connection:
+    
+    ```typescript
+    {
+      id: '1',
+      position: { x: 0, y: 0 },
+      isValidSourcePos: (connection) => {
+        // Allow connections only to node '2'
+        return connection.target === '2'
+      }
+    }
+    ```
+  </Tab>
+  
+  <Tab title="isValidTargetPos">
+    Validates when this node is the **target** of a connection:
+    
+    ```typescript
+    {
+      id: '2',
+      position: { x: 100, y: 0 },
+      isValidTargetPos: (connection) => {
+        // Only accept connections from node '1'
+        return connection.source === '1'
+      }
+    }
+    ```
+  </Tab>
+  
+  <Tab title="Handle Validation">
+    Validate specific handles:
+    
+    ```vue
+    <Handle 
+      id="a"
+      type="source" 
+      :position="Position.Right" 
+      :is-valid-connection="(conn) => conn.target === 'specificNode'" 
+    />
+    ```
+  </Tab>
+</Tabs>
+
+## Connection Events
+
+Listen to connection events to track connection attempts:
+
+```vue
+<VueFlow
+  @connect="onConnect"
+  @connect-start="onConnectStart"
+  @connect-end="onConnectEnd"
+>
+  <!-- ... -->
+</VueFlow>
+```
+
+```typescript
+function onConnectStart({ nodeId, handleType }: OnConnectStartParams) {
+  console.log('User started connecting from:', nodeId, handleType)
+}
+
+function onConnectEnd(event: MouseEvent) {
+  console.log('Connection attempt ended')
+}
+
+function onConnect(params: Connection) {
+  console.log('Valid connection created:', params)
+  addEdges(params)
+}
+```
+
+## Advanced Validation
+
+### Prevent Self-Connections
+
+```typescript
+function isValidConnection(connection: Connection) {
+  return connection.source !== connection.target
+}
+```
+
+### Validate by Node Type
+
+```typescript
+const { findNode } = useVueFlow()
+
+function isValidConnection(connection: Connection) {
+  const sourceNode = findNode(connection.source)
+  const targetNode = findNode(connection.target)
+  
+  // Only allow input nodes to connect to output nodes
+  return sourceNode?.type === 'input' && targetNode?.type === 'output'
+}
+```
+
+### Limit Number of Connections
+
+```typescript
+const { edges } = useVueFlow()
+
+function isValidConnection(connection: Connection) {
+  // Count existing connections from this source
+  const existingConnections = edges.value.filter(
+    (edge) => edge.source === connection.source
+  )
+  
+  // Limit to 3 connections
+  return existingConnections.length < 3
+}
+```
+
+### Validate Handle Connections
+
+```typescript
+function isValidConnection(connection: Connection) {
+  // Only allow connection from handle 'a' to handle 'b'
+  return connection.sourceHandle === 'a' && connection.targetHandle === 'b'
+}
+```
+
+## Visual Feedback
+
+Provide visual feedback for invalid connections using CSS:
+
+```css
+/* Valid connection */
+.vue-flow__edge.valid {
+  stroke: green;
+}
+
+/* Invalid connection */
+.vue-flow__edge.invalid {
+  stroke: red;
+}
+
+/* Handle states */
+.vue-flow__handle-valid {
+  background: green;
+}
+
+.vue-flow__handle-connecting {
+  background: blue;
+}
+```
+
+## Global Validation
+
+Set validation for all connections:
+
+```typescript
+const { onConnect } = useVueFlow({
+  isValidConnection: (connection) => {
+    // Global validation logic
+    return connection.source !== connection.target
+  }
+})
+
+onConnect((params) => {
+  // This only runs if validation passes
+  addEdges(params)
+})
+```
+
+## TypeScript Support
+
+```typescript
+import type { ValidConnectionFunc, Connection } from '@vue-flow/core'
+
+const isValidConnection: ValidConnectionFunc = (connection: Connection) => {
+  return connection.target === 'allowedNode'
+}
+```
+
+## Best Practices
+
+<Note>
+  - Combine node-level and handle-level validation for fine-grained control
+  - Provide visual feedback when connections are invalid
+  - Use TypeScript for type-safe validation functions
+  - Consider performance when validating in large graphs
+</Note>
+
+## Example Use Cases
+
+1. **Type-safe connections**: Only allow certain node types to connect
+2. **Direction enforcement**: Enforce data flow direction (e.g., input → processing → output)
+3. **Cycle prevention**: Prevent circular dependencies
+4. **Capacity limits**: Limit the number of connections per node
+5. **Handle matching**: Ensure compatible handles connect (e.g., data types)
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Custom Nodes" icon="cube" href="/examples/custom-nodes">
+    Create custom node components
+  </Card>
+  
+  <Card title="Drag and Drop" icon="hand-pointer" href="/examples/drag-and-drop">
+    Add nodes via drag and drop
+  </Card>
+  
+  <Card title="Connection API" icon="book" href="/api/types/connection">
+    Connection type reference
+  </Card>
+  
+  <Card title="Events" icon="bolt" href="/api/types/events">
+    Learn about all available events
+  </Card>
+</CardGroup>

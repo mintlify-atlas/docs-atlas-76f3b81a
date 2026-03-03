@@ -1,0 +1,331 @@
+---
+title: useVueFlow
+description: Access the Vue Flow store instance and its state, actions, and event hooks
+---
+
+`useVueFlow` is the main composable that provides access to a Vue Flow store instance. It gives you access to the entire state, all actions, and event hooks for managing your flow diagram.
+
+## Usage
+
+<CodeGroup>
+```vue Basic Usage
+<script setup>
+import { useVueFlow } from '@vue-flow/core'
+
+const { nodes, edges, addNodes, addEdges } = useVueFlow()
+
+// Add nodes programmatically
+addNodes([
+  { id: '1', position: { x: 0, y: 0 }, data: { label: 'Node 1' } },
+  { id: '2', position: { x: 100, y: 100 }, data: { label: 'Node 2' } }
+])
+
+// Add edges
+addEdges([
+  { id: 'e1-2', source: '1', target: '2' }
+])
+</script>
+```
+
+```vue With Store ID
+<script setup>
+import { useVueFlow } from '@vue-flow/core'
+
+// Access a specific store by ID
+const { nodes, edges } = useVueFlow('my-flow-id')
+</script>
+```
+
+```vue With Options
+<script setup>
+import { useVueFlow } from '@vue-flow/core'
+
+// Create or access a store with options
+const vueFlow = useVueFlow({
+  id: 'my-flow',
+  nodes: [
+    { id: '1', position: { x: 0, y: 0 }, data: { label: 'Node 1' } }
+  ],
+  edges: []
+})
+</script>
+```
+</CodeGroup>
+
+## Signature
+
+```typescript
+function useVueFlow(id?: string): VueFlowStore
+function useVueFlow(options?: FlowOptions): VueFlowStore
+```
+
+## Parameters
+
+<ParamField path="id" type="string" optional>
+  The ID of a specific store instance to access. If not provided, the store is injected from context.
+</ParamField>
+
+<ParamField path="options" type="FlowOptions" optional>
+  Options to create or configure a store instance. Includes:
+  - `id` - Store identifier
+  - `nodes` - Initial nodes
+  - `edges` - Initial edges
+  - `modelValue` - Elements (nodes + edges)
+  - And all other flow configuration options
+</ParamField>
+
+## Return Value
+
+Returns a `VueFlowStore` object containing:
+
+### State Properties
+
+<ResponseField name="nodes" type="GraphNode[]">
+  All nodes in the flow
+</ResponseField>
+
+<ResponseField name="edges" type="GraphEdge[]">
+  All edges in the flow
+</ResponseField>
+
+<ResponseField name="viewport" type="ViewportTransform">
+  Current viewport transform (x, y, zoom)
+</ResponseField>
+
+<ResponseField name="dimensions" type="Dimensions">
+  Viewport dimensions (width, height)
+</ResponseField>
+
+<ResponseField name="vueFlowRef" type="HTMLDivElement | null">
+  Reference to the Vue Flow container element
+</ResponseField>
+
+<ResponseField name="viewportRef" type="HTMLDivElement | null">
+  Reference to the viewport element
+</ResponseField>
+
+### Node Actions
+
+<ResponseField name="addNodes" type="(nodes: Node | Node[]) => void">
+  Add one or more nodes to the flow
+</ResponseField>
+
+<ResponseField name="setNodes" type="(nodes: Node[]) => void">
+  Replace all nodes in the flow
+</ResponseField>
+
+<ResponseField name="removeNodes" type="(nodes: string | Node | Array) => void">
+  Remove nodes by ID or node object. Optionally removes connected edges and children.
+</ResponseField>
+
+<ResponseField name="updateNode" type="(id: string, update: Partial<Node>) => void">
+  Update a specific node by ID
+</ResponseField>
+
+<ResponseField name="updateNodeData" type="(id: string, dataUpdate: Partial<Data>) => void">
+  Update only the data property of a node
+</ResponseField>
+
+<ResponseField name="findNode" type="(id: string) => GraphNode | undefined">
+  Find a node by its ID
+</ResponseField>
+
+<ResponseField name="applyNodeChanges" type="(changes: NodeChange[]) => GraphNode[]">
+  Apply an array of node changes (used internally for reactivity)
+</ResponseField>
+
+### Edge Actions
+
+<ResponseField name="addEdges" type="(edges: Edge | Connection | Array) => void">
+  Add one or more edges to the flow
+</ResponseField>
+
+<ResponseField name="setEdges" type="(edges: Edge[]) => void">
+  Replace all edges in the flow
+</ResponseField>
+
+<ResponseField name="removeEdges" type="(edges: string | Edge | Array) => void">
+  Remove edges by ID or edge object
+</ResponseField>
+
+<ResponseField name="updateEdge" type="(oldEdge: GraphEdge, newConnection: Connection) => GraphEdge | false">
+  Update an existing edge with a new connection
+</ResponseField>
+
+<ResponseField name="updateEdgeData" type="(id: string, dataUpdate: Partial<Data>) => void">
+  Update only the data property of an edge
+</ResponseField>
+
+<ResponseField name="findEdge" type="(id: string) => GraphEdge | undefined">
+  Find an edge by its ID
+</ResponseField>
+
+<ResponseField name="applyEdgeChanges" type="(changes: EdgeChange[]) => GraphEdge[]">
+  Apply an array of edge changes (used internally for reactivity)
+</ResponseField>
+
+### Viewport Actions
+
+<ResponseField name="fitView" type="(options?: FitViewOptions) => Promise<boolean>">
+  Fit the view to show all nodes
+</ResponseField>
+
+<ResponseField name="zoomIn" type="(options?: TransitionOptions) => Promise<boolean>">
+  Zoom in the viewport
+</ResponseField>
+
+<ResponseField name="zoomOut" type="(options?: TransitionOptions) => Promise<boolean>">
+  Zoom out the viewport
+</ResponseField>
+
+<ResponseField name="zoomTo" type="(zoomLevel: number, options?: TransitionOptions) => Promise<boolean>">
+  Set zoom to a specific level
+</ResponseField>
+
+<ResponseField name="setViewport" type="(transform: ViewportTransform, options?: TransitionOptions) => Promise<boolean>">
+  Set the viewport transform (position and zoom)
+</ResponseField>
+
+<ResponseField name="getViewport" type="() => ViewportTransform">
+  Get the current viewport transform
+</ResponseField>
+
+<ResponseField name="setCenter" type="(x: number, y: number, options?: SetCenterOptions) => Promise<boolean>">
+  Center the viewport on specific coordinates
+</ResponseField>
+
+<ResponseField name="fitBounds" type="(bounds: Rect, options?: FitBoundsOptions) => Promise<boolean>">
+  Fit the viewport to specific bounds
+</ResponseField>
+
+<ResponseField name="project" type="(position: XYPosition) => XYPosition">
+  Convert screen coordinates to flow coordinates
+</ResponseField>
+
+### Selection Actions
+
+<ResponseField name="addSelectedNodes" type="(nodes: GraphNode[]) => void">
+  Add nodes to the current selection
+</ResponseField>
+
+<ResponseField name="addSelectedEdges" type="(edges: GraphEdge[]) => void">
+  Add edges to the current selection
+</ResponseField>
+
+<ResponseField name="removeSelectedNodes" type="(nodes: GraphNode[]) => void">
+  Remove nodes from the current selection
+</ResponseField>
+
+<ResponseField name="removeSelectedEdges" type="(edges: GraphEdge[]) => void">
+  Remove edges from the current selection
+</ResponseField>
+
+<ResponseField name="removeSelectedElements" type="(elements?: Elements) => void">
+  Clear the selection (or remove specific elements from selection)
+</ResponseField>
+
+### Event Hooks
+
+<ResponseField name="onNodesChange" type="(handler: (changes: NodeChange[]) => void) => void">
+  Listen to node changes
+</ResponseField>
+
+<ResponseField name="onEdgesChange" type="(handler: (changes: EdgeChange[]) => void) => void">
+  Listen to edge changes
+</ResponseField>
+
+<ResponseField name="onConnect" type="(handler: (connection: Connection) => void) => void">
+  Listen to new connections
+</ResponseField>
+
+<ResponseField name="onNodeClick" type="(handler: NodeMouseEvent) => void">
+  Listen to node click events
+</ResponseField>
+
+<ResponseField name="onEdgeClick" type="(handler: EdgeMouseEvent) => void">
+  Listen to edge click events
+</ResponseField>
+
+## Examples
+
+### Managing Nodes and Edges
+
+```vue
+<script setup>
+import { useVueFlow } from '@vue-flow/core'
+import { ref } from 'vue'
+
+const { nodes, edges, addNodes, removeNodes, findNode } = useVueFlow()
+
+function addNewNode() {
+  const newNode = {
+    id: `node-${Date.now()}`,
+    position: { x: Math.random() * 400, y: Math.random() * 400 },
+    data: { label: 'New Node' }
+  }
+  addNodes(newNode)
+}
+
+function removeNode(nodeId: string) {
+  removeNodes(nodeId, true) // true = remove connected edges
+}
+
+function getNodeData(nodeId: string) {
+  const node = findNode(nodeId)
+  return node?.data
+}
+</script>
+```
+
+### Working with Viewport
+
+```vue
+<script setup>
+import { useVueFlow } from '@vue-flow/core'
+import { onMounted } from 'vue'
+
+const { fitView, zoomTo, setCenter } = useVueFlow()
+
+onMounted(() => {
+  // Fit all nodes in view when component mounts
+  fitView({ padding: 0.2 })
+})
+
+function resetView() {
+  zoomTo(1) // Reset zoom to 100%
+  setCenter(0, 0) // Center on origin
+}
+</script>
+```
+
+### Listening to Events
+
+```vue
+<script setup>
+import { useVueFlow } from '@vue-flow/core'
+import { onMounted } from 'vue'
+
+const { onNodeClick, onConnect, onNodesChange } = useVueFlow()
+
+onMounted(() => {
+  onNodeClick((event) => {
+    console.log('Node clicked:', event.node)
+  })
+
+  onConnect((connection) => {
+    console.log('Nodes connected:', connection)
+  })
+
+  onNodesChange((changes) => {
+    console.log('Nodes changed:', changes)
+  })
+})
+</script>
+```
+
+## Notes
+
+- If no ID is provided, the store instance is injected from context (automatically available inside `<VueFlow>` component)
+- If no store instance is found in context, a new store instance is created and registered in storage
+- When passing options object, it will create a new store or update an existing one with those options
+- The store is automatically destroyed when the scope is disposed

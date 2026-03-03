@@ -1,0 +1,138 @@
+---
+title: Components
+description: Overview of all Vue Flow components
+---
+
+Vue Flow provides a comprehensive set of components for building interactive node-based diagrams and workflows.
+
+## Core Components
+
+<CardGroup cols={2}>
+  <Card title="VueFlow" icon="diagram-project" href="/components/vue-flow">
+    Main container component for rendering the flow canvas
+  </Card>
+  
+  <Card title="Handle" icon="circle-dot">
+    Connection point component for nodes
+  </Card>
+  
+  <Card title="Panel" icon="window" href="/components/panel">
+    Floating panel component for UI controls
+  </Card>
+  
+  <Card title="BaseEdge" icon="arrow-right">
+    Base component for creating custom edges
+  </Card>
+</CardGroup>
+
+## Edge Components
+
+Vue Flow includes several built-in edge types for connecting nodes:
+
+<CardGroup cols={2}>
+  <Card title="BezierEdge" icon="bezier-curve">
+    Curved edge with smooth bezier curves
+  </Card>
+  
+  <Card title="SimpleBezierEdge" icon="wave-sine">
+    Simplified bezier curve for better performance
+  </Card>
+  
+  <Card title="SmoothStepEdge" icon="stairs">
+    Right-angled edge with smooth corners
+  </Card>
+  
+  <Card title="StepEdge" icon="grip-lines">
+    Right-angled edge with sharp corners
+  </Card>
+  
+  <Card title="StraightEdge" icon="minus">
+    Direct straight line connection
+  </Card>
+</CardGroup>
+
+## Edge Utilities
+
+<CardGroup cols={2}>
+  <Card title="EdgeText" icon="text">
+    Component for rendering text labels on edges
+  </Card>
+  
+  <Card title="EdgeLabelRenderer" icon="layer-group">
+    Portal component for rendering custom edge labels
+  </Card>
+</CardGroup>
+
+## Node Components
+
+Vue Flow provides default node implementations that can be used out of the box:
+
+- **DefaultNode** - Standard node with input and output handles
+- **InputNode** - Node with only output handles
+- **OutputNode** - Node with only input handles
+
+<Note>
+  All default node types can be customized or replaced with your own custom node components.
+</Note>
+
+## Usage Example
+
+<CodeGroup>
+```vue Component Imports
+<script setup>
+import { VueFlow, Handle, Panel, BezierEdge } from '@vue-flow/core'
+
+const nodes = ref([
+  { id: '1', position: { x: 0, y: 0 }, label: 'Node 1' }
+])
+
+const edges = ref([
+  { id: 'e1-2', source: '1', target: '2' }
+])
+</script>
+
+<template>
+  <VueFlow :nodes="nodes" :edges="edges">
+    <Panel position="top-left">
+      <button>Controls</button>
+    </Panel>
+  </VueFlow>
+</template>
+```
+
+```vue Custom Node with Handles
+<script setup>
+import { Handle, Position } from '@vue-flow/core'
+</script>
+
+<template>
+  <div class="custom-node">
+    <Handle type="target" :position="Position.Left" />
+    <div>Custom Node Content</div>
+    <Handle type="source" :position="Position.Right" />
+  </div>
+</template>
+```
+</CodeGroup>
+
+## Component Categories
+
+### Container Components
+- `VueFlow` - Main flow canvas container
+- `Panel` - Floating UI panel
+
+### Connection Components
+- `Handle` - Node connection points
+- Various edge types for connections
+
+### Edge Label Components
+- `EdgeText` - Simple text labels
+- `EdgeLabelRenderer` - Custom label portal
+
+### Node Components
+- Built-in node types (Default, Input, Output)
+- Extensible for custom nodes
+
+<Note>
+  For detailed information about each component, including props, events, and advanced usage, refer to the individual component documentation pages.
+</Note>

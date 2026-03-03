@@ -1,0 +1,695 @@
+---
+title: State Management
+description: Access and manage flow state with Vue Flow composables
+---
+
+# State Management
+
+Vue Flow uses composables to manage reactive state for nodes, edges, viewport, and interactions. Understanding state management is key to building dynamic, interactive flow applications.
+
+## useVueFlow Composable
+
+The primary way to access and manipulate flow state:
+
+```typescript
+import { useVueFlow } from '@vue-flow/core'
+
+const {
+  // State refs
+  nodes,
+  edges,
+  viewport,
+  
+  // Actions
+  addNodes,
+  removeNodes,
+  updateNode,
+  findNode,
+  
+  // Event handlers
+  onNodeClick,
+  onConnect,
+  
+  // Viewport helpers
+  fitView,
+  zoomIn,
+  zoomTo,
+} = useVueFlow()
+```
+
+### Calling useVueFlow
+
+<Tabs>
+  <Tab title="In Component">
+    ```vue
+    <script setup>
+    import { VueFlow, useVueFlow } from '@vue-flow/core'
+
+    // Access the store in the same component that renders VueFlow
+    const { nodes, addNodes } = useVueFlow()
+
+    const initialNodes = [{
+      id: '1',
+      position: { x: 0, y: 0 },
+      data: { label: 'Node 1' }
+    }]
+    </script>
+
+    <template>
+      <VueFlow :nodes="initialNodes" />
+    </template>
+    ```
+  </Tab>
+  
+  <Tab title="Outside Component">
+    ```vue
+    <script setup>
+    import { useVueFlow } from '@vue-flow/core'
+
+    // Access by ID when outside the VueFlow component tree
+    const { nodes, addNodes } = useVueFlow('my-flow-id')
+    
+    function addNode() {
+      addNodes({
+        id: Date.now().toString(),
+        position: { x: 100, y: 100 },
+        data: {}
+      })
+    }
+    </script>
+    ```
+
+    ```vue App.vue
+    <template>
+      <VueFlow id="my-flow-id" />
+    </template>
+    ```
+  </Tab>
+</Tabs>
+
+<Warning>
+When using `useVueFlow()` with an ID outside the component tree, ensure the VueFlow component has been mounted first.
+</Warning>
+
+## State Structure
+
+The Vue Flow store contains:
+
+```typescript
+interface VueFlowStore {
+  // Unique instance ID
+  id: string
+  
+  // Core state (reactive refs)
+  nodes: Ref<GraphNode[]>
+  edges: Ref<GraphEdge[]>
+  viewport: Ref<ViewportTransform>
+  
+  // Computed getters
+  getNodes: ComputedRef<GraphNode[]>
+  getEdges: ComputedRef<GraphEdge[]>
+  getSelectedNodes: ComputedRef<GraphNode[]>
+  getSelectedEdges: ComputedRef<GraphEdge[]>
+  
+  // Actions
+  addNodes: AddNodes
+  removeNodes: RemoveNodes
+  updateNode: UpdateNode
+  findNode: FindNode
+  addEdges: AddEdges
+  removeEdges: RemoveEdges
+  updateEdge: UpdateEdge
+  findEdge: FindEdge
+  
+  // Viewport actions
+  fitView: FitView
+  zoomIn: ZoomInOut
+  zoomOut: ZoomInOut
+  zoomTo: ZoomTo
+  setViewport: SetViewport
+  getViewport: GetViewport
+  
+  // Event hooks
+  onNodeClick: EventHook<NodeMouseEvent>
+  onNodeDrag: EventHook<NodeDragEvent>
+  onConnect: EventHook<Connection>
+  // ... many more
+  
+  // Utility methods
+  toObject: () => FlowExportObject
+  fromObject: (obj: FlowImportObject) => Promise<boolean>
+  $reset: () => void
+  $destroy: () => void
+}
+```
+
+## Working with Nodes
+
+### Accessing Nodes
+
+```typescript
+import { useVueFlow } from '@vue-flow/core'
+
+const { 
+  nodes,           // Ref<GraphNode[]>
+  getNodes,        // ComputedRef<GraphNode[]>
+  findNode,        // (id: string) => GraphNode | undefined
+  getSelectedNodes // ComputedRef<GraphNode[]>
+} = useVueFlow()
+
+// Direct access
+console.log(nodes.value)
+
+// Using getter
+watch(getNodes, (currentNodes) => {
+  console.log('Nodes changed:', currentNodes)
+})
+
+// Find specific node
+const node = findNode('1')
+if (node) {
+  console.log(node.position)
+}
+
+// Selected nodes
+console.log(getSelectedNodes.value)
+```
+
+### Adding Nodes
+
+```typescript
+import { useVueFlow } from '@vue-flow/core'
+
+const { addNodes } = useVueFlow()
+
+// Add single node
+addNodes({
+  id: '1',
+  position: { x: 100, y: 100 },
+  data: { label: 'New Node' }
+})
+
+// Add multiple nodes
+addNodes([
+  { id: '2', position: { x: 200, y: 100 }, data: {} },
+  { id: '3', position: { x: 300, y: 100 }, data: {} }
+])
+
+// Add with function
+addNodes((currentNodes) => ({
+  id: String(currentNodes.length + 1),
+  position: { x: 100 * currentNodes.length, y: 100 },
+  data: {}
+}))
+```
+
+### Updating Nodes
+
+```typescript
+import { useVueFlow } from '@vue-flow/core'
+
+const { updateNode, updateNodeData, findNode } = useVueFlow()
+
+// Update entire node
+updateNode('1', {
+  position: { x: 200, y: 200 },
+  draggable: false
+})
+
+// Update with function
+updateNode('1', (node) => ({
+  position: {
+    x: node.position.x + 10,
+    y: node.position.y + 10
+  }
+}))
+
+// Update only data
+updateNodeData('1', { label: 'Updated Label' })
+
+// Update data with function
+updateNodeData('1', (node) => ({
+  count: (node.data.count || 0) + 1
+}))
+
+// Direct mutation (reactive)
+const node = findNode('1')
+if (node) {
+  node.position.x += 50
+  node.data.label = 'Changed'
+}
+```
+
+### Removing Nodes
+
+```typescript
+import { useVueFlow } from '@vue-flow/core'
+
+const { removeNodes } = useVueFlow()
+
+// Remove by ID
+removeNodes('1')
+
+// Remove multiple
+removeNodes(['1', '2', '3'])
+
+// Remove with connected edges (default: true)
+removeNodes('1', true)
+
+// Remove with children
+removeNodes('1', true, true)
+
+// Remove with function
+removeNodes((nodes) => 
+  nodes
+    .filter(node => node.data.status === 'completed')
+    .map(node => node.id)
+)
+```
+
+## Working with Edges
+
+### Accessing Edges
+
+```typescript
+import { useVueFlow } from '@vue-flow/core'
+
+const { 
+  edges,           // Ref<GraphEdge[]>
+  getEdges,        // ComputedRef<GraphEdge[]>
+  findEdge,        // (id: string) => GraphEdge | undefined
+  getSelectedEdges // ComputedRef<GraphEdge[]>
+} = useVueFlow()
+
+// Get connected edges for a node
+const { getConnectedEdges } = useVueFlow()
+const connectedEdges = getConnectedEdges('node-1')
+
+// Get edges with specific handles
+const { getHandleConnections } = useVueFlow()
+const connections = getHandleConnections({
+  nodeId: '1',
+  type: 'source',
+  id: 'handle-a'
+})
+```
+
+### Adding Edges
+
+```typescript
+import { useVueFlow } from '@vue-flow/core'
+
+const { addEdges, onConnect } = useVueFlow()
+
+// Add edge directly
+addEdges({
+  id: 'e1-2',
+  source: '1',
+  target: '2'
+})
+
+// Add on user connection
+onConnect((connection) => {
+  addEdges({
+    ...connection,
+    id: `e${connection.source}-${connection.target}`,
+    type: 'smoothstep',
+    animated: true
+  })
+})
+```
+
+### Updating Edges
+
+```typescript
+import { useVueFlow } from '@vue-flow/core'
+
+const { updateEdge, updateEdgeData, findEdge } = useVueFlow()
+
+// Update edge data
+updateEdgeData('e1-2', { weight: 5 })
+
+// Direct mutation
+const edge = findEdge('e1-2')
+if (edge) {
+  edge.animated = true
+  edge.style = { stroke: 'red' }
+}
+```
+
+### Removing Edges
+
+```typescript
+import { useVueFlow } from '@vue-flow/core'
+
+const { removeEdges } = useVueFlow()
+
+// Remove by ID
+removeEdges('e1-2')
+
+// Remove multiple
+removeEdges(['e1-2', 'e2-3'])
+```
+
+## Event Hooks
+
+Vue Flow provides event hooks for all interactions:
+
+### Node Events
+
+```typescript
+import { useVueFlow } from '@vue-flow/core'
+
+const { 
+  onNodeClick,
+  onNodeDoubleClick,
+  onNodeContextMenu,
+  onNodeMouseEnter,
+  onNodeMouseLeave,
+  onNodeMouseMove,
+  onNodeDragStart,
+  onNodeDrag,
+  onNodeDragStop
+} = useVueFlow()
+
+onNodeClick((event) => {
+  console.log('Node clicked:', event.node.id)
+})
+
+onNodeDrag((event) => {
+  console.log('Dragging node:', event.node.id)
+  console.log('Position:', event.node.position)
+})
+```
+
+### Edge Events
+
+```typescript
+import { useVueFlow } from '@vue-flow/core'
+
+const {
+  onEdgeClick,
+  onEdgeDoubleClick,
+  onEdgeContextMenu,
+  onEdgeMouseEnter,
+  onEdgeMouseLeave,
+  onEdgeUpdate,
+  onEdgeUpdateStart,
+  onEdgeUpdateEnd
+} = useVueFlow()
+
+onEdgeClick((event) => {
+  console.log('Edge clicked:', event.edge.id)
+})
+
+onEdgeUpdate(({ edge, connection }) => {
+  console.log('Edge updated from:', edge)
+  console.log('New connection:', connection)
+})
+```
+
+### Connection Events
+
+```typescript
+import { useVueFlow } from '@vue-flow/core'
+
+const {
+  onConnect,
+  onConnectStart,
+  onConnectEnd
+} = useVueFlow()
+
+onConnect((connection) => {
+  console.log('Connected:', connection)
+  // { source, target, sourceHandle, targetHandle }
+})
+
+onConnectStart((event) => {
+  console.log('Connection started from:', event.nodeId)
+})
+```
+
+### Viewport Events
+
+```typescript
+import { useVueFlow } from '@vue-flow/core'
+
+const {
+  onViewportChange,
+  onViewportChangeStart,
+  onViewportChangeEnd,
+  onMoveStart,
+  onMove,
+  onMoveEnd
+} = useVueFlow()
+
+onViewportChange((viewport) => {
+  console.log('Viewport:', viewport)
+})
+```
+
+### Pane Events
+
+```typescript
+import { useVueFlow } from '@vue-flow/core'
+
+const {
+  onPaneClick,
+  onPaneContextMenu,
+  onPaneScroll,
+  onPaneMouseEnter,
+  onPaneMouseMove,
+  onPaneMouseLeave
+} = useVueFlow()
+
+onPaneClick((event) => {
+  console.log('Clicked on pane')
+})
+```
+
+## Selection Management
+
+```typescript
+import { useVueFlow } from '@vue-flow/core'
+
+const {
+  getSelectedNodes,
+  getSelectedEdges,
+  getSelectedElements,
+  addSelectedNodes,
+  addSelectedEdges,
+  removeSelectedNodes,
+  removeSelectedEdges,
+  removeSelectedElements
+} = useVueFlow()
+
+// Get selected elements
+const selectedNodes = getSelectedNodes.value
+const selectedEdges = getSelectedEdges.value
+
+// Programmatically select
+const node = findNode('1')
+if (node) {
+  addSelectedNodes([node])
+}
+
+// Unselect all
+removeSelectedElements()
+```
+
+## Node-Specific Composables
+
+### useNode
+
+Access node data inside custom node components:
+
+```vue CustomNode.vue
+<script setup>
+import { useNode } from '@vue-flow/core'
+
+const { 
+  node,          // Current node (reactive)
+  parentNode,    // Parent node if exists
+  connectedEdges // Edges connected to this node
+} = useNode()
+
+function handleClick() {
+  // Mutate node directly
+  node.data.clicks = (node.data.clicks || 0) + 1
+}
+</script>
+
+<template>
+  <div @click="handleClick">
+    Clicks: {{ node.data.clicks }}
+  </div>
+</template>
+```
+
+### useNodesData
+
+Watch specific node data:
+
+```typescript
+import { useNodesData } from '@vue-flow/core'
+
+// Watch single node
+const nodeData = useNodesData('1')
+
+watch(nodeData, (data) => {
+  console.log('Node 1 data changed:', data)
+})
+
+// Watch multiple nodes
+const nodesData = useNodesData(['1', '2', '3'])
+
+watch(nodesData, (dataArray) => {
+  console.log('Nodes data:', dataArray)
+})
+
+// Watch with computed selector
+const nodesData = useNodesData(() => 
+  nodes.value
+    .filter(node => node.type === 'custom')
+    .map(node => node.id)
+)
+```
+
+### useHandleConnections
+
+Access handle connections inside node components:
+
+```vue CustomNode.vue
+<script setup>
+import { useHandleConnections } from '@vue-flow/core'
+
+// Get connections for a specific handle
+const connections = useHandleConnections({
+  type: 'source',
+  id: 'handle-a'
+})
+
+watch(connections, (conns) => {
+  console.log('Connected to:', conns.length, 'edges')
+})
+</script>
+```
+
+## Edge-Specific Composables
+
+### useEdge
+
+Access edge data inside custom edge components:
+
+```vue CustomEdge.vue
+<script setup>
+import { useEdge } from '@vue-flow/core'
+
+const { edge } = useEdge()
+
+function handleClick() {
+  edge.animated = !edge.animated
+}
+</script>
+```
+
+### useEdgesData
+
+Watch specific edge data:
+
+```typescript
+import { useEdgesData } from '@vue-flow/core'
+
+const edgeData = useEdgesData('e1-2')
+
+watch(edgeData, (data) => {
+  console.log('Edge data changed:', data)
+})
+```
+
+## Change Handling
+
+Vue Flow emits change events that describe state modifications:
+
+```typescript
+import { useVueFlow } from '@vue-flow/core'
+import type { NodeChange, EdgeChange } from '@vue-flow/core'
+
+const { onNodesChange, onEdgesChange } = useVueFlow()
+
+onNodesChange((changes: NodeChange[]) => {
+  changes.forEach(change => {
+    switch (change.type) {
+      case 'position':
+        console.log('Node moved:', change.id)
+        break
+      case 'dimensions':
+        console.log('Node resized:', change.id)
+        break
+      case 'select':
+        console.log('Node selected:', change.id)
+        break
+      case 'remove':
+        console.log('Node removed:', change.id)
+        break
+    }
+  })
+})
+```
+
+<Info>
+By default, Vue Flow automatically applies changes. Set `:apply-default="false"` to handle changes manually.
+</Info>
+
+## Multiple Flow Instances
+
+Manage multiple independent flows:
+
+```vue
+<script setup>
+import { VueFlow, useVueFlow } from '@vue-flow/core'
+
+// Access different flow instances by ID
+const flow1 = useVueFlow('flow-1')
+const flow2 = useVueFlow('flow-2')
+
+flow1.addNodes({ id: '1', position: { x: 0, y: 0 }, data: {} })
+flow2.addNodes({ id: '1', position: { x: 0, y: 0 }, data: {} })
+</script>
+
+<template>
+  <div>
+    <VueFlow id="flow-1" />
+    <VueFlow id="flow-2" />
+  </div>
+</template>
+```
+
+## Persisting State
+
+```typescript
+import { useVueFlow } from '@vue-flow/core'
+
+const { toObject, fromObject } = useVueFlow()
+
+// Save flow to localStorage
+function saveFlow() {
+  const flowObject = toObject()
+  // { nodes, edges, viewport }
+  localStorage.setItem('flow', JSON.stringify(flowObject))
+}
+
+// Restore flow from localStorage
+async function restoreFlow() {
+  const flowData = localStorage.getItem('flow')
+  if (flowData) {
+    await fromObject(JSON.parse(flowData))
+  }
+}
+```
+
+## See Also
+
+- [Nodes](/concepts/nodes) - Learn about node management
+- [Edges](/concepts/edges) - Learn about edge management  
+- [Viewport](/concepts/viewport) - Control viewport state

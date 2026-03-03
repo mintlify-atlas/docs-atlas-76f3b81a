@@ -1,0 +1,334 @@
+---
+title: useHandle
+description: Create custom handle components with connection logic
+---
+
+`useHandle` provides event handlers for creating custom handle components. It manages the connection logic, validation, and user interactions for connecting nodes.
+
+<Note>
+  It's generally recommended to use the built-in `<Handle />` component instead of this composable. Only use `useHandle` when you need highly customized handle behavior.
+</Note>
+
+## Usage
+
+```vue
+<script setup>
+import { useHandle } from '@vue-flow/core'
+import { ref } from 'vue'
+
+const props = defineProps({
+  nodeId: String,
+  handleId: String,
+  type: String, // 'source' or 'target'
+})
+
+const handleRef = ref(null)
+
+const { handlePointerDown, handleClick } = useHandle({
+  nodeId: () => props.nodeId,
+  handleId: () => props.handleId,
+  type: () => props.type,
+  isValidConnection: (connection) => {
+    // Custom validation logic
+    return connection.source !== connection.target
+  }
+})
+</script>
+
+<template>
+  <div
+    ref="handleRef"
+    class="custom-handle"
+    :data-handleid="handleId"
+    :data-nodeid="nodeId"
+    :data-handlepos="type === 'source' ? 'right' : 'left'"
+    @mousedown="handlePointerDown"
+    @touchstart="handlePointerDown"
+    @click="handleClick"
+  />
+</template>
+```
+
+## Signature
+
+```typescript
+function useHandle(props: UseHandleProps): {
+  handlePointerDown: (event: MouseTouchEvent) => void
+  handleClick: (event: MouseEvent) => void
+}
+```
+
+## Parameters
+
+<ParamField path="props" type="UseHandleProps" required>
+  Configuration object for the handle
+</ParamField>
+
+### UseHandleProps
+
+<ParamField path="handleId" type="MaybeRefOrGetter<string | null>" required>
+  The ID of the handle. Can be a ref, getter function, or static value.
+</ParamField>
+
+<ParamField path="nodeId" type="MaybeRefOrGetter<string>" required>
+  The ID of the node this handle belongs to. Can be a ref, getter function, or static value.
+</ParamField>
+
+<ParamField path="type" type="MaybeRefOrGetter<'source' | 'target'>" required>
+  The type of handle - either 'source' (outgoing connections) or 'target' (incoming connections).
+</ParamField>
+
+<ParamField path="isValidConnection" type="MaybeRefOrGetter<ValidConnectionFunc | null>" optional>
+  Custom validation function to determine if a connection is valid.
+  
+  ```typescript
+  (connection: Connection) => boolean
+  ```
+</ParamField>
+
+<ParamField path="edgeUpdaterType" type="MaybeRefOrGetter<'source' | 'target'>" optional>
+  Used when updating existing edges. Specifies which end of the edge is being updated.
+</ParamField>
+
+<ParamField path="onEdgeUpdate" type="(event: MouseTouchEvent, connection: Connection) => void" optional>
+  Callback fired when an edge is updated by dragging one of its ends to a new handle.
+</ParamField>
+
+<ParamField path="onEdgeUpdateEnd" type="(event: MouseTouchEvent) => void" optional>
+  Callback fired when edge update interaction ends.
+</ParamField>
+
+## Return Value
+
+<ResponseField name="handlePointerDown" type="(event: MouseTouchEvent) => void">
+  Event handler for mousedown/touchstart events. Initiates the connection creation process.
+</ResponseField>
+
+<ResponseField name="handleClick" type="(event: MouseEvent) => void">
+  Event handler for click events. Used for click-to-connect functionality (when enabled).
+</ResponseField>
+
+## Examples
+
+### Basic Custom Handle
+
+```vue
+<script setup>
+import { useHandle } from '@vue-flow/core'
+import { computed } from 'vue'
+
+const props = defineProps({
+  nodeId: { type: String, required: true },
+  handleId: { type: String, default: null },
+  type: { type: String, required: true },
+  position: { type: String, default: 'right' }
+})
+
+const { handlePointerDown, handleClick } = useHandle({
+  nodeId: () => props.nodeId,
+  handleId: () => props.handleId,
+  type: () => props.type
+})
+
+const handleClasses = computed(() => ({
+  'custom-handle': true,
+  'source-handle': props.type === 'source',
+  'target-handle': props.type === 'target'
+}))
+</script>
+
+<template>
+  <div
+    :class="handleClasses"
+    :data-handleid="handleId"
+    :data-nodeid="nodeId"
+    :data-handlepos="position"
+    @mousedown="handlePointerDown"
+    @touchstart="handlePointerDown"
+    @click="handleClick"
+  >
+    <div class="handle-dot" />
+  </div>
+</template>
+
+<style scoped>
+.custom-handle {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+}
+
+.handle-dot {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: #555;
+  border: 2px solid white;
+}
+
+.source-handle {
+  right: -8px;
+}
+
+.target-handle {
+  left: -8px;
+}
+</style>
+```
+
+### Handle with Validation
+
+```vue
+<script setup>
+import { useHandle } from '@vue-flow/core'
+import { useVueFlow } from '@vue-flow/core'
+
+const props = defineProps({
+  nodeId: String,
+  handleId: String,
+  type: String,
+  allowedNodeTypes: Array // e.g., ['processNode', 'outputNode']
+})
+
+const { findNode } = useVueFlow()
+
+const { handlePointerDown, handleClick } = useHandle({
+  nodeId: () => props.nodeId,
+  handleId: () => props.handleId,
+  type: () => props.type,
+  isValidConnection: (connection) => {
+    // Prevent self-connections
+    if (connection.source === connection.target) {
+      return false
+    }
+
+    // Validate target node type
+    const targetNode = findNode(connection.target)
+    if (props.allowedNodeTypes && targetNode) {
+      return props.allowedNodeTypes.includes(targetNode.type)
+    }
+
+    return true
+  }
+})
+</script>
+
+<template>
+  <div
+    class="validated-handle"
+    :data-handleid="handleId"
+    :data-nodeid="nodeId"
+    :data-handlepos="type === 'source' ? 'right' : 'left'"
+    @mousedown="handlePointerDown"
+    @touchstart="handlePointerDown"
+    @click="handleClick"
+  />
+</template>
+```
+
+### Edge Updater Handle
+
+```vue
+<script setup>
+import { useHandle } from '@vue-flow/core'
+import { ref } from 'vue'
+
+const props = defineProps({
+  edgeId: String,
+  nodeId: String,
+  handleId: String
+})
+
+const emit = defineEmits(['edge-update', 'edge-update-end'])
+
+const { handlePointerDown, handleClick } = useHandle({
+  nodeId: () => props.nodeId,
+  handleId: () => props.handleId,
+  type: () => 'source',
+  edgeUpdaterType: () => 'source',
+  onEdgeUpdate: (event, connection) => {
+    emit('edge-update', { edgeId: props.edgeId, connection })
+  },
+  onEdgeUpdateEnd: (event) => {
+    emit('edge-update-end', props.edgeId)
+  }
+})
+</script>
+
+<template>
+  <div
+    class="edge-updater-handle"
+    :data-handleid="handleId"
+    :data-nodeid="nodeId"
+    @mousedown="handlePointerDown"
+    @touchstart="handlePointerDown"
+    @click="handleClick"
+  >
+    <svg width="10" height="10">
+      <circle cx="5" cy="5" r="4" fill="#ff6b6b" />
+    </svg>
+  </div>
+</template>
+```
+
+### Multi-Handle Node
+
+```vue
+<script setup>
+import { useNode } from '@vue-flow/core'
+import CustomHandle from './CustomHandle.vue'
+
+const { node } = useNode()
+
+const inputHandles = ['input-1', 'input-2', 'input-3']
+const outputHandles = ['output-1', 'output-2']
+</script>
+
+<template>
+  <div class="multi-handle-node">
+    <div class="inputs">
+      <CustomHandle
+        v-for="handleId in inputHandles"
+        :key="handleId"
+        :node-id="node.id"
+        :handle-id="handleId"
+        type="target"
+        position="left"
+      />
+    </div>
+
+    <div class="node-content">
+      {{ node.data.label }}
+    </div>
+
+    <div class="outputs">
+      <CustomHandle
+        v-for="handleId in outputHandles"
+        :key="handleId"
+        :node-id="node.id"
+        :handle-id="handleId"
+        type="source"
+        position="right"
+      />
+    </div>
+  </div>
+</template>
+```
+
+## Important Data Attributes
+
+When creating custom handles, you must include these data attributes on the handle element:
+
+- `data-handleid` - The handle ID
+- `data-nodeid` - The node ID
+- `data-handlepos` - Handle position ('top', 'right', 'bottom', or 'left')
+
+These attributes are required for Vue Flow to properly identify and connect handles.
+
+## Notes
+
+- All parameters can be reactive (refs or getter functions) or static values
+- The composable manages auto-panning when dragging connections near viewport edges
+- Connection validation happens in real-time as the user drags
+- Handles emit Vue Flow events like `connectStart`, `connect`, and `connectEnd`
+- Use `MaybeRefOrGetter` types to support reactive values without unwrapping

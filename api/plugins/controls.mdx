@@ -1,0 +1,202 @@
+---
+title: Controls
+description: API reference for the Controls plugin component
+---
+
+The Controls component provides UI controls for zooming, fitting the view, and toggling interactivity in your Vue Flow canvas.
+
+## Installation
+
+<CodeGroup>
+```bash npm
+npm install @vue-flow/controls
+```
+
+```bash pnpm
+pnpm add @vue-flow/controls
+```
+
+```bash yarn
+yarn add @vue-flow/controls
+```
+</CodeGroup>
+
+<Note>Don't forget to import the styles: `import '@vue-flow/controls/dist/style.css'`</Note>
+
+## Usage
+
+```vue
+<script setup>
+import { VueFlow } from '@vue-flow/core'
+import { Controls } from '@vue-flow/controls'
+import '@vue-flow/controls/dist/style.css'
+
+const nodes = ref([])
+const edges = ref([])
+</script>
+
+<template>
+  <VueFlow :nodes="nodes" :edges="edges">
+    <Controls />
+  </VueFlow>
+</template>
+```
+
+## Props
+
+<ParamField path="showZoom" type="boolean" default="true">
+  Show zoom in/out buttons.
+</ParamField>
+
+<ParamField path="showFitView" type="boolean" default="true">
+  Show the fit view button that adjusts the viewport to fit all nodes.
+</ParamField>
+
+<ParamField path="showInteractive" type="boolean" default="true">
+  Show the interactive toggle button that locks/unlocks node dragging and selection.
+</ParamField>
+
+<ParamField path="fitViewParams" type="FitViewParams">
+  Parameters to pass to the `fitView` function when the fit view button is clicked.
+  
+  ```typescript
+  interface FitViewParams {
+    padding?: number
+    includeHiddenNodes?: boolean
+    minZoom?: number
+    maxZoom?: number
+    duration?: number
+    nodes?: Node[]
+  }
+  ```
+</ParamField>
+
+<ParamField path="position" type="PanelPosition" default="'bottom-left'">
+  Position of the controls panel on the canvas.
+  
+  Options: `'top-left'` | `'top-center'` | `'top-right'` | `'bottom-left'` | `'bottom-center'` | `'bottom-right'`
+</ParamField>
+
+## Events
+
+<ParamField path="@zoom-in" type="() => void">
+  Emitted when the zoom in button is clicked.
+</ParamField>
+
+<ParamField path="@zoom-out" type="() => void">
+  Emitted when the zoom out button is clicked.
+</ParamField>
+
+<ParamField path="@fit-view" type="() => void">
+  Emitted when the fit view button is clicked.
+</ParamField>
+
+<ParamField path="@interaction-change" type="(active: boolean) => void">
+  Emitted when the interactive toggle is clicked. Receives the new interactive state.
+</ParamField>
+
+## Slots
+
+<ParamField path="top">
+  Content to display at the top of the controls panel.
+</ParamField>
+
+<ParamField path="control-zoom-in">
+  Override the default zoom in button.
+</ParamField>
+
+<ParamField path="control-zoom-out">
+  Override the default zoom out button.
+</ParamField>
+
+<ParamField path="control-fit-view">
+  Override the default fit view button.
+</ParamField>
+
+<ParamField path="control-interactive">
+  Override the default interactive toggle button.
+</ParamField>
+
+<ParamField path="icon-zoom-in">
+  Override the zoom in icon.
+</ParamField>
+
+<ParamField path="icon-zoom-out">
+  Override the zoom out icon.
+</ParamField>
+
+<ParamField path="icon-fit-view">
+  Override the fit view icon.
+</ParamField>
+
+<ParamField path="icon-lock">
+  Override the lock icon (shown when interactive).
+</ParamField>
+
+<ParamField path="icon-unlock">
+  Override the unlock icon (shown when not interactive).
+</ParamField>
+
+<ParamField path="default">
+  Additional content to display at the bottom of the controls panel.
+</ParamField>
+
+## Examples
+
+### Custom Position
+
+```vue
+<Controls position="top-right" />
+```
+
+### Hide Specific Controls
+
+```vue
+<Controls :show-interactive="false" :show-fit-view="false" />
+```
+
+### Custom Controls with Slots
+
+```vue
+<template>
+  <Controls>
+    <template #top>
+      <button @click="customAction">Custom Action</button>
+    </template>
+  </Controls>
+</template>
+```
+
+### Handle Events
+
+```vue
+<script setup>
+function onZoomIn() {
+  console.log('Zoomed in')
+}
+
+function onInteractionChange(isActive: boolean) {
+  console.log('Interactive:', isActive)
+}
+</script>
+
+<template>
+  <Controls 
+    @zoom-in="onZoomIn"
+    @interaction-change="onInteractionChange"
+  />
+</template>
+```
+
+## TypeScript
+
+```typescript
+import type { ControlProps } from '@vue-flow/controls'
+import { PanelPosition } from '@vue-flow/core'
+```
+
+## Exports
+
+- `Controls` - The main Controls component
+- `ControlButton` - A styled button component for custom controls
+- `ControlProps` - TypeScript interface for Controls props

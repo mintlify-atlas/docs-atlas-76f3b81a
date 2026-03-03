@@ -1,0 +1,281 @@
+---
+title: useNodesData
+description: Get reactive data from one or multiple nodes
+---
+
+`useNodesData` provides a computed reference to node data that automatically updates when the nodes change. It's useful for accessing node data outside of node components or for watching multiple nodes at once.
+
+## Usage
+
+<CodeGroup>
+```vue Single Node
+<script setup>
+import { useNodesData } from '@vue-flow/core'
+
+const nodeData = useNodesData('node-1')
+
+// nodeData.value will be { id, type, data } or null
+watch(nodeData, (data) => {
+  if (data) {
+    console.log('Node data:', data.data)
+  }
+})
+</script>
+```
+
+```vue Multiple Nodes
+<script setup>
+import { useNodesData } from '@vue-flow/core'
+import { ref } from 'vue'
+
+const nodeIds = ref(['node-1', 'node-2', 'node-3'])
+const nodesData = useNodesData(nodeIds)
+
+// nodesData.value is an array of { id, type, data } objects
+console.log('All nodes:', nodesData.value)
+</script>
+```
+
+```vue With TypeScript
+<script setup lang="ts">
+import { useNodesData } from '@vue-flow/core'
+
+interface TaskData {
+  title: string
+  completed: boolean
+}
+
+const taskData = useNodesData<TaskData>('task-1')
+
+// taskData.value.data is typed as TaskData
+if (taskData.value) {
+  console.log(taskData.value.data.title)
+}
+</script>
+```
+</CodeGroup>
+
+## Signature
+
+```typescript
+// Single node (returns single object or null)
+function useNodesData<NodeType extends Node = GraphNode>(
+  nodeId: MaybeRefOrGetter<string>
+): ComputedRef<NodeData<NodeType> | null>
+
+// Multiple nodes (returns array)
+function useNodesData<NodeType extends Node = GraphNode>(
+  nodeIds: MaybeRefOrGetter<string[]>
+): ComputedRef<NodeData<NodeType>[]>
+
+// With type guard
+function useNodesData<NodeType extends Node = GraphNode>(
+  nodeIds: MaybeRefOrGetter<string[]>,
+  guard: (node: Node) => node is NodeType
+): ComputedRef<NodeData<NodeType>[]>
+```
+
+## Parameters
+
+<ParamField path="nodeId" type="MaybeRefOrGetter<string>">
+  The ID of a single node to get data from. Can be a string, ref, or getter function.
+</ParamField>
+
+<ParamField path="nodeIds" type="MaybeRefOrGetter<string[]>">
+  An array of node IDs to get data from. Can be an array, ref, or getter function.
+</ParamField>
+
+<ParamField path="guard" type="(node: Node) => node is NodeType" optional>
+  Optional type guard function to narrow down the node type.
+</ParamField>
+
+## Return Value
+
+### For Single Node
+
+Returns `ComputedRef<NodeData | null>` where `NodeData` contains:
+
+<ResponseField name="id" type="string">
+  The node's ID
+</ResponseField>
+
+<ResponseField name="type" type="string">
+  The node's type
+</ResponseField>
+
+<ResponseField name="data" type="NonNullable<NodeType['data']>">
+  The node's data object
+</ResponseField>
+
+Returns `null` if the node is not found.
+
+### For Multiple Nodes
+
+Returns `ComputedRef<NodeData[]>` - an array of node data objects. Nodes that are not found are excluded from the array.
+
+## Examples
+
+### Watching Node Data Changes
+
+```vue
+<script setup>
+import { useNodesData } from '@vue-flow/core'
+import { watch } from 'vue'
+
+const nodeData = useNodesData('processor-1')
+
+watch(nodeData, (data) => {
+  if (data) {
+    console.log('Node data updated:', data.data)
+    // Perform side effects based on data changes
+  }
+}, { deep: true })
+</script>
+```
+
+### Aggregating Data from Multiple Nodes
+
+```vue
+<script setup>
+import { useNodesData } from '@vue-flow/core'
+import { computed } from 'vue'
+
+const selectedNodeIds = ref(['node-1', 'node-2', 'node-3'])
+const nodesData = useNodesData(selectedNodeIds)
+
+const totalValue = computed(() => {
+  return nodesData.value.reduce((sum, node) => {
+    return sum + (node.data.value || 0)
+  }, 0)
+})
+
+const averageValue = computed(() => {
+  const count = nodesData.value.length
+  return count > 0 ? totalValue.value / count : 0
+})
+</script>
+
+<template>
+  <div>
+    <p>Total: {{ totalValue }}</p>
+    <p>Average: {{ averageValue.toFixed(2) }}</p>
+  </div>
+</template>
+```
+
+### Using with Dynamic Node IDs
+
+```vue
+<script setup>
+import { useNodesData, useVueFlow } from '@vue-flow/core'
+import { computed } from 'vue'
+
+const { nodes } = useVueFlow()
+
+// Get data from all selected nodes
+const selectedNodeIds = computed(() => 
+  nodes.value
+    .filter(node => node.selected)
+    .map(node => node.id)
+)
+
+const selectedNodesData = useNodesData(selectedNodeIds)
+
+watch(selectedNodesData, (data) => {
+  console.log('Selected nodes data:', data)
+})
+</script>
+```
+
+### Typed Node Data
+
+```vue
+<script setup lang="ts">
+import { useNodesData } from '@vue-flow/core'
+import { computed } from 'vue'
+
+interface ProcessorNodeData {
+  name: string
+  status: 'idle' | 'processing' | 'error'
+  progress: number
+}
+
+const processorIds = ['proc-1', 'proc-2', 'proc-3']
+const processorsData = useNodesData<ProcessorNodeData>(processorIds)
+
+const activeProcessors = computed(() => 
+  processorsData.value.filter(p => p.data.status === 'processing')
+)
+
+const overallProgress = computed(() => {
+  const total = processorsData.value.length
+  if (total === 0) return 0
+  
+  const sum = processorsData.value.reduce((acc, p) => 
+    acc + p.data.progress, 0
+  )
+  return sum / total
+})
+</script>
+
+<template>
+  <div class="processors-dashboard">
+    <h3>Active Processors: {{ activeProcessors.length }}</h3>
+    <div class="progress-bar">
+      <div :style="{ width: `${overallProgress}%` }" />
+    </div>
+  </div>
+</template>
+```
+
+### Conditional Data Access
+
+```vue
+<script setup>
+import { useNodesData } from '@vue-flow/core'
+import { computed } from 'vue'
+
+const parentNodeId = ref('parent-1')
+const parentData = useNodesData(parentNodeId)
+
+// Only get child data if parent exists and has children
+const childNodeIds = computed(() => 
+  parentData.value?.data.children || []
+)
+
+const childrenData = useNodesData(childNodeIds)
+
+const allData = computed(() => {
+  if (!parentData.value) return []
+  return [parentData.value, ...childrenData.value]
+})
+</script>
+```
+
+### Read-Only Computed Data
+
+```vue
+<script setup>
+import { useNodesData } from '@vue-flow/core'
+
+const nodeData = useNodesData('node-1')
+
+// Note: The returned value is read-only
+// This will log a warning and not work:
+// nodeData.value = { ...newData } // ❌ Warning logged
+
+// To update node data, use useVueFlow instead:
+const { updateNodeData } = useVueFlow()
+updateNodeData('node-1', { newField: 'value' }) // ✅ Correct way
+</script>
+```
+
+## Notes
+
+- The returned computed ref is **read-only**. Attempting to set its value will log a warning.
+- To update node data, use `updateNodeData` or `updateNode` from `useVueFlow`
+- Node IDs can be reactive (refs or getter functions) - the composable will automatically track changes
+- When requesting multiple nodes, only found nodes are included in the result array
+- The data is deeply reactive and will update when any node property changes
+- For single node queries, returns `null` if the node doesn't exist
+- For multiple node queries, returns an empty array if no nodes are found

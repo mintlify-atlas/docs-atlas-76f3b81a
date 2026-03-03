@@ -1,0 +1,385 @@
+---
+title: Node Types
+description: Type definitions and interfaces for Vue Flow nodes
+---
+
+## Node
+
+The base interface for defining nodes in Vue Flow.
+
+<ParamField path="id" type="string" required>
+  Unique node identifier
+</ParamField>
+
+<ParamField path="position" type="XYPosition" required>
+  Initial node position (x, y coordinates)
+</ParamField>
+
+<ParamField path="type" type="string">
+  Node type - can be a default type or a custom type
+</ParamField>
+
+<ParamField path="label" type="string | VNode | Component">
+  <Warning>Deprecated - will be removed in next major release and replaced with `{ data: { label: string | VNode | Component } }`</Warning>
+  A node label
+</ParamField>
+
+<ParamField path="data" type="any">
+  Additional data that is passed to your custom components
+</ParamField>
+
+### Interaction Properties
+
+<ParamField path="draggable" type="boolean">
+  Enable or disable dragging for this node
+</ParamField>
+
+<ParamField path="selectable" type="boolean">
+  Enable or disable selecting this node
+</ParamField>
+
+<ParamField path="connectable" type="HandleConnectable">
+  Enable or disable connecting this node. Can be `boolean`, `number`, `'single'`, or a function
+</ParamField>
+
+<ParamField path="focusable" type="boolean">
+  Enable or disable focusing this node (accessibility)
+</ParamField>
+
+<ParamField path="deletable" type="boolean">
+  Enable or disable deleting this node
+</ParamField>
+
+<ParamField path="dragHandle" type="string">
+  CSS selector for element to use as drag handle. Node can only be dragged from this element
+</ParamField>
+
+### Handle Positions
+
+<ParamField path="sourcePosition" type="Position">
+  Position of source handles. Can be `'left'`, `'top'`, `'right'`, or `'bottom'`
+</ParamField>
+
+<ParamField path="targetPosition" type="Position">
+  Position of target handles. Can be `'left'`, `'top'`, `'right'`, or `'bottom'`
+</ParamField>
+
+### Dimensions
+
+<ParamField path="width" type="number | string | WidthFunc">
+  Fixed width of node, applied as style. Pass a number for pixel values or a string with units (e.g., `'10rem'`)
+</ParamField>
+
+<ParamField path="height" type="number | string | HeightFunc">
+  Fixed height of node, applied as style. Pass a number for pixel values or a string with units (e.g., `'10rem'`)
+</ParamField>
+
+### Parent/Child Relationships
+
+<ParamField path="parentNode" type="string">
+  <Note>Will be renamed to `parentId` in next major release</Note>
+  Define node as a child node by setting a parent node id
+</ParamField>
+
+<ParamField path="extent" type="CoordinateExtent | CoordinateExtentRange | 'parent'">
+  Define node extent - the area in which the node can be moved
+</ParamField>
+
+<ParamField path="expandParent" type="boolean">
+  Expands parent area to fit child node
+</ParamField>
+
+### Styling
+
+<ParamField path="class" type="string | string[] | Record<string, any> | ClassFunc<GraphNode>">
+  Additional class names. Can be a string, array, object, or callback returning a string
+</ParamField>
+
+<ParamField path="style" type="Styles | StyleFunc<GraphNode>">
+  Additional styles. Can be an object or a callback returning an object
+</ParamField>
+
+<ParamField path="hidden" type="boolean">
+  Hide or show the node
+</ParamField>
+
+<ParamField path="zIndex" type="number">
+  z-index for the node
+</ParamField>
+
+### Accessibility
+
+<ParamField path="ariaLabel" type="string">
+  Aria label for the node
+</ParamField>
+
+<ParamField path="domAttributes" type="HTMLAttributes">
+  General escape hatch for adding custom attributes to the node's DOM element
+</ParamField>
+
+### Deprecated Properties
+
+<ParamField path="isValidTargetPos" type="ValidConnectionFunc">
+  <Warning>Deprecated - will be removed in next major release</Warning>
+  Called when used as target for new connection
+</ParamField>
+
+<ParamField path="isValidSourcePos" type="ValidConnectionFunc">
+  <Warning>Deprecated - will be removed in next major release</Warning>
+  Called when used as source for new connection
+</ParamField>
+
+<ParamField path="template" type="NodeComponent">
+  <Warning>Deprecated - will be removed in next major release</Warning>
+  Overwrites current node type
+</ParamField>
+
+<ParamField path="events" type="Partial<NodeEventsHandler>">
+  <Warning>Deprecated - will be removed in next major release</Warning>
+  Contextual and custom events that are passed to your custom components
+</ParamField>
+
+---
+
+## GraphNode
+
+Internal node type that extends `Node` with computed properties. This is what Vue Flow uses internally after parsing your nodes.
+
+<ResponseField name="computedPosition" type="XYZPosition">
+  Absolute position in relation to parent elements plus z-index
+</ResponseField>
+
+<ResponseField name="handleBounds" type="NodeHandleBounds">
+  Bounds for source and target handles
+  
+  ```typescript
+  interface NodeHandleBounds {
+    source: HandleElement[] | null
+    target: HandleElement[] | null
+  }
+  ```
+</ResponseField>
+
+<ResponseField name="dimensions" type="Dimensions">
+  Node width and height
+  
+  ```typescript
+  interface Dimensions {
+    width: number
+    height: number
+  }
+  ```
+</ResponseField>
+
+<ResponseField name="isParent" type="boolean">
+  Whether this node has child nodes
+</ResponseField>
+
+<ResponseField name="selected" type="boolean">
+  Whether the node is currently selected
+</ResponseField>
+
+<ResponseField name="resizing" type="boolean">
+  Whether the node is currently being resized
+</ResponseField>
+
+<ResponseField name="dragging" type="boolean">
+  Whether the node is currently being dragged
+</ResponseField>
+
+---
+
+## NodeProps
+
+Props passed to node components when rendering custom nodes.
+
+<ResponseField name="id" type="string">
+  Unique node id
+</ResponseField>
+
+<ResponseField name="type" type="string">
+  Node type
+</ResponseField>
+
+<ResponseField name="selected" type="boolean">
+  Whether node is selected
+</ResponseField>
+
+<ResponseField name="connectable" type="HandleConnectable">
+  Can node handles be connected. You need to forward this to your handles for this prop to have any effect
+</ResponseField>
+
+<ResponseField name="position" type="XYPosition">
+  <Warning>Deprecated - will be removed in next major release and replaced with `computedPosition`</Warning>
+  Node x, y (relative) position on graph
+</ResponseField>
+
+<ResponseField name="dimensions" type="Dimensions">
+  DOM element dimensions (width, height)
+</ResponseField>
+
+<ResponseField name="data" type="any">
+  Additional data of node
+</ResponseField>
+
+<ResponseField name="dragging" type="boolean">
+  Whether node is currently dragging
+</ResponseField>
+
+<ResponseField name="resizing" type="boolean">
+  Whether node is currently resizing
+</ResponseField>
+
+<ResponseField name="zIndex" type="number">
+  Node z-index
+</ResponseField>
+
+<ResponseField name="targetPosition" type="Position">
+  Handle position
+</ResponseField>
+
+<ResponseField name="sourcePosition" type="Position">
+  Handle position
+</ResponseField>
+
+<ResponseField name="dragHandle" type="string">
+  Drag handle query selector
+</ResponseField>
+
+<ResponseField name="parentNodeId" type="string">
+  Parent node id
+</ResponseField>
+
+---
+
+## CoordinateExtent
+
+Defines a rectangular area as coordinate boundaries.
+
+```typescript
+type CoordinateExtent = [
+  extentFrom: [fromX: number, fromY: number], 
+  extentTo: [toX: number, toY: number]
+]
+```
+
+### Example
+
+```typescript
+// Restrict node to area between (0,0) and (1000, 1000)
+const extent: CoordinateExtent = [[0, 0], [1000, 1000]]
+
+const node = {
+  id: '1',
+  position: { x: 100, y: 100 },
+  extent
+}
+```
+
+---
+
+## CoordinateExtentRange
+
+Defines node extent with padding options.
+
+<ParamField path="range" type="'parent' | CoordinateExtent" required>
+  Either `'parent'` to use parent node boundaries, or a `CoordinateExtent`
+</ParamField>
+
+<ParamField path="padding" type="number | number[]" required>
+  Values are top, right, bottom, left (same as CSS padding)
+  
+  - `number` - same padding on all sides
+  - `[padding]` - same padding on all sides  
+  - `[paddingY, paddingX]` - vertical and horizontal padding
+  - `[paddingTop, paddingX, paddingBottom]` - top, horizontal, bottom
+  - `[paddingTop, paddingRight, paddingBottom, paddingLeft]` - all four sides
+</ParamField>
+
+### Example
+
+```typescript
+const extentRange: CoordinateExtentRange = {
+  range: 'parent',
+  padding: [10, 20] // 10px vertical, 20px horizontal
+}
+
+const childNode = {
+  id: '2',
+  parentNode: '1',
+  position: { x: 50, y: 50 },
+  extent: extentRange
+}
+```
+
+---
+
+## Position
+
+Enum for handle positions.
+
+```typescript
+enum Position {
+  Left = 'left',
+  Top = 'top',
+  Right = 'right',
+  Bottom = 'bottom'
+}
+```
+
+---
+
+## XYPosition
+
+Simple coordinate position.
+
+```typescript
+interface XYPosition {
+  x: number
+  y: number
+}
+```
+
+---
+
+## XYZPosition
+
+Coordinate position with z-index.
+
+```typescript
+type XYZPosition = XYPosition & { z: number }
+```
+
+---
+
+## Type Utilities
+
+### ToGraphNode
+
+Transform a Node type to a GraphNode type.
+
+```typescript
+type ToGraphNode<T extends Node> = GraphNode<
+  T extends Node<infer Data> ? Data : never,
+  T extends Node<any, infer Events> ? Events : never,
+  T extends Node<any, any, infer Type> ? Type : never
+>
+```
+
+### Example Usage
+
+```typescript
+interface MyNodeData {
+  label: string
+  value: number
+}
+
+type MyNode = Node<MyNodeData>
+type MyGraphNode = ToGraphNode<MyNode>
+
+const node: MyNode = {
+  id: '1',
+  position: { x: 0, y: 0 },
+  data: { label: 'Node 1', value: 42 }
+}
+```

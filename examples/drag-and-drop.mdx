@@ -1,0 +1,494 @@
+---
+title: Drag and Drop
+description: Add nodes to the flow by dragging them from a sidebar
+---
+
+This example shows how to implement drag and drop functionality to add new nodes to your Vue Flow from an external source like a sidebar.
+
+## Live Demo
+
+View the [live demo](https://vueflow.dev/examples/#/drag-n-drop) on vueflow.dev.
+
+## Complete Example
+
+<CodeGroup>
+```vue DnD.vue
+<script lang="ts" setup>
+import { VueFlow, useVueFlow } from '@vue-flow/core'
+import Sidebar from './Sidebar.vue'
+
+let id = 0
+function getId() {
+  return `dndnode_${id++}`
+}
+
+const { onConnect, addEdges, addNodes, project } = useVueFlow({
+  nodes: [
+    {
+      id: '1',
+      type: 'input',
+      label: 'input node',
+      position: { x: 250, y: 5 },
+    },
+  ],
+})
+
+function onDragOver(event: DragEvent) {
+  event.preventDefault()
+  if (event.dataTransfer) {
+    event.dataTransfer.dropEffect = 'move'
+  }
+}
+
+const wrapper = ref()
+
+onConnect(addEdges)
+
+function onDrop(event: DragEvent) {
+  const type = event.dataTransfer?.getData('application/vueflow')
+
+  const flowbounds = wrapper.value.$el.getBoundingClientRect()
+
+  const position = project({
+    x: event.clientX - flowbounds.left,
+    y: event.clientY - flowbounds.top,
+  })
+
+  addNodes({
+    id: getId(),
+    type,
+    position,
+    label: `${type} node`,
+  })
+}
+</script>
+
+<template>
+  <div class="dndflow" @drop="onDrop">
+    <VueFlow ref="wrapper" @dragover="onDragOver" />
+    <Sidebar />
+  </div>
+</template>
+
+<style>
+.dndflow {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.vue-flow-wrapper {
+  flex: 1;
+}
+</style>
+```
+
+```vue Sidebar.vue
+<script lang="ts" setup>
+function onDragStart(event: DragEvent, nodeType: string) {
+  if (event.dataTransfer) {
+    event.dataTransfer.setData('application/vueflow', nodeType)
+    event.dataTransfer.effectAllowed = 'move'
+  }
+}
+</script>
+
+<template>
+  <aside>
+    <div class="description">You can drag these nodes to the pane on the left.</div>
+    <div 
+      class="vue-flow__node-input" 
+      :draggable="true" 
+      @dragstart="(event: DragEvent) => onDragStart(event, 'input')"
+    >
+      Input Node
+    </div>
+    <div 
+      class="vue-flow__node-default" 
+      :draggable="true" 
+      @dragstart="(event: DragEvent) => onDragStart(event, 'default')"
+    >
+      Default Node
+    </div>
+    <div 
+      class="vue-flow__node-output" 
+      :draggable="true" 
+      @dragstart="(event: DragEvent) => onDragStart(event, 'output')"
+    >
+      Output Node
+    </div>
+  </aside>
+</template>
+
+<style scoped>
+aside {
+  border-right: 1px solid #eee;
+  padding: 15px 10px;
+  font-size: 12px;
+  background: #fcfcfc;
+}
+
+.description {
+  margin-bottom: 10px;
+}
+
+aside > div:not(.description) {
+  cursor: grab;
+  margin-bottom: 10px;
+  padding: 10px;
+  border-radius: 3px;
+  text-align: center;
+}
+
+aside > div:not(.description):hover {
+  opacity: 0.8;
+}
+</style>
+```
+</CodeGroup>
+
+## Key Concepts
+
+### Drag Start
+
+Set up the drag event with node type data:
+
+```typescript
+function onDragStart(event: DragEvent, nodeType: string) {
+  if (event.dataTransfer) {
+    // Store the node type in the drag data
+    event.dataTransfer.setData('application/vueflow', nodeType)
+    event.dataTransfer.effectAllowed = 'move'
+  }
+}
+```
+
+### Drag Over
+
+Prevent default behavior and set drop effect:
+
+```typescript
+function onDragOver(event: DragEvent) {
+  event.preventDefault()
+  if (event.dataTransfer) {
+    event.dataTransfer.dropEffect = 'move'
+  }
+}
+```
+
+<Note>
+  The `dragover` event must call `preventDefault()` to allow dropping.
+</Note>
+
+### Drop Handler
+
+Handle the drop event and create a new node:
+
+```typescript
+const { addNodes, project } = useVueFlow()
+const wrapper = ref()
+
+function onDrop(event: DragEvent) {
+  // Get the node type from drag data
+  const type = event.dataTransfer?.getData('application/vueflow')
+
+  // Get the flow bounds
+  const flowbounds = wrapper.value.$el.getBoundingClientRect()
+
+  // Calculate the position in flow coordinates
+  const position = project({
+    x: event.clientX - flowbounds.left,
+    y: event.clientY - flowbounds.top,
+  })
+
+  // Add the new node
+  addNodes({
+    id: getId(),
+    type,
+    position,
+    label: `${type} node`,
+  })
+}
+```
+
+## The project Function
+
+The `project` function converts screen coordinates to flow coordinates, accounting for:
+- Zoom level
+- Pan position
+- Flow offset
+
+```typescript
+const { project } = useVueFlow()
+
+// Convert screen coordinates to flow coordinates
+const flowPosition = project({ x: clientX, y: clientY })
+```
+
+## Template Setup
+
+```vue
+<template>
+  <div class="dndflow" @drop="onDrop">
+    <VueFlow ref="wrapper" @dragover="onDragOver" />
+    <Sidebar />
+  </div>
+</template>
+```
+
+<Tabs>
+  <Tab title="Wrapper Ref">
+    Get a reference to the VueFlow component to access its bounding box:
+    
+    ```typescript
+    const wrapper = ref()
+    
+    const bounds = wrapper.value.$el.getBoundingClientRect()
+    ```
+  </Tab>
+  
+  <Tab title="Drop Container">
+    The drop event listener should be on a parent container:
+    
+    ```vue
+    <div @drop="onDrop">
+      <VueFlow @dragover="onDragOver" />
+    </div>
+    ```
+  </Tab>
+</Tabs>
+
+## Generating Node IDs
+
+Create unique IDs for new nodes:
+
+```typescript
+let id = 0
+
+function getId() {
+  return `dndnode_${id++}`
+}
+
+// Or use timestamps
+function getId() {
+  return `node_${Date.now()}`
+}
+
+// Or use UUIDs
+import { v4 as uuidv4 } from 'uuid'
+
+function getId() {
+  return uuidv4()
+}
+```
+
+## Draggable Elements
+
+Make elements draggable:
+
+```vue
+<div 
+  :draggable="true" 
+  @dragstart="(event) => onDragStart(event, 'custom')"
+>
+  Drag me
+</div>
+```
+
+## Advanced Features
+
+### Drag with Custom Data
+
+Pass additional data with the dragged item:
+
+```typescript
+function onDragStart(event: DragEvent, nodeData: any) {
+  if (event.dataTransfer) {
+    event.dataTransfer.setData('application/vueflow', JSON.stringify(nodeData))
+    event.dataTransfer.effectAllowed = 'move'
+  }
+}
+
+function onDrop(event: DragEvent) {
+  const nodeData = JSON.parse(event.dataTransfer?.getData('application/vueflow') || '{}')
+  
+  const position = project({
+    x: event.clientX - flowbounds.left,
+    y: event.clientY - flowbounds.top,
+  })
+
+  addNodes({
+    id: getId(),
+    ...nodeData,
+    position,
+  })
+}
+```
+
+### Visual Drag Feedback
+
+Style elements during drag:
+
+```css
+.draggable {
+  cursor: grab;
+  transition: opacity 0.2s;
+}
+
+.draggable:active {
+  cursor: grabbing;
+  opacity: 0.5;
+}
+```
+
+### Prevent Drag on Certain Elements
+
+Use the `nodrag` class:
+
+```vue
+<div class="nodrag">
+  <button>I won't trigger drag</button>
+</div>
+```
+
+## Complete Workflow
+
+1. **User starts dragging** from sidebar
+   - `onDragStart` stores node type in `dataTransfer`
+
+2. **User drags over the flow**
+   - `onDragOver` prevents default and sets drop effect
+
+3. **User drops the node**
+   - `onDrop` reads the node type
+   - Calculates position using `project`
+   - Creates new node with `addNodes`
+
+## TypeScript Types
+
+```typescript
+import type { Node } from '@vue-flow/core'
+
+interface DraggableNodeData {
+  type: string
+  label?: string
+  data?: any
+}
+
+function onDragStart(event: DragEvent, nodeData: DraggableNodeData) {
+  // ...
+}
+
+function onDrop(event: DragEvent): void {
+  // ...
+}
+```
+
+## Example with Custom Node Types
+
+```vue
+<script setup>
+import CustomNode from './CustomNode.vue'
+
+function onDragStart(event: DragEvent, config: any) {
+  event.dataTransfer?.setData('application/vueflow', JSON.stringify(config))
+}
+
+function onDrop(event: DragEvent) {
+  const config = JSON.parse(event.dataTransfer?.getData('application/vueflow') || '{}')
+  
+  addNodes({
+    id: getId(),
+    type: config.type,
+    position: project({ x: event.clientX, y: event.clientY }),
+    data: config.data,
+  })
+}
+</script>
+
+<template>
+  <VueFlow>
+    <template #node-custom="props">
+      <CustomNode v-bind="props" />
+    </template>
+  </VueFlow>
+</template>
+```
+
+## Sidebar Variations
+
+<Tabs>
+  <Tab title="Vertical Sidebar">
+    ```vue
+    <div class="layout">
+      <aside class="sidebar"><!-- draggable items --></aside>
+      <VueFlow />
+    </div>
+    
+    <style>
+    .layout {
+      display: flex;
+      height: 100%;
+    }
+    .sidebar {
+      width: 200px;
+      border-right: 1px solid #eee;
+    }
+    </style>
+    ```
+  </Tab>
+  
+  <Tab title="Horizontal Toolbar">
+    ```vue
+    <div class="layout">
+      <div class="toolbar"><!-- draggable items --></div>
+      <VueFlow />
+    </div>
+    
+    <style>
+    .layout {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    .toolbar {
+      height: 60px;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      gap: 10px;
+      padding: 10px;
+    }
+    </style>
+    ```
+  </Tab>
+</Tabs>
+
+## Best Practices
+
+<Note>
+  - Always use `project()` to convert screen coordinates to flow coordinates
+  - Generate unique IDs for each new node
+  - Provide visual feedback during drag operations
+  - Handle edge cases (invalid drops, missing data)
+  - Consider accessibility (keyboard alternatives)
+</Note>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Save & Restore" icon="floppy-disk" href="/examples/save-restore">
+    Save and restore flow state
+  </Card>
+  
+  <Card title="Custom Nodes" icon="cube" href="/examples/custom-nodes">
+    Create custom node types
+  </Card>
+  
+  <Card title="useVueFlow" icon="code" href="/api/composables/use-vue-flow">
+    Learn about the useVueFlow composable
+  </Card>
+  
+  <Card title="Node API" icon="book" href="/api/types/node">
+    Complete node type reference
+  </Card>
+</CardGroup>

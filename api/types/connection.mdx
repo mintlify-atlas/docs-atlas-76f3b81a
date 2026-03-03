@@ -1,0 +1,360 @@
+---
+title: Connection Types
+description: Type definitions for handling connections between nodes
+---
+
+## Connection
+
+Connection params that are passed when `onConnect` is called.
+
+<ParamField path="source" type="string" required>
+  Source node id
+</ParamField>
+
+<ParamField path="target" type="string" required>
+  Target node id
+</ParamField>
+
+<ParamField path="sourceHandle" type="string | null">
+  Source handle id
+</ParamField>
+
+<ParamField path="targetHandle" type="string | null">
+  Target handle id
+</ParamField>
+
+### Example
+
+```typescript
+const connection: Connection = {
+  source: 'node-1',
+  target: 'node-2',
+  sourceHandle: 'output',
+  targetHandle: 'input'
+}
+```
+
+---
+
+## NodeConnection
+
+Connection with an associated edge id.
+
+```typescript
+type NodeConnection = Connection & {
+  edgeId: string
+}
+```
+
+---
+
+## Connector
+
+Function type for custom connection handlers.
+
+```typescript
+type Connector = (
+  params: Connection,
+) => Promise<(Connection & Partial<Edge>) | false> | 
+     ((Connection & Partial<Edge>) | false)
+```
+
+Return `false` to prevent the connection, or return connection params merged with edge properties.
+
+### Example
+
+```typescript
+const connector: Connector = async (connection) => {
+  // Validate connection
+  if (!isValidConnection(connection)) {
+    return false
+  }
+  
+  // Return connection with additional edge properties
+  return {
+    ...connection,
+    animated: true,
+    style: { stroke: '#ff0000' }
+  }
+}
+```
+
+---
+
+## ConnectionStatus
+
+Status of a connection in progress.
+
+```typescript
+type ConnectionStatus = 'valid' | 'invalid'
+```
+
+---
+
+## OnConnectStartParams
+
+Parameters passed when a connection is initiated.
+
+<ParamField path="handleId" type="string | null" required>
+  Source handle id
+</ParamField>
+
+<ParamField path="nodeId" type="string">
+  Source node id
+</ParamField>
+
+<ParamField path="handleType" type="HandleType">
+  Source handle type (`'source'` or `'target'`)
+</ParamField>
+
+---
+
+## ConnectionMode
+
+Connection mode enum determining handle behavior.
+
+```typescript
+enum ConnectionMode {
+  Strict = 'strict',
+  Loose = 'loose'
+}
+```
+
+- **Strict**: Connections can only be made from source handles to target handles
+- **Loose**: All handles are treated as source handles, allowing more flexible connections
+
+---
+
+## ConnectionLineType
+
+Enum for connection line visual types.
+
+```typescript
+enum ConnectionLineType {
+  Bezier = 'default',
+  SimpleBezier = 'simple-bezier',
+  Straight = 'straight',
+  Step = 'step',
+  SmoothStep = 'smoothstep'
+}
+```
+
+---
+
+## ConnectionLineOptions
+
+Configuration options for the connection line.
+
+<ParamField path="type" type="ConnectionLineType">
+  Visual type of the connection line
+</ParamField>
+
+<ParamField path="style" type="CSSProperties">
+  Custom styles for the connection line
+</ParamField>
+
+<ParamField path="class" type="string">
+  CSS class for the connection line
+</ParamField>
+
+<ParamField path="markerStart" type="EdgeMarkerType">
+  Marker at the start of the connection line
+</ParamField>
+
+<ParamField path="markerEnd" type="EdgeMarkerType">
+  Marker at the end of the connection line
+</ParamField>
+
+### Example
+
+```typescript
+const connectionLineOptions: ConnectionLineOptions = {
+  type: ConnectionLineType.SmoothStep,
+  style: { 
+    stroke: '#4A90E2',
+    strokeWidth: 2 
+  },
+  markerEnd: 'arrow'
+}
+```
+
+---
+
+## ConnectionLineProps
+
+Props passed to custom connection line components.
+
+<ResponseField name="sourceX" type="number">
+  Source X position of the connection line
+</ResponseField>
+
+<ResponseField name="sourceY" type="number">
+  Source Y position of the connection line
+</ResponseField>
+
+<ResponseField name="sourcePosition" type="Position">
+  Source position of the connection line
+</ResponseField>
+
+<ResponseField name="targetX" type="number">
+  Target X position of the connection line
+</ResponseField>
+
+<ResponseField name="targetY" type="number">
+  Target Y position of the connection line
+</ResponseField>
+
+<ResponseField name="targetPosition" type="Position">
+  Target position of the connection line
+</ResponseField>
+
+<ResponseField name="sourceNode" type="GraphNode">
+  The source node of the connection line
+</ResponseField>
+
+<ResponseField name="sourceHandle" type="HandleElement | null">
+  The source handle element (not the DOM element)
+</ResponseField>
+
+<ResponseField name="targetNode" type="GraphNode | null">
+  The target node of the connection line (null while dragging)
+</ResponseField>
+
+<ResponseField name="targetHandle" type="HandleElement | null">
+  The target handle element (null while dragging)
+</ResponseField>
+
+<ResponseField name="markerStart" type="string">
+  Marker URL for start
+</ResponseField>
+
+<ResponseField name="markerEnd" type="string">
+  Marker URL for end
+</ResponseField>
+
+<ResponseField name="connectionStatus" type="ConnectionStatus | null">
+  Status of the connection (valid or invalid)
+</ResponseField>
+
+---
+
+## HandleElement
+
+Represents a handle element in the flow.
+
+```typescript
+interface HandleElement extends XYPosition, Dimensions {
+  id?: string | null
+  position: Position
+  type: HandleType
+  nodeId: string
+}
+```
+
+<ParamField path="id" type="string | null">
+  Handle identifier
+</ParamField>
+
+<ParamField path="position" type="Position" required>
+  Position of the handle
+</ParamField>
+
+<ParamField path="type" type="HandleType" required>
+  Type of handle (`'source'` or `'target'`)
+</ParamField>
+
+<ParamField path="nodeId" type="string" required>
+  Node id this handle belongs to
+</ParamField>
+
+<ParamField path="x" type="number" required>
+  X coordinate
+</ParamField>
+
+<ParamField path="y" type="number" required>
+  Y coordinate
+</ParamField>
+
+<ParamField path="width" type="number" required>
+  Handle width
+</ParamField>
+
+<ParamField path="height" type="number" required>
+  Handle height
+</ParamField>
+
+---
+
+## ConnectionLookup
+
+Map structure for fast connection lookups.
+
+```typescript
+type ConnectionLookup = Map<string, Map<string, NodeConnection>>
+```
+
+Nested map structure:
+- First key: node id
+- Second key: handle id
+- Value: `NodeConnection` object
+
+### Example Usage
+
+```typescript
+// Access connections for a specific node and handle
+const nodeConnections = connectionLookup.get('node-1')
+const handleConnections = nodeConnections?.get('handle-a')
+```
+
+---
+
+## ConnectionInProgress
+
+Represents an active connection being dragged.
+
+```typescript
+interface ConnectionInProgress<NodeType extends GraphNode = GraphNode> {
+  inProgress: true
+  isValid: boolean | null
+  from: XYPosition
+  fromHandle: HandleElement
+  fromPosition: Position
+  fromNode: NodeType
+  to: XYPosition
+  toHandle: ConnectingHandle | null
+  toPosition: Position
+  toNode: NodeType | null
+}
+```
+
+<ParamField path="inProgress" type="true" required>
+  Always true for active connections
+</ParamField>
+
+<ParamField path="isValid" type="boolean | null" required>
+  Whether the connection is valid, invalid, or not yet determined
+</ParamField>
+
+<ParamField path="from" type="XYPosition" required>
+  Start position
+</ParamField>
+
+<ParamField path="fromHandle" type="HandleElement" required>
+  Source handle
+</ParamField>
+
+<ParamField path="fromNode" type="GraphNode" required>
+  Source node
+</ParamField>
+
+<ParamField path="to" type="XYPosition" required>
+  Current cursor position
+</ParamField>
+
+<ParamField path="toHandle" type="ConnectingHandle | null" required>
+  Target handle (null if hovering over nothing)
+</ParamField>
+
+<ParamField path="toNode" type="GraphNode | null" required>
+  Target node (null if hovering over nothing)
+</ParamField>

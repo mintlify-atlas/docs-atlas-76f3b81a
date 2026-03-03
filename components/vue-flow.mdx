@@ -1,0 +1,540 @@
+---
+title: VueFlow
+description: The main Vue Flow component that renders the interactive node-based editor
+---
+
+The `VueFlow` component is the core container that renders your interactive node graph. It manages nodes, edges, viewport, and all user interactions.
+
+## Installation
+
+```bash
+npm install @vue-flow/core
+```
+
+## Basic Usage
+
+```vue
+<script setup>
+import { VueFlow } from '@vue-flow/core'
+import { ref } from 'vue'
+
+const nodes = ref([
+  { id: '1', position: { x: 0, y: 0 }, label: 'Node 1' },
+  { id: '2', position: { x: 200, y: 100 }, label: 'Node 2' },
+])
+
+const edges = ref([
+  { id: 'e1-2', source: '1', target: '2' },
+])
+</script>
+
+<template>
+  <VueFlow v-model:nodes="nodes" v-model:edges="edges" />
+</template>
+```
+
+## Props
+
+### Model Binding
+
+<ParamField path="modelValue" type="Elements">
+  All elements (nodes + edges). **Deprecated**: Use `nodes` and `edges` props instead.
+</ParamField>
+
+<ParamField path="nodes" type="Node[]">
+  Array of nodes to render in the flow.
+</ParamField>
+
+<ParamField path="edges" type="Edge[]">
+  Array of edges to render in the flow.
+</ParamField>
+
+### Element Types
+
+<ParamField path="nodeTypes" type="NodeTypesObject">
+  Custom node type components. Either use this prop or use slots (`<template #node-custom="props">`)
+</ParamField>
+
+<ParamField path="edgeTypes" type="EdgeTypesObject">
+  Custom edge type components. Either use this prop or use slots (`<template #edge-custom="props">`)
+</ParamField>
+
+### Interaction
+
+<ParamField path="nodesDraggable" type="boolean">
+  Enable/disable node dragging globally.
+</ParamField>
+
+<ParamField path="nodesConnectable" type="boolean">
+  Enable/disable creating connections from nodes.
+</ParamField>
+
+<ParamField path="elementsSelectable" type="boolean">
+  Enable/disable selecting elements.
+</ParamField>
+
+<ParamField path="selectNodesOnDrag" type="boolean">
+  Select nodes when dragging.
+</ParamField>
+
+<ParamField path="panOnDrag" type="boolean | number[]">
+  Enable panning by dragging. Can specify mouse buttons as array.
+</ParamField>
+
+<ParamField path="panOnScroll" type="boolean">
+  Enable panning by scrolling.
+</ParamField>
+
+<ParamField path="zoomOnScroll" type="boolean">
+  Enable zooming by scrolling.
+</ParamField>
+
+<ParamField path="zoomOnPinch" type="boolean">
+  Enable zooming by pinch gesture.
+</ParamField>
+
+<ParamField path="zoomOnDoubleClick" type="boolean">
+  Enable zooming by double-clicking.
+</ParamField>
+
+<ParamField path="preventScrolling" type="boolean" default="true">
+  Prevent page scroll when interacting with the flow.
+</ParamField>
+
+### Zoom & Viewport
+
+<ParamField path="minZoom" type="number" default="0.5">
+  Minimum zoom level.
+</ParamField>
+
+<ParamField path="maxZoom" type="number" default="2">
+  Maximum zoom level.
+</ParamField>
+
+<ParamField path="defaultViewport" type="Partial<ViewportTransform>">
+  Initial viewport position and zoom.
+</ParamField>
+
+<ParamField path="translateExtent" type="CoordinateExtent">
+  Boundary area for panning.
+</ParamField>
+
+<ParamField path="nodeExtent" type="CoordinateExtent | CoordinateExtentRange">
+  Boundary area for node positions.
+</ParamField>
+
+<ParamField path="fitViewOnInit" type="boolean">
+  Automatically fit the view to show all nodes on initialization.
+</ParamField>
+
+### Grid & Snapping
+
+<ParamField path="snapToGrid" type="boolean">
+  Enable snapping nodes to grid.
+</ParamField>
+
+<ParamField path="snapGrid" type="[number, number]" default="[15, 15]">
+  Grid size for snapping as `[x, y]`.
+</ParamField>
+
+### Connections
+
+<ParamField path="connectionMode" type="ConnectionMode">
+  How connections behave: `'strict'` or `'loose'`.
+</ParamField>
+
+<ParamField path="connectionLineOptions" type="ConnectionLineOptions">
+  Styling and type options for the connection line.
+</ParamField>
+
+<ParamField path="connectionRadius" type="number" default="20">
+  Radius for detecting connection handles.
+</ParamField>
+
+<ParamField path="isValidConnection" type="ValidConnectionFunc | null">
+  Function to validate connections before they are created.
+</ParamField>
+
+<ParamField path="connectOnClick" type="boolean">
+  Allow connections using click handlers (useful for touch devices).
+</ParamField>
+
+<ParamField path="autoConnect" type="boolean | Connector">
+  Automatically create edges when connections are made. **Deprecated**.
+</ParamField>
+
+### Keyboard
+
+<ParamField path="deleteKeyCode" type="KeyFilter | null" default="'Delete'">
+  Key(s) to delete selected elements.
+</ParamField>
+
+<ParamField path="selectionKeyCode" type="KeyFilter | boolean | null">
+  Key(s) to enable selection mode.
+</ParamField>
+
+<ParamField path="multiSelectionKeyCode" type="KeyFilter | null">
+  Key(s) for multi-selection.
+</ParamField>
+
+<ParamField path="panActivationKeyCode" type="KeyFilter | null">
+  Key(s) to activate panning mode.
+</ParamField>
+
+<ParamField path="zoomActivationKeyCode" type="KeyFilter | null">
+  Key(s) to activate zoom mode.
+</ParamField>
+
+### Rendering
+
+<ParamField path="onlyRenderVisibleElements" type="boolean">
+  Only render nodes and edges currently visible in the viewport (performance optimization).
+</ParamField>
+
+<ParamField path="elevateEdgesOnSelect" type="boolean">
+  Elevate edges z-index when selected.
+</ParamField>
+
+<ParamField path="elevateNodesOnSelect" type="boolean">
+  Elevate nodes z-index by +1000 when selected.
+</ParamField>
+
+### Edge Options
+
+<ParamField path="edgesUpdatable" type="EdgeUpdatable">
+  Enable updating edge connections.
+</ParamField>
+
+<ParamField path="defaultEdgeOptions" type="DefaultEdgeOptions">
+  Default options applied to all edges.
+</ParamField>
+
+<ParamField path="defaultMarkerColor" type="string">
+  Default color for edge markers.
+</ParamField>
+
+### Accessibility
+
+<ParamField path="disableKeyboardA11y" type="boolean">
+  Disable keyboard accessibility features.
+</ParamField>
+
+<ParamField path="edgesFocusable" type="boolean">
+  Make edges focusable for keyboard navigation.
+</ParamField>
+
+<ParamField path="nodesFocusable" type="boolean">
+  Make nodes focusable for keyboard navigation.
+</ParamField>
+
+### Auto Pan
+
+<ParamField path="autoPanOnConnect" type="boolean">
+  Automatically pan when connecting near viewport edges.
+</ParamField>
+
+<ParamField path="autoPanOnNodeDrag" type="boolean">
+  Automatically pan when dragging nodes near viewport edges.
+</ParamField>
+
+<ParamField path="autoPanSpeed" type="number">
+  Speed of automatic panning.
+</ParamField>
+
+### Other
+
+<ParamField path="id" type="string">
+  Unique identifier for this Vue Flow instance.
+</ParamField>
+
+<ParamField path="applyDefault" type="boolean">
+  Apply default change handlers. **Deprecated**: Will be removed in next major version.
+</ParamField>
+
+<ParamField path="selectionMode" type="SelectionMode">
+  Selection behavior: `'partial'` or `'full'`.
+</ParamField>
+
+<ParamField path="paneClickDistance" type="number" default="0">
+  Maximum mouse movement between mousedown/up to trigger a click.
+</ParamField>
+
+## Events
+
+### Node Events
+
+<ParamField path="@nodeClick" type="(event: NodeMouseEvent) => void">
+  Fired when a node is clicked.
+</ParamField>
+
+<ParamField path="@nodeDoubleClick" type="(event: NodeMouseEvent) => void">
+  Fired when a node is double-clicked.
+</ParamField>
+
+<ParamField path="@nodeContextMenu" type="(event: NodeMouseEvent) => void">
+  Fired on node right-click.
+</ParamField>
+
+<ParamField path="@nodeMouseEnter" type="(event: NodeMouseEvent) => void">
+  Fired when mouse enters a node.
+</ParamField>
+
+<ParamField path="@nodeMouseMove" type="(event: NodeMouseEvent) => void">
+  Fired when mouse moves over a node.
+</ParamField>
+
+<ParamField path="@nodeMouseLeave" type="(event: NodeMouseEvent) => void">
+  Fired when mouse leaves a node.
+</ParamField>
+
+<ParamField path="@nodeDragStart" type="(event: NodeDragEvent) => void">
+  Fired when node dragging starts.
+</ParamField>
+
+<ParamField path="@nodeDrag" type="(event: NodeDragEvent) => void">
+  Fired while dragging a node.
+</ParamField>
+
+<ParamField path="@nodeDragStop" type="(event: NodeDragEvent) => void">
+  Fired when node dragging stops.
+</ParamField>
+
+### Edge Events
+
+<ParamField path="@edgeClick" type="(event: EdgeMouseEvent) => void">
+  Fired when an edge is clicked.
+</ParamField>
+
+<ParamField path="@edgeDoubleClick" type="(event: EdgeMouseEvent) => void">
+  Fired when an edge is double-clicked.
+</ParamField>
+
+<ParamField path="@edgeContextMenu" type="(event: EdgeMouseEvent) => void">
+  Fired on edge right-click.
+</ParamField>
+
+<ParamField path="@edgeMouseEnter" type="(event: EdgeMouseEvent) => void">
+  Fired when mouse enters an edge.
+</ParamField>
+
+<ParamField path="@edgeMouseMove" type="(event: EdgeMouseEvent) => void">
+  Fired when mouse moves over an edge.
+</ParamField>
+
+<ParamField path="@edgeMouseLeave" type="(event: EdgeMouseEvent) => void">
+  Fired when mouse leaves an edge.
+</ParamField>
+
+<ParamField path="@edgeUpdate" type="(event: EdgeUpdateEvent) => void">
+  Fired when an edge connection is updated.
+</ParamField>
+
+<ParamField path="@edgeUpdateStart" type="(event: EdgeMouseEvent) => void">
+  Fired when edge update starts.
+</ParamField>
+
+<ParamField path="@edgeUpdateEnd" type="(event: EdgeMouseEvent) => void">
+  Fired when edge update ends.
+</ParamField>
+
+### Connection Events
+
+<ParamField path="@connect" type="(connection: Connection) => void">
+  Fired when a new connection is created.
+</ParamField>
+
+<ParamField path="@connectStart" type="(params: OnConnectStartParams) => void">
+  Fired when connection creation starts.
+</ParamField>
+
+<ParamField path="@connectEnd" type="(event?: MouseEvent) => void">
+  Fired when connection creation ends.
+</ParamField>
+
+### Pane Events
+
+<ParamField path="@paneClick" type="(event: MouseEvent) => void">
+  Fired when the pane (background) is clicked.
+</ParamField>
+
+<ParamField path="@paneContextMenu" type="(event: MouseEvent) => void">
+  Fired on pane right-click.
+</ParamField>
+
+<ParamField path="@paneScroll" type="(event?: WheelEvent) => void">
+  Fired when scrolling on the pane.
+</ParamField>
+
+<ParamField path="@paneMouseEnter" type="(event: MouseEvent) => void">
+  Fired when mouse enters the pane.
+</ParamField>
+
+<ParamField path="@paneMouseMove" type="(event: MouseEvent) => void">
+  Fired when mouse moves over the pane.
+</ParamField>
+
+<ParamField path="@paneMouseLeave" type="(event: MouseEvent) => void">
+  Fired when mouse leaves the pane.
+</ParamField>
+
+### Viewport Events
+
+<ParamField path="@move" type="(event: FlowTransformEvent) => void">
+  Fired when the viewport is moved.
+</ParamField>
+
+<ParamField path="@moveStart" type="(event: FlowTransformEvent) => void">
+  Fired when viewport movement starts.
+</ParamField>
+
+<ParamField path="@moveEnd" type="(event: FlowTransformEvent) => void">
+  Fired when viewport movement ends.
+</ParamField>
+
+<ParamField path="@viewportChange" type="(viewport: ViewportTransform) => void">
+  Fired when viewport changes.
+</ParamField>
+
+<ParamField path="@viewportChangeStart" type="(viewport: ViewportTransform) => void">
+  Fired when viewport change starts.
+</ParamField>
+
+<ParamField path="@viewportChangeEnd" type="(viewport: ViewportTransform) => void">
+  Fired when viewport change ends.
+</ParamField>
+
+### Selection Events
+
+<ParamField path="@selectionStart" type="(event: MouseEvent) => void">
+  Fired when selection starts.
+</ParamField>
+
+<ParamField path="@selectionEnd" type="(event: MouseEvent) => void">
+  Fired when selection ends.
+</ParamField>
+
+<ParamField path="@selectionDragStart" type="(event: NodeDragEvent) => void">
+  Fired when dragging selected nodes starts.
+</ParamField>
+
+<ParamField path="@selectionDrag" type="(event: NodeDragEvent) => void">
+  Fired while dragging selected nodes.
+</ParamField>
+
+<ParamField path="@selectionDragStop" type="(event: NodeDragEvent) => void">
+  Fired when dragging selected nodes stops.
+</ParamField>
+
+<ParamField path="@selectionContextMenu" type="(event: { event: MouseEvent; nodes: GraphNode[] }) => void">
+  Fired on selection right-click.
+</ParamField>
+
+### State Events
+
+<ParamField path="@nodesChange" type="(changes: NodeChange[]) => void">
+  Fired when nodes change (position, selection, etc.).
+</ParamField>
+
+<ParamField path="@edgesChange" type="(changes: EdgeChange[]) => void">
+  Fired when edges change.
+</ParamField>
+
+<ParamField path="@nodesInitialized" type="() => void">
+  Fired when all nodes are initialized.
+</ParamField>
+
+<ParamField path="@init" type="(instance: VueFlowStore) => void">
+  Fired when the Vue Flow instance is initialized.
+</ParamField>
+
+<ParamField path="@error" type="(error: VueFlowError) => void">
+  Fired when an error occurs.
+</ParamField>
+
+## Slots
+
+<ParamField path="default">
+  Content rendered outside the viewport (not affected by zoom/pan).
+</ParamField>
+
+<ParamField path="zoom-pane">
+  Content rendered inside the viewport (affected by zoom/pan).
+</ParamField>
+
+<ParamField path="connection-line" type="(props: ConnectionLineProps) => any">
+  Custom connection line component.
+</ParamField>
+
+<ParamField path="node-{type}" type="(props: NodeProps) => any">
+  Custom node type component. Replace `{type}` with your node type.
+</ParamField>
+
+<ParamField path="edge-{type}" type="(props: EdgeProps) => any">
+  Custom edge type component. Replace `{type}` with your edge type.
+</ParamField>
+
+## Complete Example
+
+```vue
+<script setup>
+import { VueFlow, useVueFlow } from '@vue-flow/core'
+import { Background } from '@vue-flow/background'
+import { Controls } from '@vue-flow/controls'
+import { MiniMap } from '@vue-flow/minimap'
+import { ref } from 'vue'
+
+const nodes = ref([
+  {
+    id: '1',
+    type: 'input',
+    position: { x: 250, y: 5 },
+    label: 'Input Node',
+  },
+  {
+    id: '2',
+    position: { x: 100, y: 100 },
+    label: 'Default Node',
+  },
+  {
+    id: '3',
+    type: 'output',
+    position: { x: 400, y: 200 },
+    label: 'Output Node',
+  },
+])
+
+const edges = ref([
+  { id: 'e1-2', source: '1', target: '2', animated: true },
+  { id: 'e2-3', source: '2', target: '3' },
+])
+
+const { onConnect } = useVueFlow()
+
+onConnect((params) => {
+  edges.value.push(params)
+})
+</script>
+
+<template>
+  <VueFlow
+    v-model:nodes="nodes"
+    v-model:edges="edges"
+    :default-zoom="1.5"
+    :min-zoom="0.2"
+    :max-zoom="4"
+    fit-view-on-init
+  >
+    <Background />
+    <Controls />
+    <MiniMap />
+  </VueFlow>
+</template>
+
+<style>
+@import '@vue-flow/core/dist/style.css';
+</style>
+```
+
+<Note>
+  The VueFlow component provides access to its internal state via the `useVueFlow` composable. You can use this to programmatically control the flow, access nodes/edges, and more.
+</Note>

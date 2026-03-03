@@ -1,0 +1,493 @@
+---
+title: Save and Restore
+description: Save flow state to local storage and restore it later
+---
+
+This example demonstrates how to save the complete state of your Vue Flow (nodes, edges, and viewport) to local storage and restore it later.
+
+## Live Demo
+
+View the [live demo](https://vueflow.dev/examples/#/save-restore) on vueflow.dev.
+
+## Complete Example
+
+<CodeGroup>
+```vue SaveRestoreExample.vue
+<script lang="ts" setup>
+import type { Elements } from '@vue-flow/core'
+import { VueFlow } from '@vue-flow/core'
+import Controls from './Controls.vue'
+
+const initialElements: Elements = [
+  { id: '1', label: 'Node 1', position: { x: 100, y: 100 } },
+  { id: '2', label: 'Node 2', position: { x: 100, y: 200 } },
+  { id: 'e1-2', source: '1', target: '2' },
+]
+
+const elements = ref(initialElements)
+</script>
+
+<template>
+  <VueFlow v-model="elements">
+    <Controls />
+  </VueFlow>
+</template>
+```
+
+```vue Controls.vue
+<script lang="ts" setup>
+import type { Edge, FlowExportObject, Node } from '@vue-flow/core'
+import { useVueFlow } from '@vue-flow/core'
+
+const flowKey = 'example-flow'
+
+const state = useStorage(flowKey, {
+  nodes: [] as Node[],
+  edges: [] as Edge[],
+  viewport: { x: 0, y: 0, zoom: 1 },
+} as FlowExportObject)
+
+function getNodeId() {
+  return `randomnode_${+new Date()}`
+}
+
+const { addNodes, setNodes, setEdges, toObject, dimensions, setViewport } = useVueFlow()
+
+function onSave() {
+  state.value = toObject()
+}
+
+function onRestore() {
+  const flow = state.value
+
+  if (flow) {
+    const [x = 0, y = 0] = flow.position
+
+    setNodes(flow.nodes)
+    setEdges(flow.edges)
+    setViewport({ x, y, zoom: flow.zoom || 0 })
+  }
+}
+
+function onAdd() {
+  addNodes({
+    id: `random_node-${getNodeId()}`,
+    label: 'Added node',
+    position: { 
+      x: Math.random() * dimensions.value.width, 
+      y: Math.random() * dimensions.value.height 
+    },
+  })
+}
+</script>
+
+<template>
+  <div class="save__controls">
+    <button @click="onSave">save</button>
+    <button @click="onRestore">restore</button>
+    <button @click="onAdd">add node</button>
+  </div>
+</template>
+```
+</CodeGroup>
+
+## Key Concepts
+
+### Export Flow State
+
+Use `toObject()` to export the complete flow state:
+
+```typescript
+const { toObject } = useVueFlow()
+
+function onSave() {
+  const flowState = toObject()
+  console.log(flowState)
+}
+```
+
+The returned object contains:
+
+```typescript
+interface FlowExportObject {
+  nodes: Node[]
+  edges: Edge[]
+  position: [number, number]  // [x, y]
+  zoom: number
+  viewport: { x: number; y: number; zoom: number }
+}
+```
+
+### Save to Local Storage
+
+Use VueUse's `useStorage` for persistent storage:
+
+```typescript
+import { useStorage } from '@vueuse/core'
+
+const state = useStorage('flow-key', {
+  nodes: [] as Node[],
+  edges: [] as Edge[],
+  viewport: { x: 0, y: 0, zoom: 1 },
+} as FlowExportObject)
+
+function onSave() {
+  state.value = toObject()
+}
+```
+
+### Restore Flow State
+
+Restore nodes, edges, and viewport:
+
+```typescript
+const { setNodes, setEdges, setViewport } = useVueFlow()
+
+function onRestore() {
+  const flow = state.value
+
+  if (flow) {
+    setNodes(flow.nodes)
+    setEdges(flow.edges)
+    setViewport({ 
+      x: flow.viewport.x, 
+      y: flow.viewport.y, 
+      zoom: flow.viewport.zoom 
+    })
+  }
+}
+```
+
+## Storage Options
+
+<Tabs>
+  <Tab title="Local Storage">
+    Persist data across browser sessions:
+    
+    ```typescript
+    import { useStorage } from '@vueuse/core'
+    
+    const state = useStorage('flow-state', defaultState)
+    ```
+  </Tab>
+  
+  <Tab title="Session Storage">
+    Data cleared when tab closes:
+    
+    ```typescript
+    import { useSessionStorage } from '@vueuse/core'
+    
+    const state = useSessionStorage('flow-state', defaultState)
+    ```
+  </Tab>
+  
+  <Tab title="IndexedDB">
+    For larger datasets:
+    
+    ```typescript
+    // Use a library like idb-keyval
+    import { set, get } from 'idb-keyval'
+    
+    async function onSave() {
+      await set('flow-state', toObject())
+    }
+    
+    async function onRestore() {
+      const flow = await get('flow-state')
+      if (flow) {
+        setNodes(flow.nodes)
+        setEdges(flow.edges)
+        setViewport(flow.viewport)
+      }
+    }
+    ```
+  </Tab>
+  
+  <Tab title="Backend API">
+    Save to a server:
+    
+    ```typescript
+    async function onSave() {
+      const flow = toObject()
+      await fetch('/api/flows', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(flow)
+      })
+    }
+    
+    async function onRestore() {
+      const response = await fetch('/api/flows/123')
+      const flow = await response.json()
+      setNodes(flow.nodes)
+      setEdges(flow.edges)
+      setViewport(flow.viewport)
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Export Formats
+
+### JSON Export
+
+```typescript
+function exportAsJSON() {
+  const flow = toObject()
+  const json = JSON.stringify(flow, null, 2)
+  
+  // Download as file
+  const blob = new Blob([json], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = 'flow.json'
+  link.click()
+  URL.revokeObjectURL(url)
+}
+```
+
+### Import from JSON
+
+```typescript
+function importFromJSON(file: File) {
+  const reader = new FileReader()
+  
+  reader.onload = (e) => {
+    const flow = JSON.parse(e.target?.result as string)
+    setNodes(flow.nodes)
+    setEdges(flow.edges)
+    setViewport(flow.viewport)
+  }
+  
+  reader.readAsText(file)
+}
+```
+
+## Auto-Save
+
+Automatically save changes:
+
+```typescript
+import { watchDebounced } from '@vueuse/core'
+
+const { nodes, edges, viewport } = useVueFlow()
+
+// Auto-save after 1 second of no changes
+watchDebounced(
+  [nodes, edges, viewport],
+  () => {
+    state.value = toObject()
+    console.log('Auto-saved!')
+  },
+  { debounce: 1000, deep: true }
+)
+```
+
+## Version Control
+
+Implement versioning for flow states:
+
+```typescript
+interface FlowVersion {
+  version: number
+  timestamp: number
+  state: FlowExportObject
+}
+
+const versions = useStorage<FlowVersion[]>('flow-versions', [])
+
+function saveVersion() {
+  versions.value.push({
+    version: versions.value.length + 1,
+    timestamp: Date.now(),
+    state: toObject()
+  })
+}
+
+function restoreVersion(versionNumber: number) {
+  const version = versions.value.find(v => v.version === versionNumber)
+  if (version) {
+    setNodes(version.state.nodes)
+    setEdges(version.state.edges)
+    setViewport(version.state.viewport)
+  }
+}
+```
+
+## Undo/Redo
+
+Implement undo/redo functionality:
+
+```typescript
+import { useRefHistory } from '@vueuse/core'
+
+const { nodes, edges } = useVueFlow()
+
+const { history, undo, redo, canUndo, canRedo } = useRefHistory(
+  { nodes, edges },
+  { deep: true, capacity: 50 }
+)
+
+function handleUndo() {
+  if (canUndo.value) {
+    undo()
+  }
+}
+
+function handleRedo() {
+  if (canRedo.value) {
+    redo()
+  }
+}
+```
+
+```vue
+<template>
+  <div class="controls">
+    <button :disabled="!canUndo" @click="handleUndo">Undo</button>
+    <button :disabled="!canRedo" @click="handleRedo">Redo</button>
+  </div>
+</template>
+```
+
+## Migration and Compatibility
+
+Handle different flow versions:
+
+```typescript
+interface FlowState {
+  version: string
+  data: FlowExportObject
+}
+
+function migrateFlow(oldFlow: any): FlowExportObject {
+  // Migrate from old format to new format
+  if (oldFlow.version === '1.0') {
+    return {
+      nodes: oldFlow.elements.filter(isNode),
+      edges: oldFlow.elements.filter(isEdge),
+      viewport: oldFlow.viewport || { x: 0, y: 0, zoom: 1 }
+    }
+  }
+  return oldFlow.data
+}
+
+function onRestore() {
+  const savedFlow = state.value
+  const flow = migrateFlow(savedFlow)
+  
+  setNodes(flow.nodes)
+  setEdges(flow.edges)
+  setViewport(flow.viewport)
+}
+```
+
+## Partial State Management
+
+Save only specific parts of the state:
+
+```typescript
+// Save only nodes
+function saveNodes() {
+  const { nodes } = useVueFlow()
+  localStorage.setItem('flow-nodes', JSON.stringify(nodes.value))
+}
+
+// Save only viewport
+function saveViewport() {
+  const { viewport } = useVueFlow()
+  localStorage.setItem('flow-viewport', JSON.stringify(viewport.value))
+}
+
+// Restore selectively
+function restoreNodes() {
+  const saved = localStorage.getItem('flow-nodes')
+  if (saved) {
+    setNodes(JSON.parse(saved))
+  }
+}
+```
+
+## Error Handling
+
+```typescript
+function onSave() {
+  try {
+    const flow = toObject()
+    state.value = flow
+    console.log('Flow saved successfully')
+  } catch (error) {
+    console.error('Failed to save flow:', error)
+    // Show error notification to user
+  }
+}
+
+function onRestore() {
+  try {
+    const flow = state.value
+    if (!flow || !flow.nodes) {
+      throw new Error('Invalid flow state')
+    }
+    
+    setNodes(flow.nodes)
+    setEdges(flow.edges || [])
+    setViewport(flow.viewport || { x: 0, y: 0, zoom: 1 })
+    
+    console.log('Flow restored successfully')
+  } catch (error) {
+    console.error('Failed to restore flow:', error)
+    // Show error notification and restore defaults
+    setNodes([])
+    setEdges([])
+  }
+}
+```
+
+## TypeScript Support
+
+```typescript
+import type { FlowExportObject, Node, Edge } from '@vue-flow/core'
+import { useStorage } from '@vueuse/core'
+
+const defaultState: FlowExportObject = {
+  nodes: [],
+  edges: [],
+  position: [0, 0],
+  zoom: 1,
+  viewport: { x: 0, y: 0, zoom: 1 }
+}
+
+const state = useStorage<FlowExportObject>('flow-state', defaultState)
+```
+
+## Best Practices
+
+<Note>
+  - Always validate restored data before applying it
+  - Implement versioning for backwards compatibility
+  - Use debouncing for auto-save to avoid performance issues
+  - Provide visual feedback when saving/restoring
+  - Handle storage quota errors gracefully
+  - Consider compression for large flows
+</Note>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Drag and Drop" icon="hand-pointer" href="/examples/drag-and-drop">
+    Add nodes via drag and drop
+  </Card>
+  
+  <Card title="Interaction" icon="sliders" href="/examples/interaction">
+    Control interaction settings
+  </Card>
+  
+  <Card title="useVueFlow" icon="code" href="/api/composables/use-vue-flow">
+    Complete composable reference
+  </Card>
+  
+  <Card title="State Management" icon="database" href="/concepts/state-management">
+    Learn about state management
+  </Card>
+</CardGroup>

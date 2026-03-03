@@ -1,0 +1,353 @@
+---
+title: Types
+description: Overview of all Vue Flow TypeScript types and interfaces
+---
+
+Vue Flow is fully typed with TypeScript, providing comprehensive type definitions for all components, composables, and utilities.
+
+## Core Types
+
+<CardGroup cols={2}>
+  <Card title="Node" icon="circle-nodes" href="/api/types/node">
+    Node object structure and configuration
+  </Card>
+  
+  <Card title="Edge" icon="arrow-right" href="/api/types/edge">
+    Edge object structure and configuration
+  </Card>
+  
+  <Card title="GraphNode" icon="diagram-project">
+    Internal graph node with computed properties
+  </Card>
+  
+  <Card title="GraphEdge" icon="share-nodes">
+    Internal graph edge with computed properties
+  </Card>
+</CardGroup>
+
+## Connection Types
+
+<CardGroup cols={2}>
+  <Card title="Connection" icon="link" href="/api/types/connection">
+    Connection object for edge creation
+  </Card>
+  
+  <Card title="ConnectionInProgress" icon="spinner">
+    Active connection state during dragging
+  </Card>
+  
+  <Card title="HandleElement" icon="circle-dot">
+    Handle DOM element with metadata
+  </Card>
+  
+  <Card title="HandleType" icon="arrows-left-right">
+    Handle type enum: 'source' or 'target'
+  </Card>
+</CardGroup>
+
+## Position & Geometry
+
+<CardGroup cols={2}>
+  <Card title="XYPosition" icon="location-dot">
+    2D coordinate position
+  </Card>
+  
+  <Card title="XYZPosition" icon="cube">
+    3D coordinate position with z-index
+  </Card>
+  
+  <Card title="Dimensions" icon="ruler-combined">
+    Width and height dimensions
+  </Card>
+  
+  <Card title="Rect" icon="square">
+    Rectangle with position and dimensions
+  </Card>
+  
+  <Card title="Box" icon="box">
+    Bounding box with x, y, x2, y2 coordinates
+  </Card>
+  
+  <Card title="Position" icon="compass">
+    Handle position enum (Top, Right, Bottom, Left)
+  </Card>
+</CardGroup>
+
+## Viewport & Transform
+
+<CardGroup cols={2}>
+  <Card title="ViewportTransform" icon="arrows-maximize">
+    Viewport transformation with x, y, and zoom
+  </Card>
+  
+  <Card title="CoordinateExtent" icon="border-all">
+    Min and max coordinate boundaries
+  </Card>
+  
+  <Card title="Padding" icon="expand">
+    Padding configuration for viewport
+  </Card>
+</CardGroup>
+
+## State & Changes
+
+<CardGroup cols={2}>
+  <Card title="NodeChange" icon="pen-to-square">
+    Node change events for state updates
+  </Card>
+  
+  <Card title="EdgeChange" icon="pen-to-square">
+    Edge change events for state updates
+  </Card>
+  
+  <Card title="FlowOptions" icon="sliders" href="/api/types/flow">
+    Configuration options for VueFlow
+  </Card>
+  
+  <Card title="VueFlowStore" icon="store">
+    Complete store state and methods
+  </Card>
+</CardGroup>
+
+## Hooks & Events
+
+<CardGroup cols={2}>
+  <Card title="CustomEvent" icon="bolt" href="/api/types/events">
+    Custom event handler type
+  </Card>
+  
+  <Card title="ElementData" icon="database">
+    Generic data structure for nodes/edges
+  </Card>
+</CardGroup>
+
+## Markers & Styling
+
+<CardGroup cols={2}>
+  <Card title="EdgeMarkerType" icon="location-arrow">
+    Edge marker configuration (arrows, dots)
+  </Card>
+  
+  <Card title="DefaultEdgeOptions" icon="gear">
+    Default options for all edges
+  </Card>
+</CardGroup>
+
+## Type Usage Examples
+
+<CodeGroup>
+```typescript Basic Types
+import type { 
+  Node, 
+  Edge, 
+  XYPosition,
+  Connection 
+} from '@vue-flow/core'
+
+// Define nodes with typed data
+interface MyNodeData {
+  label: string
+  count: number
+}
+
+const nodes: Node<MyNodeData>[] = [
+  {
+    id: '1',
+    type: 'custom',
+    position: { x: 0, y: 0 },
+    data: { label: 'Node 1', count: 0 }
+  }
+]
+
+// Define edges
+const edges: Edge[] = [
+  {
+    id: 'e1-2',
+    source: '1',
+    target: '2',
+    type: 'bezier'
+  }
+]
+```
+
+```typescript Advanced Types
+import type {
+  GraphNode,
+  NodeChange,
+  ViewportTransform,
+  FlowOptions
+} from '@vue-flow/core'
+
+// Handle node changes
+function onNodesChange(changes: NodeChange[]) {
+  changes.forEach((change) => {
+    switch (change.type) {
+      case 'position':
+        console.log('Position changed', change.position)
+        break
+      case 'select':
+        console.log('Selection changed', change.selected)
+        break
+      case 'remove':
+        console.log('Node removed', change.id)
+        break
+    }
+  })
+}
+
+// Configure flow options
+const options: FlowOptions = {
+  id: 'my-flow',
+  nodes: [],
+  edges: [],
+  fitViewOnInit: true,
+  minZoom: 0.5,
+  maxZoom: 2
+}
+```
+
+```typescript Custom Event Types
+import type { 
+  CustomEvent,
+  Node,
+  MouseTouchEvent 
+} from '@vue-flow/core'
+
+// Define custom events for nodes
+interface MyCustomEvents {
+  'custom-click': CustomEvent<MouseEvent, { message: string }>
+  'custom-hover': CustomEvent<MouseEvent>
+}
+
+interface MyNodeData {
+  label: string
+}
+
+const node: Node<MyNodeData, MyCustomEvents> = {
+  id: '1',
+  position: { x: 0, y: 0 },
+  data: { label: 'Custom Node' },
+  events: {
+    'custom-click': (event) => {
+      console.log('Custom click:', event.data.message)
+    }
+  }
+}
+```
+
+```typescript Position & Geometry
+import type {
+  XYPosition,
+  Rect,
+  Dimensions,
+  ViewportTransform
+} from '@vue-flow/core'
+
+// Transform positions
+function transformPosition(
+  pos: XYPosition,
+  viewport: ViewportTransform
+): XYPosition {
+  return {
+    x: (pos.x - viewport.x) / viewport.zoom,
+    y: (pos.y - viewport.y) / viewport.zoom
+  }
+}
+
+// Calculate node rect
+function getNodeRect(
+  position: XYPosition,
+  dimensions: Dimensions
+): Rect {
+  return {
+    x: position.x,
+    y: position.y,
+    width: dimensions.width,
+    height: dimensions.height
+  }
+}
+```
+</CodeGroup>
+
+## Type Categories
+
+### Element Types
+- `Node`, `Edge` - Basic element structures
+- `GraphNode`, `GraphEdge` - Internal computed elements
+- `Element`, `FlowElements` - Union types
+
+### Connection Types
+- `Connection` - Connection parameters
+- `HandleType`, `HandleElement` - Handle definitions
+- `ValidConnectionFunc` - Connection validation
+
+### Position Types
+- `XYPosition`, `XYZPosition` - Coordinates
+- `Position` - Handle position enum
+- `Rect`, `Box` - Geometric shapes
+- `Dimensions` - Size properties
+
+### Transform Types
+- `ViewportTransform` - Viewport state
+- `CoordinateExtent` - Boundaries
+- `Padding` - Spacing configuration
+
+### Change Types
+- `NodeChange` - Node state changes
+- `EdgeChange` - Edge state changes
+- Change subtypes (add, remove, select, position, dimensions)
+
+### Store Types
+- `VueFlowStore` - Complete store interface
+- `FlowOptions` - Configuration options
+- `DefaultEdgeOptions` - Edge defaults
+
+### Event Types
+- `CustomEvent` - Custom event handlers
+- `MouseTouchEvent` - Pointer events
+- Various callback types
+
+## Type Guards
+
+Vue Flow provides type guard functions for runtime type checking:
+
+```typescript
+import { isNode, isEdge, isGraphNode, isGraphEdge } from '@vue-flow/core'
+
+const element: Node | Edge = getElement()
+
+if (isNode(element)) {
+  // element is typed as Node
+  console.log(element.position)
+}
+
+if (isEdge(element)) {
+  // element is typed as Edge
+  console.log(element.source, element.target)
+}
+```
+
+<Note>
+  **Generic Type Parameters**: Most types accept generic parameters for custom data and events:
+  
+  - `Node<Data, CustomEvents>`
+  - `Edge<Data, CustomEvents>`
+  - `GraphNode<Data, CustomEvents>`
+  - `GraphEdge<Data, CustomEvents>`
+  
+  This allows for full type safety with your custom data structures.
+</Note>
+
+## Exported Type Utilities
+
+Vue Flow also exports utility types for advanced use cases:
+
+- `Elements` - Array of nodes and edges
+- `FlowElements` - Array of graph nodes and edges
+- `MaybeElement` - Node, Edge, or unknown
+- `NodeLookup` - Map of node IDs to nodes
+- `PaddingWithUnit` - Padding with units (px, %)
+
+<Note>
+  For detailed information about each type, including all properties and usage examples, refer to the individual type documentation pages.
+</Note>

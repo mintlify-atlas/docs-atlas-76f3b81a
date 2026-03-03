@@ -1,0 +1,238 @@
+---
+title: Basic Flow
+description: A simple Vue Flow example with nodes, edges, and interactive controls
+---
+
+This example demonstrates the basic setup of Vue Flow with interactive nodes and edges. It includes the Background, Controls, and MiniMap components.
+
+## Live Demo
+
+View the [live demo](https://vueflow.dev/examples/#/basic) on vueflow.dev.
+
+## Complete Example
+
+<CodeGroup>
+```vue Basic.vue
+<script lang="ts" setup>
+import type { Edge, Node } from '@vue-flow/core'
+import { Panel, VueFlow, isNode, useVueFlow } from '@vue-flow/core'
+import { Background } from '@vue-flow/background'
+import { Controls } from '@vue-flow/controls'
+import { MiniMap } from '@vue-flow/minimap'
+
+const nodes = ref<Node[]>([
+  { id: '1', type: 'input', label: 'Node 1', position: { x: 250, y: 5 }, class: 'light' },
+  { id: '2', label: 'Node 2', position: { x: 100, y: 100 }, class: 'light' },
+  { id: '3', label: 'Node 3', position: { x: 400, y: 100 }, class: 'light' },
+  { id: '4', label: 'Node 4', position: { x: 400, y: 200 }, class: 'light' },
+])
+
+const edges = ref<Edge[]>([
+  { id: 'e1-2', source: '1', target: '2', animated: true },
+  { id: 'e1-3', source: '1', target: '3' },
+])
+
+const { onConnect, addEdges, setViewport, toObject } = useVueFlow({
+  minZoom: 0.2,
+  maxZoom: 4,
+})
+
+onConnect(addEdges)
+
+function updatePos() {
+  return nodes.value.forEach((el) => {
+    if (isNode(el)) {
+      el.position = {
+        x: Math.random() * 400,
+        y: Math.random() * 400,
+      }
+    }
+  })
+}
+
+function logToObject() {
+  return console.log(toObject())
+}
+
+function resetViewport() {
+  return setViewport({ x: 0, y: 0, zoom: 1 })
+}
+
+function toggleclass() {
+  return nodes.value.forEach((el) => (el.class = el.class === 'light' ? 'dark' : 'light'))
+}
+</script>
+
+<template>
+  <VueFlow :nodes="nodes" :edges="edges" class="vue-flow-basic-example" fit-view-on-init>
+    <Background />
+    <MiniMap />
+    <Controls />
+    <Panel position="top-right" style="display: flex; gap: 5px">
+      <button @click="resetViewport">reset viewport</button>
+      <button @click="updatePos">change pos</button>
+      <button @click="toggleclass">toggle class</button>
+      <button @click="logToObject">toObject</button>
+    </Panel>
+  </VueFlow>
+</template>
+```
+
+```css styles.css
+@import '@vue-flow/core/dist/style.css';
+@import '@vue-flow/core/dist/theme-default.css';
+```
+</CodeGroup>
+
+## Key Features
+
+### Nodes and Edges
+
+Define your flow structure with nodes and edges:
+
+```typescript
+const nodes = ref<Node[]>([
+  { id: '1', type: 'input', label: 'Node 1', position: { x: 250, y: 5 } },
+  { id: '2', label: 'Node 2', position: { x: 100, y: 100 } },
+])
+
+const edges = ref<Edge[]>([
+  { id: 'e1-2', source: '1', target: '2', animated: true },
+])
+```
+
+### useVueFlow Composable
+
+Access Vue Flow's API and configuration:
+
+```typescript
+const { onConnect, addEdges, setViewport, toObject } = useVueFlow({
+  minZoom: 0.2,
+  maxZoom: 4,
+})
+```
+
+### Handle Connections
+
+Automatically create edges when nodes are connected:
+
+```typescript
+onConnect(addEdges)
+```
+
+### Additional Components
+
+<Tabs>
+  <Tab title="Background">
+    Adds a background pattern to the flow:
+    
+    ```vue
+    <Background />
+    ```
+    
+    See [Background component](/components/background) for customization options.
+  </Tab>
+  
+  <Tab title="MiniMap">
+    Shows a miniature overview of the entire flow:
+    
+    ```vue
+    <MiniMap />
+    ```
+    
+    See [MiniMap component](/components/minimap) for customization options.
+  </Tab>
+  
+  <Tab title="Controls">
+    Provides zoom and fit view controls:
+    
+    ```vue
+    <Controls />
+    ```
+    
+    See [Controls component](/components/controls) for customization options.
+  </Tab>
+  
+  <Tab title="Panel">
+    Custom control panel positioned anywhere on the canvas:
+    
+    ```vue
+    <Panel position="top-right">
+      <button @click="doSomething">Action</button>
+    </Panel>
+    ```
+  </Tab>
+</Tabs>
+
+## Utility Functions
+
+### Update Node Positions
+
+```typescript
+function updatePos() {
+  nodes.value.forEach((el) => {
+    if (isNode(el)) {
+      el.position = {
+        x: Math.random() * 400,
+        y: Math.random() * 400,
+      }
+    }
+  })
+}
+```
+
+### Reset Viewport
+
+```typescript
+function resetViewport() {
+  setViewport({ x: 0, y: 0, zoom: 1 })
+}
+```
+
+### Export Flow State
+
+```typescript
+function logToObject() {
+  console.log(toObject())
+}
+```
+
+The `toObject()` method returns the complete flow state including nodes, edges, and viewport.
+
+## Configuration Options
+
+<Note>
+  The `fit-view-on-init` prop automatically adjusts the viewport to fit all nodes when the flow is initialized.
+</Note>
+
+```vue
+<VueFlow 
+  :nodes="nodes" 
+  :edges="edges" 
+  fit-view-on-init
+  :min-zoom="0.2"
+  :max-zoom="4"
+>
+  <!-- ... -->
+</VueFlow>
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Custom Nodes" icon="cube" href="/examples/custom-nodes">
+    Learn how to create custom node components
+  </Card>
+  
+  <Card title="Custom Edges" icon="arrow-right-arrow-left" href="/examples/custom-edges">
+    Build custom edge components
+  </Card>
+  
+  <Card title="API Reference" icon="book" href="/components/vue-flow">
+    Explore all available props and events
+  </Card>
+  
+  <Card title="Composables" icon="code" href="/api/composables/use-vue-flow">
+    Discover powerful composable functions
+  </Card>
+</CardGroup>

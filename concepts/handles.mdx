@@ -1,0 +1,573 @@
+---
+title: Handles
+description: Understanding handle positioning, types, and connection behavior
+---
+
+# Handles
+
+Handles are the connection points on nodes that allow users to create edges by dragging from one handle to another. They are essential for building interactive flow diagrams.
+
+## Handle Component
+
+The `<Handle>` component from `@vue-flow/core` creates connection points on your custom nodes:
+
+```vue
+<script setup>
+import { Handle, Position } from '@vue-flow/core'
+</script>
+
+<template>
+  <div class="custom-node">
+    <Handle 
+      type="target" 
+      :position="Position.Left" 
+    />
+    
+    <div class="content">
+      Node Content
+    </div>
+    
+    <Handle 
+      type="source" 
+      :position="Position.Right" 
+    />
+  </div>
+</template>
+```
+
+<Warning>
+The `<Handle>` component only works inside node components. Using it outside this context will not function correctly.
+</Warning>
+
+## Handle Types
+
+Handles have two types that determine connection direction:
+
+<ParamField path="source" type="HandleType">
+  **Source handles** are the starting point of connections. Users drag from source handles to create new edges.
+</ParamField>
+
+<ParamField path="target" type="HandleType">
+  **Target handles** are the ending point of connections. Users drag to target handles to complete connections.
+</ParamField>
+
+```vue
+<template>
+  <!-- Source: connections start here -->
+  <Handle type="source" :position="Position.Right" />
+  
+  <!-- Target: connections end here -->
+  <Handle type="target" :position="Position.Left" />
+</template>
+```
+
+## Handle Positions
+
+Handles can be placed on any side of a node using the `Position` enum:
+
+<Tabs>
+  <Tab title="Left">
+    ```typescript
+    import { Position } from '@vue-flow/core'
+    
+    <Handle 
+      type="target" 
+      :position="Position.Left" 
+    />
+    ```
+    Typically used for **target** handles on nodes that receive input.
+  </Tab>
+  
+  <Tab title="Right">
+    ```typescript
+    <Handle 
+      type="source" 
+      :position="Position.Right" 
+    />
+    ```
+    Typically used for **source** handles on nodes that produce output.
+  </Tab>
+  
+  <Tab title="Top">
+    ```typescript
+    <Handle 
+      type="target" 
+      :position="Position.Top" 
+    />
+    ```
+    Used for vertical flow diagrams.
+  </Tab>
+  
+  <Tab title="Bottom">
+    ```typescript
+    <Handle 
+      type="source" 
+      :position="Position.Bottom" 
+    />
+    ```
+    Used for vertical flow diagrams.
+  </Tab>
+</Tabs>
+
+<Info>
+Handle position affects edge curve direction. A `Position.Right` source creates edges that curve toward the right, while a `Position.Left` target creates edges that curve from the left.
+</Info>
+
+## Handle Props
+
+<ParamField path="type" type="'source' | 'target'" required>
+  Determines if this handle starts or ends connections
+</ParamField>
+
+<ParamField path="position" type="Position" required>
+  Side of the node where handle is placed
+</ParamField>
+
+<ParamField path="id" type="string">
+  Unique identifier when using multiple handles of the same type. Required when a node has multiple source or target handles.
+</ParamField>
+
+<ParamField path="connectable" type="boolean | number | 'single' | HandleConnectableFunc" default="true">
+  Controls connection behavior:
+  - `true`: Unlimited connections
+  - `false`: No connections allowed
+  - `number`: Maximum number of connections
+  - `'single'`: Only one connection
+  - `function`: Custom validation logic
+</ParamField>
+
+<ParamField path="connectableStart" type="boolean" default="true">
+  Whether connections can start from this handle (for source handles)
+</ParamField>
+
+<ParamField path="connectableEnd" type="boolean" default="true">
+  Whether connections can end at this handle (for target handles)
+</ParamField>
+
+<ParamField path="isValidConnection" type="ValidConnectionFunc">
+  Function to validate if a connection attempt is allowed
+</ParamField>
+
+## Multiple Handles
+
+Nodes can have any number of handles. When using multiple handles of the same type, each must have a unique `id`:
+
+```vue
+<template>
+  <div class="node-with-multiple-handles">
+    <!-- Multiple source handles -->
+    <Handle 
+      id="source-a" 
+      type="source" 
+      :position="Position.Right"
+      style="top: 25%"
+    />
+    <Handle 
+      id="source-b" 
+      type="source" 
+      :position="Position.Right"
+      style="top: 75%"
+    />
+    
+    <!-- Multiple target handles -->
+    <Handle 
+      id="target-a" 
+      type="target" 
+      :position="Position.Left"
+      style="top: 25%"
+    />
+    <Handle 
+      id="target-b" 
+      type="target" 
+      :position="Position.Left"
+      style="top: 75%"
+    />
+    
+    <div class="content">
+      Multi-Handle Node
+    </div>
+  </div>
+</template>
+```
+
+### Connecting to Specific Handles
+
+When creating edges, specify which handles to connect:
+
+```typescript
+const edge = {
+  id: 'e1-2',
+  source: '1',
+  target: '2',
+  sourceHandle: 'source-a', // Connect from specific source handle
+  targetHandle: 'target-b'  // Connect to specific target handle
+}
+```
+
+In connection events:
+
+```typescript
+import { useVueFlow } from '@vue-flow/core'
+
+const { onConnect } = useVueFlow()
+
+onConnect((connection) => {
+  console.log('Source node:', connection.source)
+  console.log('Source handle:', connection.sourceHandle) // or null
+  console.log('Target node:', connection.target)
+  console.log('Target handle:', connection.targetHandle) // or null
+})
+```
+
+## Handle Positioning with CSS
+
+Handles use absolute positioning. Customize their location with CSS:
+
+<CodeGroup>
+```vue Vertical Spacing
+<template>
+  <div class="custom-node">
+    <!-- Top handle -->
+    <Handle 
+      type="target" 
+      :position="Position.Right"
+      style="top: 10px"
+    />
+    
+    <!-- Bottom handle -->
+    <Handle 
+      type="source" 
+      :position="Position.Right"
+      style="bottom: 10px; top: auto;"
+    />
+  </div>
+</template>
+```
+
+```vue Relative Positioning
+<template>
+  <div class="custom-node">
+    <div style="position: relative; padding: 10px">
+      <Handle 
+        type="source" 
+        :position="Position.Right" 
+      />
+      
+      <span>Content</span>
+      
+      <Handle 
+        type="target" 
+        :position="Position.Left" 
+      />
+    </div>
+  </div>
+</template>
+```
+
+```css Styled Handles
+.vue-flow__handle {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #4f46e5;
+  border: 2px solid white;
+}
+
+.vue-flow__handle.source {
+  background: #22c55e;
+}
+
+.vue-flow__handle.target {
+  background: #ef4444;
+}
+```
+</CodeGroup>
+
+## Hidden Handles
+
+Create invisible handles for connections without visual indicators:
+
+```vue
+<template>
+  <Handle 
+    type="source" 
+    :position="Position.Right"
+    style="opacity: 0"
+  />
+</template>
+```
+
+<Warning>
+Do not use `v-if` or `v-show` to hide handles. This breaks edge calculations. Always use `opacity: 0` instead.
+</Warning>
+
+## Connection Limits
+
+Control how many connections a handle can have:
+
+<Tabs>
+  <Tab title="Boolean">
+    ```vue
+    <!-- Allow unlimited connections -->
+    <Handle type="source" :position="Position.Right" :connectable="true" />
+    
+    <!-- Prevent all connections -->
+    <Handle type="target" :position="Position.Left" :connectable="false" />
+    ```
+  </Tab>
+  
+  <Tab title="Number">
+    ```vue
+    <!-- Allow maximum 3 connections -->
+    <Handle 
+      type="source" 
+      :position="Position.Right" 
+      :connectable="3" 
+    />
+    ```
+  </Tab>
+  
+  <Tab title="Single">
+    ```vue
+    <!-- Allow only one connection -->
+    <Handle 
+      type="source" 
+      :position="Position.Right" 
+      connectable="single" 
+    />
+    ```
+  </Tab>
+  
+  <Tab title="Function">
+    ```vue
+    <script setup>
+    import type { HandleConnectableFunc } from '@vue-flow/core'
+    
+    const isConnectable: HandleConnectableFunc = (node, connectedEdges) => {
+      // Custom logic: allow connections if less than 3
+      return connectedEdges.length < 3
+    }
+    </script>
+    
+    <template>
+      <Handle 
+        type="source" 
+        :position="Position.Right" 
+        :connectable="isConnectable" 
+      />
+    </template>
+    ```
+  </Tab>
+</Tabs>
+
+## Connection Validation
+
+Validate connections before they're created:
+
+```vue
+<script setup>
+import type { Connection, ValidConnectionFunc } from '@vue-flow/core'
+
+const isValidConnection: ValidConnectionFunc = (
+  connection: Connection,
+  elements
+) => {
+  const { sourceNode, targetNode, edges } = elements
+  
+  // Prevent self-connections
+  if (connection.source === connection.target) {
+    return false
+  }
+  
+  // Prevent duplicate connections
+  const isDuplicate = edges.some(
+    edge => 
+      edge.source === connection.source && 
+      edge.target === connection.target
+  )
+  
+  if (isDuplicate) {
+    return false
+  }
+  
+  // Custom validation logic
+  return sourceNode.data.type === 'output' && 
+         targetNode.data.type === 'input'
+}
+</script>
+
+<template>
+  <Handle 
+    type="source" 
+    :position="Position.Right"
+    :is-valid-connection="isValidConnection"
+  />
+</template>
+```
+
+## Connection Mode
+
+Control handle-to-handle connection rules:
+
+```vue
+<script setup>
+import { ConnectionMode, VueFlow } from '@vue-flow/core'
+</script>
+
+<template>
+  <!-- Loose: Allow source-to-source, target-to-target connections -->
+  <VueFlow :connection-mode="ConnectionMode.Loose" />
+  
+  <!-- Strict: Only allow source-to-target connections -->
+  <VueFlow :connection-mode="ConnectionMode.Strict" />
+</template>
+```
+
+<Info>
+In `Loose` mode, Vue Flow automatically swaps source/target when connecting incompatible handles. In `Strict` mode, invalid connections are rejected.
+</Info>
+
+## Dynamic Handles
+
+Add or update handles dynamically:
+
+```vue
+<script setup>
+import { ref } from 'vue'
+import { Position, Handle, useVueFlow } from '@vue-flow/core'
+
+const { updateNodeInternals } = useVueFlow()
+const handleCount = ref(2)
+
+function addHandle() {
+  handleCount.value++
+  // Update node internals after adding handles
+  updateNodeInternals(['node-id'])
+}
+</script>
+
+<template>
+  <div class="dynamic-node">
+    <Handle
+      v-for="i in handleCount"
+      :key="i"
+      :id="`handle-${i}`"
+      type="source"
+      :position="Position.Right"
+      :style="{ top: `${(i / (handleCount + 1)) * 100}%` }"
+    />
+    
+    <button @click="addHandle">Add Handle</button>
+  </div>
+</template>
+```
+
+<Tip>
+In Vue Flow 1.x, handles auto-attach on mount. Only call `updateNodeInternals` if handles aren't appearing correctly.
+</Tip>
+
+## Handle Styling
+
+Customize handle appearance:
+
+```vue
+<template>
+  <Handle
+    type="source"
+    :position="Position.Right"
+    :style="{
+      width: '16px',
+      height: '16px',
+      background: '#4f46e5',
+      border: '3px solid white',
+      borderRadius: '50%'
+    }"
+  />
+</template>
+
+<style>
+/* Global handle styles */
+.vue-flow__handle {
+  transition: all 0.2s ease;
+}
+
+.vue-flow__handle:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.2);
+}
+
+.vue-flow__handle-connecting {
+  background: #22c55e !important;
+}
+
+.vue-flow__handle-valid {
+  background: #22c55e !important;
+}
+</style>
+```
+
+## Handle Events
+
+Handles don't have direct event handlers, but you can listen to connection events:
+
+```vue
+<script setup>
+import { useVueFlow } from '@vue-flow/core'
+
+const { onConnectStart, onConnect, onConnectEnd } = useVueFlow()
+
+onConnectStart((event) => {
+  console.log('Connection started', event)
+})
+
+onConnect((connection) => {
+  console.log('Connection created', connection)
+})
+
+onConnectEnd(() => {
+  console.log('Connection ended')
+})
+</script>
+```
+
+## HandleConnectable Function
+
+Implement complex connection logic:
+
+```typescript
+import type { HandleConnectableFunc, GraphNode, GraphEdge } from '@vue-flow/core'
+
+const handleConnectable: HandleConnectableFunc = (
+  node: GraphNode,
+  connectedEdges: GraphEdge[]
+) => {
+  // Allow connections based on node type
+  if (node.type === 'input') {
+    return connectedEdges.length < 1
+  }
+  
+  // Check edge types
+  const dataEdges = connectedEdges.filter(
+    edge => edge.data?.type === 'data'
+  )
+  
+  // Allow unlimited control edges, but max 3 data edges
+  return dataEdges.length < 3
+}
+```
+
+```vue
+<template>
+  <Handle
+    type="source"
+    :position="Position.Right"
+    :connectable="handleConnectable"
+  />
+</template>
+```
+
+## See Also
+
+- [Nodes](/concepts/nodes) - Learn about creating custom nodes
+- [Edges](/concepts/edges) - Understand edge types and connections
+- [State Management](/concepts/state-management) - Access handle connections in state

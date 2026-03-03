@@ -1,0 +1,158 @@
+---
+title: Background
+description: API reference for the Background plugin component
+---
+
+The Background component renders a customizable background pattern (dots or lines) for your Vue Flow canvas.
+
+## Installation
+
+<CodeGroup>
+```bash npm
+npm install @vue-flow/background
+```
+
+```bash pnpm
+pnpm add @vue-flow/background
+```
+
+```bash yarn
+yarn add @vue-flow/background
+```
+</CodeGroup>
+
+## Usage
+
+```vue
+<script setup>
+import { VueFlow } from '@vue-flow/core'
+import { Background } from '@vue-flow/background'
+
+const nodes = ref([])
+const edges = ref([])
+</script>
+
+<template>
+  <VueFlow :nodes="nodes" :edges="edges">
+    <Background variant="dots" :gap="20" :size="1" />
+  </VueFlow>
+</template>
+```
+
+## Props
+
+<ParamField path="id" type="string">
+  Unique identifier for the background pattern. Useful when multiple Vue Flow instances exist on the same page.
+</ParamField>
+
+<ParamField path="variant" type="'dots' | 'lines'" default="'dots'">
+  The background pattern variant to display.
+  
+  - `dots` - Renders a dot pattern
+  - `lines` - Renders a line grid pattern
+</ParamField>
+
+<ParamField path="gap" type="number | [number, number]" default="20">
+  Spacing between pattern elements. Can be a single number for uniform spacing or a tuple `[x, y]` for different horizontal and vertical spacing.
+</ParamField>
+
+<ParamField path="size" type="number" default="1">
+  Size of the pattern elements (dot radius for dots variant).
+</ParamField>
+
+<ParamField path="lineWidth" type="number" default="1">
+  Width of the lines when using the `lines` variant.
+</ParamField>
+
+<ParamField path="color" type="string">
+  Color of the background pattern. Accepts any valid CSS color value.
+  
+  <Note>This replaces the deprecated `patternColor` prop.</Note>
+</ParamField>
+
+<ParamField path="patternColor" type="string">
+  <Note type="warning">Deprecated - Use `color` instead. Will be removed in the next major version.</Note>
+  
+  Background pattern color.
+</ParamField>
+
+<ParamField path="bgColor" type="string">
+  <Note type="warning">Deprecated - Assign background color directly to VueFlow component instead. Will be removed in the next major version.</Note>
+  
+  Background color behind the pattern.
+</ParamField>
+
+<ParamField path="offset" type="number | [number, number]" default="0">
+  Offset for the pattern position. Can be a single number or a tuple `[x, y]`.
+</ParamField>
+
+<ParamField path="x" type="number" default="0">
+  X-coordinate offset for the background.
+</ParamField>
+
+<ParamField path="y" type="number" default="0">
+  Y-coordinate offset for the background.
+</ParamField>
+
+<ParamField path="height" type="number" default="100">
+  <Note type="warning">Deprecated property.</Note>
+  
+  Height of the background as a percentage.
+</ParamField>
+
+<ParamField path="width" type="number" default="100">
+  <Note type="warning">Deprecated property.</Note>
+  
+  Width of the background as a percentage.
+</ParamField>
+
+## Slots
+
+<ParamField path="pattern">
+  Custom slot to override the default pattern rendering. Receives the pattern context.
+</ParamField>
+
+<ParamField path="pattern-container">
+  Custom slot to override the entire pattern container, including the SVG pattern definition.
+</ParamField>
+
+<ParamField path="default">
+  Default slot that receives the `patternId` for custom rendering.
+</ParamField>
+
+## Examples
+
+### Dots Pattern
+
+```vue
+<Background variant="dots" :gap="15" :size="0.5" color="#81818a" />
+```
+
+### Lines Pattern
+
+```vue
+<Background variant="lines" :gap="[20, 20]" :lineWidth="1" color="#e2e8f0" />
+```
+
+### Custom Gap
+
+```vue
+<Background :gap="[30, 20]" variant="dots" />
+```
+
+## TypeScript
+
+```typescript
+import type { BackgroundProps } from '@vue-flow/background'
+
+export enum BackgroundVariant {
+  Lines = 'lines',
+  Dots = 'dots',
+}
+```
+
+## Exports
+
+- `Background` - The main Background component
+- `BackgroundVariant` - Enum for background variant types (deprecated, use string literals instead)
+- `BackgroundProps` - TypeScript interface for component props

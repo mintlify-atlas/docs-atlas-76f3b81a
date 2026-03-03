@@ -1,0 +1,203 @@
+---
+title: Composables
+description: Overview of all Vue Flow composables for reactive state management
+---
+
+Vue Flow provides a comprehensive set of composables for accessing and manipulating flow state reactively.
+
+## Core Composables
+
+<CardGroup cols={2}>
+  <Card title="useVueFlow" icon="arrows-spin" href="/api/composables/use-vue-flow">
+    Main composable providing access to the entire flow state and actions
+  </Card>
+  
+  <Card title="useNode" icon="circle-nodes" href="/api/composables/use-node">
+    Access node data, parent node, and connected edges
+  </Card>
+  
+  <Card title="useEdge" icon="arrow-right" href="/api/composables/use-edge">
+    Access edge data and DOM element
+  </Card>
+  
+  <Card title="useHandle" icon="circle-dot" href="/api/composables/use-handle">
+    Handle connection events and validation
+  </Card>
+</CardGroup>
+
+## Node & Edge Data
+
+<CardGroup cols={2}>
+  <Card title="useNodesData" icon="database" href="/api/composables/use-nodes-data">
+    Access reactive node data by ID(s)
+  </Card>
+  
+  <Card title="useEdgesData" icon="database" href="/api/composables/use-edges-data">
+    Access reactive edge data by ID(s)
+  </Card>
+  
+  <Card title="useNodeId" icon="hashtag">
+    Get the current node ID from context
+  </Card>
+  
+  <Card title="useNodesInitialized" icon="check-circle">
+    Check if specific nodes are initialized
+  </Card>
+</CardGroup>
+
+## Connection State
+
+<CardGroup cols={2}>
+  <Card title="useConnection" icon="link">
+    Access current connection state during connection
+  </Card>
+  
+  <Card title="useHandleConnections" icon="plug">
+    Get all connections for a specific handle
+  </Card>
+  
+  <Card title="useNodeConnections" icon="project-diagram">
+    Get all connections for a specific node
+  </Card>
+</CardGroup>
+
+## Utilities
+
+<CardGroup cols={2}>
+  <Card title="useZoomPanHelper" icon="magnifying-glass" href="/api/composables/use-zoom-pan-helper">
+    Helper functions for viewport manipulation
+  </Card>
+  
+  <Card title="useGetPointerPosition" icon="location-dot">
+    Get pointer position relative to flow
+  </Card>
+  
+  <Card title="useKeyPress" icon="keyboard">
+    React to keyboard events
+  </Card>
+</CardGroup>
+
+## Usage Examples
+
+<CodeGroup>
+```vue useVueFlow
+<script setup>
+import { useVueFlow } from '@vue-flow/core'
+
+const { 
+  nodes,
+  edges,
+  addNodes,
+  addEdges,
+  onConnect,
+  viewport 
+} = useVueFlow()
+
+// Add nodes and edges
+addNodes([{ id: '1', position: { x: 0, y: 0 }, label: 'Node 1' }])
+
+// Handle connections
+onConnect((connection) => {
+  addEdges([connection])
+})
+</script>
+```
+
+```vue useNode
+<script setup>
+import { useNode } from '@vue-flow/core'
+
+// Inside a custom node component
+const { 
+  id,
+  node,
+  nodeEl,
+  parentNode,
+  connectedEdges 
+} = useNode()
+
+console.log('Node ID:', id)
+console.log('Connected edges:', connectedEdges.value.length)
+</script>
+```
+
+```vue useNodesData
+<script setup>
+import { useNodesData } from '@vue-flow/core'
+
+// Watch specific node data
+const nodeData = useNodesData(['node-1', 'node-2'])
+
+watch(nodeData, (data) => {
+  console.log('Node data changed:', data)
+})
+</script>
+```
+
+```vue useHandleConnections
+<script setup>
+import { useHandleConnections } from '@vue-flow/core'
+import { Position } from '@vue-flow/core'
+
+const connections = useHandleConnections({
+  type: 'target',
+  id: 'input-1'
+})
+
+const isConnected = computed(() => connections.value.length > 0)
+</script>
+```
+</CodeGroup>
+
+## Composable Categories
+
+### State Management
+- `useVueFlow` - Complete flow state access
+- `useNode` - Node-specific state
+- `useEdge` - Edge-specific state
+
+### Data Access
+- `useNodesData` - Reactive node data
+- `useEdgesData` - Reactive edge data
+- `useNodeId` - Context-based ID access
+
+### Connection Management
+- `useHandle` - Handle event listeners
+- `useConnection` - Active connection state
+- `useHandleConnections` - Handle connection list
+- `useNodeConnections` - Node connection list
+
+### Viewport & Interaction
+- `useZoomPanHelper` - Viewport controls
+- `useGetPointerPosition` - Pointer tracking
+- `useKeyPress` - Keyboard interaction
+
+### Initialization
+- `useNodesInitialized` - Node initialization status
+
+<Note>
+  **TypeScript Support**: All composables are fully typed with TypeScript. You can provide generic type parameters for custom node/edge data:
+  
+  ```typescript
+  interface MyNodeData {
+    label: string
+    count: number
+  }
+  
+  const { node } = useNode<MyNodeData>()
+  // node.data is typed as MyNodeData
+  ```
+</Note>
+
+## Context Requirements
+
+Some composables require being called within a Vue Flow context:
+
+- **`useNode`** - Must be called within a custom node component or its children
+- **`useEdge`** - Must be called within a custom edge component or its children
+- **`useNodeId`** - Must be called within a node context
+- **`useVueFlow`** - Can create a new instance or access existing context
+
+<Note>
+  For detailed information about each composable, including parameters, return values, and advanced usage patterns, refer to the individual composable documentation pages.
+</Note>

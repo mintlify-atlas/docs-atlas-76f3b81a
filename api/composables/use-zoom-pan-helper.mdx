@@ -1,0 +1,158 @@
+---
+title: useZoomPanHelper
+description: Access viewport manipulation functions (deprecated)
+---
+
+<Warning>
+  This composable is **deprecated**. Use [`useVueFlow`](/api/composables/use-vue-flow) instead, which provides all viewport functions directly.
+</Warning>
+
+`useZoomPanHelper` provides functions for manipulating the viewport, including zooming, panning, and fitting views. This composable has been deprecated in favor of using `useVueFlow` directly.
+
+## Migration
+
+Instead of using `useZoomPanHelper`, use `useVueFlow` which includes all the same functionality:
+
+<CodeGroup>
+```vue Before (Deprecated)
+<script setup>
+import { useZoomPanHelper } from '@vue-flow/core'
+
+const { fitView, zoomIn, zoomOut } = useZoomPanHelper()
+</script>
+```
+
+```vue After (Recommended)
+<script setup>
+import { useVueFlow } from '@vue-flow/core'
+
+const { fitView, zoomIn, zoomOut } = useVueFlow()
+</script>
+```
+</CodeGroup>
+
+## Signature
+
+```typescript
+function useZoomPanHelper(vueFlowId?: string): ViewportFunctions
+```
+
+## Parameters
+
+<ParamField path="vueFlowId" type="string" optional>
+  Optional ID of the Vue Flow instance to control.
+</ParamField>
+
+## Return Value
+
+Returns a `ViewportFunctions` object with the following methods:
+
+<ResponseField name="fitView" type="(params?: FitViewOptions) => Promise<boolean>">
+  Fits the view to show all nodes with optional padding
+</ResponseField>
+
+<ResponseField name="zoomIn" type="(options?: TransitionOptions) => Promise<boolean>">
+  Zooms in the viewport
+</ResponseField>
+
+<ResponseField name="zoomOut" type="(options?: TransitionOptions) => Promise<boolean>">
+  Zooms out the viewport
+</ResponseField>
+
+<ResponseField name="zoomTo" type="(zoomLevel: number, options?: TransitionOptions) => Promise<boolean>">
+  Sets zoom to a specific level
+</ResponseField>
+
+<ResponseField name="setViewport" type="(transform: ViewportTransform, options?: TransitionOptions) => Promise<boolean>">
+  Sets the viewport transform (position and zoom)
+</ResponseField>
+
+<ResponseField name="setTransform" type="(transform: ViewportTransform, options?: TransitionOptions) => Promise<boolean>">
+  **Deprecated** - Use `setViewport` instead
+</ResponseField>
+
+<ResponseField name="getViewport" type="() => ViewportTransform">
+  Gets the current viewport transform
+</ResponseField>
+
+<ResponseField name="getTransform" type="() => ViewportTransform">
+  **Deprecated** - Use `getViewport` instead
+</ResponseField>
+
+<ResponseField name="setCenter" type="(x: number, y: number, options?: SetCenterOptions) => Promise<boolean>">
+  Centers the viewport on specific coordinates
+</ResponseField>
+
+<ResponseField name="fitBounds" type="(bounds: Rect, options?: FitBoundsOptions) => Promise<boolean>">
+  Fits the viewport to specific bounds
+</ResponseField>
+
+<ResponseField name="project" type="(position: XYPosition) => XYPosition">
+  Converts screen coordinates to flow coordinates
+</ResponseField>
+
+## Example (Deprecated)
+
+```vue
+<script setup>
+import { useZoomPanHelper } from '@vue-flow/core'
+import { onMounted } from 'vue'
+
+// ⚠️ This is deprecated - use useVueFlow instead
+const { fitView, zoomIn, zoomOut, setCenter } = useZoomPanHelper()
+
+onMounted(async () => {
+  await fitView({ padding: 0.2 })
+})
+
+function handleZoomIn() {
+  zoomIn({ duration: 300 })
+}
+
+function handleZoomOut() {
+  zoomOut({ duration: 300 })
+}
+
+function centerView() {
+  setCenter(0, 0, { zoom: 1 })
+}
+</script>
+```
+
+## Recommended Alternative
+
+Use `useVueFlow` instead, which provides the same functionality:
+
+```vue
+<script setup>
+import { useVueFlow } from '@vue-flow/core'
+import { onMounted } from 'vue'
+
+const { fitView, zoomIn, zoomOut, setCenter, viewport } = useVueFlow()
+
+onMounted(async () => {
+  await fitView({ padding: 0.2 })
+})
+
+function handleZoomIn() {
+  zoomIn({ duration: 300 })
+}
+
+function handleZoomOut() {
+  zoomOut({ duration: 300 })
+}
+
+function centerView() {
+  setCenter(0, 0, { zoom: 1 })
+}
+
+// Additional benefits: direct access to state
+console.log('Current zoom:', viewport.zoom)
+</script>
+```
+
+## Notes
+
+- This composable is maintained for backward compatibility but will be removed in a future major version
+- All functionality is available in `useVueFlow` with additional benefits
+- Using `useVueFlow` gives you access to the entire store, not just viewport functions

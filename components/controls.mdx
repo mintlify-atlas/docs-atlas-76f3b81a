@@ -1,0 +1,292 @@
+---
+title: Controls
+description: Add interactive controls for zooming, panning, and toggling interactivity
+---
+
+The `Controls` component provides UI controls for common Vue Flow interactions like zooming, fitting the view, and toggling interactivity.
+
+## Installation
+
+```bash
+npm install @vue-flow/controls
+```
+
+## Basic Usage
+
+```vue
+<script setup>
+import { VueFlow } from '@vue-flow/core'
+import { Controls } from '@vue-flow/controls'
+</script>
+
+<template>
+  <VueFlow>
+    <Controls />
+  </VueFlow>
+</template>
+
+<style>
+@import '@vue-flow/core/dist/style.css';
+@import '@vue-flow/controls/dist/style.css';
+</style>
+```
+
+## Props
+
+<ParamField path="showZoom" type="boolean" default="true">
+  Show zoom in/out buttons.
+</ParamField>
+
+<ParamField path="showFitView" type="boolean" default="true">
+  Show the fit view button.
+</ParamField>
+
+<ParamField path="showInteractive" type="boolean" default="true">
+  Show the interactive toggle button (lock/unlock).
+</ParamField>
+
+<ParamField path="fitViewParams" type="FitViewParams">
+  Parameters passed to the `fitView` function when the fit view button is clicked.
+  
+  ```vue
+  <Controls :fit-view-params="{ padding: 0.2, duration: 800 }" />
+  ```
+</ParamField>
+
+<ParamField path="position" type="PanelPosition" default="'bottom-left'">
+  Position of the controls panel. Options:
+  - `'top-left'`
+  - `'top-center'`
+  - `'top-right'`
+  - `'bottom-left'`
+  - `'bottom-center'`
+  - `'bottom-right'`
+</ParamField>
+
+## Events
+
+<ParamField path="@zoomIn" type="() => void">
+  Fired when the zoom in button is clicked.
+</ParamField>
+
+<ParamField path="@zoomOut" type="() => void">
+  Fired when the zoom out button is clicked.
+</ParamField>
+
+<ParamField path="@fitView" type="() => void">
+  Fired when the fit view button is clicked.
+</ParamField>
+
+<ParamField path="@interactionChange" type="(active: boolean) => void">
+  Fired when the interactive state is toggled. The parameter indicates whether interactions are now active.
+</ParamField>
+
+## Slots
+
+<ParamField path="top">
+  Content rendered at the top of the controls.
+</ParamField>
+
+<ParamField path="default">
+  Content rendered at the bottom of the controls.
+</ParamField>
+
+### Control Button Slots
+
+<ParamField path="control-zoom-in">
+  Custom zoom in button.
+</ParamField>
+
+<ParamField path="control-zoom-out">
+  Custom zoom out button.
+</ParamField>
+
+<ParamField path="control-fit-view">
+  Custom fit view button.
+</ParamField>
+
+<ParamField path="control-interactive">
+  Custom interactive toggle button.
+</ParamField>
+
+### Icon Slots
+
+<ParamField path="icon-zoom-in">
+  Custom icon for the zoom in button.
+</ParamField>
+
+<ParamField path="icon-zoom-out">
+  Custom icon for the zoom out button.
+</ParamField>
+
+<ParamField path="icon-fit-view">
+  Custom icon for the fit view button.
+</ParamField>
+
+<ParamField path="icon-lock">
+  Custom icon for the locked state.
+</ParamField>
+
+<ParamField path="icon-unlock">
+  Custom icon for the unlocked state.
+</ParamField>
+
+## Examples
+
+### Custom Position
+
+```vue
+<template>
+  <VueFlow>
+    <Controls position="top-right" />
+  </VueFlow>
+</template>
+```
+
+### Hide Specific Controls
+
+```vue
+<template>
+  <VueFlow>
+    <Controls 
+      :show-zoom="false" 
+      :show-interactive="false" 
+    />
+  </VueFlow>
+</template>
+```
+
+### Custom Fit View Params
+
+```vue
+<template>
+  <VueFlow>
+    <Controls 
+      :fit-view-params="{ 
+        padding: 0.3, 
+        includeHiddenNodes: false,
+        duration: 1000 
+      }" 
+    />
+  </VueFlow>
+</template>
+```
+
+### Event Handling
+
+```vue
+<script setup>
+function handleZoomIn() {
+  console.log('Zoomed in')
+}
+
+function handleInteractionChange(active) {
+  console.log('Interactions:', active ? 'enabled' : 'disabled')
+}
+</script>
+
+<template>
+  <VueFlow>
+    <Controls 
+      @zoom-in="handleZoomIn"
+      @interaction-change="handleInteractionChange"
+    />
+  </VueFlow>
+</template>
+```
+
+### Custom Control Buttons
+
+```vue
+<template>
+  <VueFlow>
+    <Controls>
+      <template #control-zoom-in>
+        <button class="custom-zoom-btn">
+          <MyCustomIcon />
+        </button>
+      </template>
+    </Controls>
+  </VueFlow>
+</template>
+```
+
+### Custom Icons
+
+```vue
+<template>
+  <VueFlow>
+    <Controls>
+      <template #icon-zoom-in>
+        <svg viewBox="0 0 24 24">
+          <path d="M12 5v14m-7-7h14" />
+        </svg>
+      </template>
+      
+      <template #icon-zoom-out>
+        <svg viewBox="0 0 24 24">
+          <path d="M5 12h14" />
+        </svg>
+      </template>
+    </Controls>
+  </VueFlow>
+</template>
+```
+
+### Additional Custom Controls
+
+```vue
+<script setup>
+import { useVueFlow } from '@vue-flow/core'
+
+const { zoomTo } = useVueFlow()
+
+function resetZoom() {
+  zoomTo(1, { duration: 500 })
+}
+</script>
+
+<template>
+  <VueFlow>
+    <Controls>
+      <template #top>
+        <button @click="resetZoom" class="vue-flow__controls-button">
+          Reset Zoom
+        </button>
+      </template>
+    </Controls>
+  </VueFlow>
+</template>
+```
+
+## Styling
+
+The Controls component uses CSS classes that can be customized:
+
+```css
+/* Main controls container */
+.vue-flow__controls {
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Individual buttons */
+.vue-flow__controls-button {
+  background: white;
+  border: none;
+  padding: 8px;
+}
+
+.vue-flow__controls-button:hover {
+  background: #f0f0f0;
+}
+
+/* Specific button types */
+.vue-flow__controls-zoomin { }
+.vue-flow__controls-zoomout { }
+.vue-flow__controls-fitview { }
+.vue-flow__controls-interactive { }
+```
+
+<Note>
+  The interactive toggle button controls `nodesDraggable`, `nodesConnectable`, and `elementsSelectable` states. When locked, all three are disabled.
+</Note>

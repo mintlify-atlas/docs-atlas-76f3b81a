@@ -1,0 +1,333 @@
+---
+title: useEdgesData
+description: Get reactive data from one or multiple edges
+---
+
+`useEdgesData` provides a computed reference to edge data that automatically updates when the edges change. It's useful for accessing edge data outside of edge components or for watching multiple edges at once.
+
+## Usage
+
+<CodeGroup>
+```vue Single Edge
+<script setup>
+import { useEdgesData } from '@vue-flow/core'
+
+const edgeData = useEdgesData('edge-1')
+
+// edgeData.value will be { id, type, data } or null
+watch(edgeData, (data) => {
+  if (data) {
+    console.log('Edge data:', data.data)
+  }
+})
+</script>
+```
+
+```vue Multiple Edges
+<script setup>
+import { useEdgesData } from '@vue-flow/core'
+import { ref } from 'vue'
+
+const edgeIds = ref(['edge-1', 'edge-2', 'edge-3'])
+const edgesData = useEdgesData(edgeIds)
+
+// edgesData.value is an array of { id, type, data } objects
+console.log('All edges:', edgesData.value)
+</script>
+```
+
+```vue With TypeScript
+<script setup lang="ts">
+import { useEdgesData } from '@vue-flow/core'
+
+interface ConnectionData {
+  bandwidth: number
+  latency: number
+}
+
+const connectionData = useEdgesData<ConnectionData>('connection-1')
+
+// connectionData.value.data is typed as ConnectionData
+if (connectionData.value?.data) {
+  console.log(connectionData.value.data.bandwidth)
+}
+</script>
+```
+</CodeGroup>
+
+## Signature
+
+```typescript
+// Single edge (returns single object or null)
+function useEdgesData<EdgeType extends Edge = GraphEdge>(
+  edgeId: MaybeRefOrGetter<string>
+): ComputedRef<EdgeData<EdgeType> | null>
+
+// Multiple edges (returns array)
+function useEdgesData<EdgeType extends Edge = GraphEdge>(
+  edgeIds: MaybeRefOrGetter<string[]>
+): ComputedRef<EdgeData<EdgeType>[]>
+
+// With type guard
+function useEdgesData<EdgeType extends Edge = GraphEdge>(
+  edgeIds: MaybeRefOrGetter<string[]>,
+  guard: (edge: Edge) => edge is EdgeType
+): ComputedRef<EdgeData<EdgeType>[]>
+```
+
+## Parameters
+
+<ParamField path="edgeId" type="MaybeRefOrGetter<string>">
+  The ID of a single edge to get data from. Can be a string, ref, or getter function.
+</ParamField>
+
+<ParamField path="edgeIds" type="MaybeRefOrGetter<string[]>">
+  An array of edge IDs to get data from. Can be an array, ref, or getter function.
+</ParamField>
+
+<ParamField path="guard" type="(edge: Edge) => edge is EdgeType" optional>
+  Optional type guard function to narrow down the edge type.
+</ParamField>
+
+## Return Value
+
+### For Single Edge
+
+Returns `ComputedRef<EdgeData | null>` where `EdgeData` contains:
+
+<ResponseField name="id" type="string">
+  The edge's ID
+</ResponseField>
+
+<ResponseField name="type" type="string">
+  The edge's type
+</ResponseField>
+
+<ResponseField name="data" type="NonNullable<EdgeType['data']> | null">
+  The edge's data object (or null if the edge has no data)
+</ResponseField>
+
+Returns `null` if the edge is not found.
+
+### For Multiple Edges
+
+Returns `ComputedRef<EdgeData[]>` - an array of edge data objects. Edges that are not found are excluded from the array.
+
+## Examples
+
+### Watching Edge Data Changes
+
+```vue
+<script setup>
+import { useEdgesData } from '@vue-flow/core'
+import { watch } from 'vue'
+
+const edgeData = useEdgesData('connection-1')
+
+watch(edgeData, (data) => {
+  if (data?.data) {
+    console.log('Edge data updated:', data.data)
+    // Perform side effects based on data changes
+  }
+}, { deep: true })
+</script>
+```
+
+### Monitoring Network Flow
+
+```vue
+<script setup lang="ts">
+import { useEdgesData } from '@vue-flow/core'
+import { computed } from 'vue'
+
+interface FlowData {
+  bandwidth: number
+  currentFlow: number
+  status: 'active' | 'congested' | 'idle'
+}
+
+const connectionIds = ['conn-1', 'conn-2', 'conn-3']
+const connections = useEdgesData<FlowData>(connectionIds)
+
+const totalBandwidth = computed(() => {
+  return connections.value.reduce((sum, edge) => {
+    return sum + (edge.data?.bandwidth || 0)
+  }, 0)
+})
+
+const totalFlow = computed(() => {
+  return connections.value.reduce((sum, edge) => {
+    return sum + (edge.data?.currentFlow || 0)
+  }, 0)
+})
+
+const utilizationPercent = computed(() => {
+  if (totalBandwidth.value === 0) return 0
+  return (totalFlow.value / totalBandwidth.value) * 100
+})
+
+const congestedConnections = computed(() => 
+  connections.value.filter(c => c.data?.status === 'congested')
+)
+</script>
+
+<template>
+  <div class="network-stats">
+    <h3>Network Status</h3>
+    <p>Total Bandwidth: {{ totalBandwidth }} Mbps</p>
+    <p>Current Flow: {{ totalFlow }} Mbps</p>
+    <p>Utilization: {{ utilizationPercent.toFixed(1) }}%</p>
+    <p>Congested: {{ congestedConnections.length }}</p>
+  </div>
+</template>
+```
+
+### Dynamic Edge Selection
+
+```vue
+<script setup>
+import { useEdgesData, useVueFlow } from '@vue-flow/core'
+import { computed } from 'vue'
+
+const { edges } = useVueFlow()
+
+// Get data from all selected edges
+const selectedEdgeIds = computed(() => 
+  edges.value
+    .filter(edge => edge.selected)
+    .map(edge => edge.id)
+)
+
+const selectedEdgesData = useEdgesData(selectedEdgeIds)
+
+watch(selectedEdgesData, (data) => {
+  console.log('Selected edges data:', data)
+})
+</script>
+```
+
+### Edge Data with Node Context
+
+```vue
+<script setup>
+import { useEdgesData, useNodesData, useVueFlow } from '@vue-flow/core'
+import { computed } from 'vue'
+
+const nodeId = ref('node-1')
+const { edges } = useVueFlow()
+
+// Find all edges connected to a node
+const connectedEdgeIds = computed(() => 
+  edges.value
+    .filter(edge => edge.source === nodeId.value || edge.target === nodeId.value)
+    .map(edge => edge.id)
+)
+
+const connectedEdgesData = useEdgesData(connectedEdgeIds)
+
+// Get the other nodes connected via these edges
+const connectedNodeIds = computed(() => {
+  const ids = new Set()
+  edges.value.forEach(edge => {
+    if (edge.source === nodeId.value) ids.add(edge.target)
+    if (edge.target === nodeId.value) ids.add(edge.source)
+  })
+  return Array.from(ids)
+})
+
+const connectedNodesData = useNodesData(connectedNodeIds)
+</script>
+
+<template>
+  <div>
+    <h3>Connections for node {{ nodeId }}</h3>
+    <ul>
+      <li v-for="edge in connectedEdgesData" :key="edge.id">
+        {{ edge.data?.label || edge.id }}
+      </li>
+    </ul>
+  </div>
+</template>
+```
+
+### Handling Null Edge Data
+
+```vue
+<script setup>
+import { useEdgesData } from '@vue-flow/core'
+import { computed } from 'vue'
+
+const edgeData = useEdgesData('edge-1')
+
+// Edge data can be null, so always check
+const hasLabel = computed(() => {
+  return edgeData.value?.data?.label !== undefined
+})
+
+const displayLabel = computed(() => {
+  return edgeData.value?.data?.label || 'No label'
+})
+</script>
+```
+
+### Filtering Edges by Data
+
+```vue
+<script setup lang="ts">
+import { useEdgesData, useVueFlow } from '@vue-flow/core'
+import { computed } from 'vue'
+
+interface EdgeData {
+  priority: 'low' | 'medium' | 'high'
+  weight: number
+}
+
+const { edges } = useVueFlow()
+const allEdgeIds = computed(() => edges.value.map(e => e.id))
+const allEdgesData = useEdgesData<EdgeData>(allEdgeIds)
+
+const highPriorityEdges = computed(() => 
+  allEdgesData.value.filter(e => e.data?.priority === 'high')
+)
+
+const heavyEdges = computed(() => 
+  allEdgesData.value.filter(e => (e.data?.weight || 0) > 10)
+)
+</script>
+
+<template>
+  <div class="edge-filters">
+    <h4>High Priority: {{ highPriorityEdges.length }}</h4>
+    <h4>Heavy Edges: {{ heavyEdges.length }}</h4>
+  </div>
+</template>
+```
+
+### Read-Only Computed Data
+
+```vue
+<script setup>
+import { useEdgesData, useVueFlow } from '@vue-flow/core'
+
+const edgeData = useEdgesData('edge-1')
+
+// Note: The returned value is read-only
+// This will log a warning and not work:
+// edgeData.value = { ...newData } // ❌ Warning logged
+
+// To update edge data, use useVueFlow instead:
+const { updateEdgeData } = useVueFlow()
+updateEdgeData('edge-1', { label: 'Updated' }) // ✅ Correct way
+</script>
+```
+
+## Notes
+
+- The returned computed ref is **read-only**. Attempting to set its value will log a warning.
+- To update edge data, use `updateEdgeData` or `updateEdge` from `useVueFlow`
+- Edge IDs can be reactive (refs or getter functions) - the composable will automatically track changes
+- When requesting multiple edges, only found edges are included in the result array
+- Edge data is optional and may be `null`, so always check before accessing properties
+- The data is deeply reactive and will update when any edge property changes
+- For single edge queries, returns `null` if the edge doesn't exist
+- For multiple edge queries, returns an empty array if no edges are found

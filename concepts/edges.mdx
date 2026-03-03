@@ -1,0 +1,617 @@
+---
+title: Edges
+description: Understanding edge concepts, types, and connections in Vue Flow
+---
+
+# Edges
+
+Edges are the connections between nodes in your flow diagram. They represent relationships, data flow, or dependencies between different parts of your workflow.
+
+## Edge Structure
+
+Every edge requires three essential properties:
+
+- **`id`** (string): A unique identifier
+- **`source`** (string): ID of the source node
+- **`target`** (string): ID of the target node
+
+<CodeGroup>
+```typescript Basic Edge
+const edge = {
+  id: 'e1-2',
+  source: '1',
+  target: '2'
+}
+```
+
+```typescript Full Edge Definition
+import type { Edge } from '@vue-flow/core'
+import { MarkerType } from '@vue-flow/core'
+
+const edge: Edge = {
+  id: 'e1-2',
+  source: '1',
+  target: '2',
+  type: 'default',
+  
+  // Optional properties
+  sourceHandle: 'a',
+  targetHandle: 'b',
+  label: 'Connection',
+  animated: true,
+  style: { stroke: '#f6ab6c' },
+  markerEnd: MarkerType.ArrowClosed,
+  data: { weight: 5 },
+  selectable: true,
+  deletable: true,
+  updatable: true
+}
+```
+</CodeGroup>
+
+## Edge Interface
+
+<ParamField path="id" type="string" required>
+  Unique identifier for the edge
+</ParamField>
+
+<ParamField path="source" type="string" required>
+  ID of the source node
+</ParamField>
+
+<ParamField path="target" type="string" required>
+  ID of the target node
+</ParamField>
+
+<ParamField path="type" type="string" default="'default'">
+  Edge type: `'default'` (bezier), `'step'`, `'smoothstep'`, `'straight'`, or custom
+</ParamField>
+
+<ParamField path="sourceHandle" type="string | null">
+  ID of the source handle. If `null` or not provided, connects to the first available source handle
+</ParamField>
+
+<ParamField path="targetHandle" type="string | null">
+  ID of the target handle
+</ParamField>
+
+<ParamField path="label" type="string | VNode | Component">
+  Edge label content
+</ParamField>
+
+<ParamField path="animated" type="boolean" default="false">
+  Animate the edge path
+</ParamField>
+
+<ParamField path="style" type="CSSProperties | StyleFunc">
+  Inline styles for the edge path
+</ParamField>
+
+<ParamField path="class" type="string | string[] | ClassFunc">
+  CSS classes for the edge
+</ParamField>
+
+<ParamField path="markerStart" type="EdgeMarkerType">
+  Start marker (arrow at source)
+</ParamField>
+
+<ParamField path="markerEnd" type="EdgeMarkerType">
+  End marker (arrow at target)
+</ParamField>
+
+<ParamField path="selectable" type="boolean" default="true">
+  Enable edge selection
+</ParamField>
+
+<ParamField path="deletable" type="boolean" default="true">
+  Enable edge deletion
+</ParamField>
+
+<ParamField path="updatable" type="boolean | 'source' | 'target'" default="false">
+  Allow reconnecting edge. Use `true` for both ends, or specify `'source'` or `'target'`
+</ParamField>
+
+<ParamField path="focusable" type="boolean" default="true">
+  Enable keyboard focus (a11y)
+</ParamField>
+
+<ParamField path="hidden" type="boolean">
+  Hide the edge
+</ParamField>
+
+<ParamField path="data" type="any">
+  Custom data object
+</ParamField>
+
+<ParamField path="zIndex" type="number">
+  Stacking order
+</ParamField>
+
+<ParamField path="interactionWidth" type="number" default="2">
+  Width of the invisible interaction area for easier edge selection
+</ParamField>
+
+## Edge Label Options
+
+<ParamField path="labelStyle" type="CSSProperties">
+  Styles for the label text
+</ParamField>
+
+<ParamField path="labelShowBg" type="boolean" default="true">
+  Show background behind label
+</ParamField>
+
+<ParamField path="labelBgStyle" type="CSSProperties">
+  Styles for label background
+</ParamField>
+
+<ParamField path="labelBgPadding" type="[number, number]" default="[2, 4]">
+  Padding around label `[vertical, horizontal]`
+</ParamField>
+
+<ParamField path="labelBgBorderRadius" type="number" default="2">
+  Border radius for label background
+</ParamField>
+
+## Built-in Edge Types
+
+<Tabs>
+  <Tab title="Default (Bezier)">
+    A curved bezier edge (default type).
+
+    ```typescript
+    const edge = {
+      id: 'e1-2',
+      source: '1',
+      target: '2',
+      type: 'default', // or omit for default
+      pathOptions: {
+        curvature: 0.5 // Control curve intensity
+      }
+    }
+    ```
+  </Tab>
+  
+  <Tab title="Straight">
+    A direct straight line between nodes.
+
+    ```typescript
+    const edge = {
+      id: 'e1-2',
+      source: '1',
+      target: '2',
+      type: 'straight'
+    }
+    ```
+  </Tab>
+  
+  <Tab title="Step">
+    A path with right angles (step pattern).
+
+    ```typescript
+    const edge = {
+      id: 'e1-2',
+      source: '1',
+      target: '2',
+      type: 'step'
+    }
+    ```
+  </Tab>
+  
+  <Tab title="Smooth Step">
+    A step path with rounded corners.
+
+    ```typescript
+    const edge = {
+      id: 'e1-2',
+      source: '1',
+      target: '2',
+      type: 'smoothstep',
+      pathOptions: {
+        offset: 20,
+        borderRadius: 10
+      }
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Edge Markers
+
+Add arrows or other markers to edge endpoints:
+
+```typescript
+import { MarkerType } from '@vue-flow/core'
+
+const edge = {
+  id: 'e1-2',
+  source: '1',
+  target: '2',
+  markerEnd: MarkerType.ArrowClosed, // Standard arrow
+  markerStart: MarkerType.Arrow // Open arrow at start
+}
+
+// Custom marker
+const edgeWithCustomMarker = {
+  id: 'e1-2',
+  source: '1',
+  target: '2',
+  markerEnd: {
+    type: MarkerType.ArrowClosed,
+    color: '#f6ab6c',
+    width: 20,
+    height: 20
+  }
+}
+```
+
+<Info>
+**Available marker types:**
+- `MarkerType.Arrow` - Open arrow
+- `MarkerType.ArrowClosed` - Filled arrow
+</Info>
+
+## Custom Edge Types
+
+Create custom edges for specialized visualizations:
+
+<CodeGroup>
+```vue CustomEdge.vue
+<script setup lang="ts">
+import { BaseEdge, getBezierPath } from '@vue-flow/core'
+import type { EdgeProps } from '@vue-flow/core'
+
+interface CustomData {
+  status: 'active' | 'inactive'
+}
+
+const props = defineProps<EdgeProps<CustomData>>()
+
+const path = computed(() => {
+  return getBezierPath({
+    sourceX: props.sourceX,
+    sourceY: props.sourceY,
+    sourcePosition: props.sourcePosition,
+    targetX: props.targetX,
+    targetY: props.targetY,
+    targetPosition: props.targetPosition,
+  })
+})
+
+const edgeColor = computed(() => 
+  props.data?.status === 'active' ? '#22c55e' : '#94a3b8'
+)
+</script>
+
+<template>
+  <BaseEdge
+    :id="id"
+    :style="{ stroke: edgeColor, strokeWidth: 2 }"
+    :path="path[0]"
+    :marker-end="markerEnd"
+  />
+</template>
+```
+
+```vue App.vue
+<script setup>
+import { markRaw } from 'vue'
+import { VueFlow } from '@vue-flow/core'
+import CustomEdge from './CustomEdge.vue'
+
+const edgeTypes = {
+  custom: markRaw(CustomEdge)
+}
+
+const edges = ref([{
+  id: 'e1-2',
+  source: '1',
+  target: '2',
+  type: 'custom',
+  data: { status: 'active' }
+}])
+</script>
+
+<template>
+  <VueFlow :edges="edges" :edge-types="edgeTypes" />
+</template>
+```
+</CodeGroup>
+
+## Edge Path Helpers
+
+Vue Flow provides utilities to calculate edge paths:
+
+```typescript
+import {
+  getBezierPath,
+  getStraightPath,
+  getSimpleBezierPath,
+  getSmoothStepPath
+} from '@vue-flow/core'
+
+// Bezier curve
+const [path, labelX, labelY] = getBezierPath({
+  sourceX: 0,
+  sourceY: 0,
+  sourcePosition: Position.Right,
+  targetX: 100,
+  targetY: 100,
+  targetPosition: Position.Left,
+  curvature: 0.25
+})
+
+// Smooth step
+const [path2] = getSmoothStepPath({
+  sourceX: 0,
+  sourceY: 0,
+  sourcePosition: Position.Right,
+  targetX: 100,
+  targetY: 100,
+  targetPosition: Position.Left,
+  borderRadius: 8,
+  offset: 20
+})
+```
+
+## Adding Edges
+
+<Tabs>
+  <Tab title="Using v-model">
+    ```vue
+    <script setup>
+    import { ref } from 'vue'
+    import { VueFlow } from '@vue-flow/core'
+
+    const edges = ref([{
+      id: 'e1-2',
+      source: '1',
+      target: '2'
+    }])
+
+    function addEdge() {
+      edges.value.push({
+        id: `e${Date.now()}`,
+        source: '2',
+        target: '3'
+      })
+    }
+    </script>
+    ```
+  </Tab>
+  
+  <Tab title="Using addEdges">
+    ```typescript
+    import { useVueFlow } from '@vue-flow/core'
+
+    const { addEdges } = useVueFlow()
+
+    // Add single edge
+    addEdges({ id: 'e1-2', source: '1', target: '2' })
+
+    // Add multiple edges
+    addEdges([
+      { id: 'e1-2', source: '1', target: '2' },
+      { id: 'e2-3', source: '2', target: '3' }
+    ])
+    ```
+  </Tab>
+  
+  <Tab title="On Connect">
+    ```vue
+    <script setup>
+    import { useVueFlow } from '@vue-flow/core'
+
+    const { onConnect, addEdges } = useVueFlow()
+
+    onConnect((connection) => {
+      addEdges({
+        ...connection,
+        id: `e${connection.source}-${connection.target}`,
+        animated: true,
+        style: { stroke: '#f6ab6c' }
+      })
+    })
+    </script>
+    ```
+  </Tab>
+</Tabs>
+
+## Updating Edges
+
+<CodeGroup>
+```typescript useVueFlow
+import { useVueFlow } from '@vue-flow/core'
+
+const { updateEdgeData, findEdge } = useVueFlow()
+
+// Update edge data
+updateEdgeData('e1-2', { weight: 10 })
+
+// Update with function
+updateEdgeData('e1-2', (edge) => ({
+  weight: edge.data.weight * 2
+}))
+
+// Find and mutate
+const edge = findEdge('e1-2')
+if (edge) {
+  edge.animated = true
+  edge.style = { stroke: 'red' }
+}
+```
+
+```vue useEdge (in custom edge)
+<script setup>
+import { useEdge } from '@vue-flow/core'
+
+const { edge } = useEdge()
+
+function handleClick() {
+  edge.animated = !edge.animated
+  edge.data.clicks = (edge.data.clicks || 0) + 1
+}
+</script>
+```
+</CodeGroup>
+
+## Removing Edges
+
+```typescript
+import { useVueFlow } from '@vue-flow/core'
+
+const { removeEdges } = useVueFlow()
+
+// Remove single edge
+removeEdges('e1-2')
+
+// Remove multiple edges
+removeEdges(['e1-2', 'e2-3'])
+
+// Remove all edges from a node
+const { getConnectedEdges } = useVueFlow()
+const connectedEdges = getConnectedEdges('node-1')
+removeEdges(connectedEdges.map(e => e.id))
+```
+
+## Connection Validation
+
+Control which connections are allowed:
+
+```typescript
+import type { Connection } from '@vue-flow/core'
+
+function isValidConnection(connection: Connection) {
+  // Prevent self-connections
+  if (connection.source === connection.target) {
+    return false
+  }
+  
+  // Prevent duplicate connections
+  const existingEdge = edges.value.find(
+    e => e.source === connection.source && e.target === connection.target
+  )
+  return !existingEdge
+}
+```
+
+```vue
+<template>
+  <VueFlow :is-valid-connection="isValidConnection" />
+</template>
+```
+
+## Edge Updates
+
+Allow users to reconnect edges by dragging endpoints:
+
+```typescript
+const edge = {
+  id: 'e1-2',
+  source: '1',
+  target: '2',
+  updatable: true, // Both ends can be reconnected
+  // updatable: 'source', // Only source can be reconnected
+  // updatable: 'target', // Only target can be reconnected
+}
+```
+
+Handle edge update events:
+
+```vue
+<script setup>
+import { useVueFlow } from '@vue-flow/core'
+
+const { onEdgeUpdate } = useVueFlow()
+
+onEdgeUpdate(({ edge, connection }) => {
+  console.log('Edge updated:', edge.id)
+  console.log('New connection:', connection)
+})
+</script>
+```
+
+## GraphEdge vs Edge
+
+- **`Edge`**: Input type you provide
+- **`GraphEdge`**: Internal representation with computed properties
+
+```typescript
+interface GraphEdge extends Edge {
+  selected: boolean
+  sourceNode: GraphNode
+  targetNode: GraphNode
+  sourceX: number
+  sourceY: number
+  targetX: number
+  targetY: number
+}
+```
+
+## Edge Props
+
+Custom edge components receive:
+
+```typescript
+interface EdgeProps<Data = any> {
+  id: string
+  source: string
+  target: string
+  sourceNode: GraphNode
+  targetNode: GraphNode
+  type: string
+  data: Data
+  selected: boolean
+  sourceX: number
+  sourceY: number
+  targetX: number
+  targetY: number
+  sourcePosition: Position
+  targetPosition: Position
+  sourceHandleId?: string
+  targetHandleId?: string
+  markerStart: string
+  markerEnd: string
+  style?: CSSProperties
+  label?: string | VNode | Component
+  labelStyle?: CSSProperties
+  labelShowBg?: boolean
+  labelBgStyle?: CSSProperties
+  labelBgPadding?: [number, number]
+  labelBgBorderRadius?: number
+}
+```
+
+## TypeScript Support
+
+```typescript
+import type { Edge } from '@vue-flow/core'
+
+interface EdgeData {
+  weight: number
+  type: 'data' | 'control'
+}
+
+type CustomEdgeType = 'custom' | 'special'
+
+type CustomEdge = Edge<EdgeData, any, CustomEdgeType>
+
+const edges: CustomEdge[] = [
+  {
+    id: 'e1-2',
+    source: '1',
+    target: '2',
+    type: 'custom',
+    data: {
+      weight: 5,
+      type: 'data'
+    }
+  }
+]
+```
+
+## See Also
+
+- [Nodes](/concepts/nodes) - Create and manage nodes
+- [Handles](/concepts/handles) - Configure connection points
+- [State Management](/concepts/state-management) - Access edges in state

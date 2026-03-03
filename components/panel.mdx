@@ -1,0 +1,463 @@
+---
+title: Panel
+description: Position content at fixed locations within the Vue Flow viewport
+---
+
+The `Panel` component allows you to position content at fixed locations within the Vue Flow canvas, unaffected by zoom or pan.
+
+## Installation
+
+The Panel component is included in the core `@vue-flow/core` package.
+
+```bash
+npm install @vue-flow/core
+```
+
+## Basic Usage
+
+```vue
+<script setup>
+import { VueFlow, Panel } from '@vue-flow/core'
+</script>
+
+<template>
+  <VueFlow>
+    <Panel position="top-left">
+      <div>Top Left Panel</div>
+    </Panel>
+    
+    <Panel position="top-right">
+      <div>Top Right Panel</div>
+    </Panel>
+  </VueFlow>
+</template>
+```
+
+## Props
+
+<ParamField path="position" type="PanelPosition" required>
+  Position of the panel within the viewport. Options:
+  - `'top-left'`
+  - `'top-center'`
+  - `'top-right'`
+  - `'bottom-left'`
+  - `'bottom-center'`
+  - `'bottom-right'`
+</ParamField>
+
+## Slots
+
+<ParamField path="default">
+  Panel content.
+</ParamField>
+
+## Examples
+
+### All Positions
+
+```vue
+<template>
+  <VueFlow>
+    <Panel position="top-left">
+      <div class="panel-content">Top Left</div>
+    </Panel>
+    
+    <Panel position="top-center">
+      <div class="panel-content">Top Center</div>
+    </Panel>
+    
+    <Panel position="top-right">
+      <div class="panel-content">Top Right</div>
+    </Panel>
+    
+    <Panel position="bottom-left">
+      <div class="panel-content">Bottom Left</div>
+    </Panel>
+    
+    <Panel position="bottom-center">
+      <div class="panel-content">Bottom Center</div>
+    </Panel>
+    
+    <Panel position="bottom-right">
+      <div class="panel-content">Bottom Right</div>
+    </Panel>
+  </VueFlow>
+</template>
+
+<style scoped>
+.panel-content {
+  padding: 12px;
+  background: white;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+</style>
+```
+
+### Custom Title Bar
+
+```vue
+<script setup>
+import { VueFlow, Panel } from '@vue-flow/core'
+import { ref } from 'vue'
+
+const flowTitle = ref('My Flow Diagram')
+</script>
+
+<template>
+  <VueFlow>
+    <Panel position="top-center">
+      <div class="title-bar">
+        <h1>{{ flowTitle }}</h1>
+      </div>
+    </Panel>
+  </VueFlow>
+</template>
+
+<style scoped>
+.title-bar {
+  padding: 16px 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.title-bar h1 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+</style>
+```
+
+### Info Panel
+
+```vue
+<script setup>
+import { VueFlow, Panel, useVueFlow } from '@vue-flow/core'
+import { computed } from 'vue'
+
+const { nodes, edges, viewport } = useVueFlow()
+
+const stats = computed(() => ({
+  nodes: nodes.value.length,
+  edges: edges.value.length,
+  zoom: Math.round(viewport.value.zoom * 100),
+}))
+</script>
+
+<template>
+  <VueFlow>
+    <Panel position="top-right">
+      <div class="info-panel">
+        <div class="stat">
+          <span class="label">Nodes:</span>
+          <span class="value">{{ stats.nodes }}</span>
+        </div>
+        <div class="stat">
+          <span class="label">Edges:</span>
+          <span class="value">{{ stats.edges }}</span>
+        </div>
+        <div class="stat">
+          <span class="label">Zoom:</span>
+          <span class="value">{{ stats.zoom }}%</span>
+        </div>
+      </div>
+    </Panel>
+  </VueFlow>
+</template>
+
+<style scoped>
+.info-panel {
+  padding: 12px;
+  background: white;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  min-width: 150px;
+}
+
+.stat {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  font-size: 14px;
+}
+
+.label {
+  color: #6b7280;
+}
+
+.value {
+  font-weight: 600;
+  color: #111827;
+}
+</style>
+```
+
+### Action Buttons
+
+```vue
+<script setup>
+import { VueFlow, Panel, useVueFlow } from '@vue-flow/core'
+
+const { fitView, zoomIn, zoomOut } = useVueFlow()
+
+function handleFitView() {
+  fitView({ duration: 800, padding: 0.2 })
+}
+
+function handleExport() {
+  console.log('Exporting...')
+}
+</script>
+
+<template>
+  <VueFlow>
+    <Panel position="bottom-right">
+      <div class="action-panel">
+        <button @click="zoomIn">Zoom In</button>
+        <button @click="zoomOut">Zoom Out</button>
+        <button @click="handleFitView">Fit View</button>
+        <button @click="handleExport" class="primary">Export</button>
+      </div>
+    </Panel>
+  </VueFlow>
+</template>
+
+<style scoped>
+.action-panel {
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  background: white;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.action-panel button {
+  padding: 8px 16px;
+  border: 1px solid #e5e7eb;
+  background: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.action-panel button:hover {
+  background: #f3f4f6;
+}
+
+.action-panel button.primary {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
+
+.action-panel button.primary:hover {
+  background: #2563eb;
+}
+</style>
+```
+
+### Search Panel
+
+```vue
+<script setup>
+import { VueFlow, Panel, useVueFlow } from '@vue-flow/core'
+import { ref } from 'vue'
+
+const { findNode, fitView } = useVueFlow()
+const searchQuery = ref('')
+
+function searchNode() {
+  const node = findNode(searchQuery.value)
+  if (node) {
+    fitView({ nodes: [node], duration: 500 })
+  }
+}
+</script>
+
+<template>
+  <VueFlow>
+    <Panel position="top-left">
+      <div class="search-panel">
+        <input 
+          v-model="searchQuery"
+          type="text" 
+          placeholder="Search nodes..."
+          @keyup.enter="searchNode"
+        />
+        <button @click="searchNode">Search</button>
+      </div>
+    </Panel>
+  </VueFlow>
+</template>
+
+<style scoped>
+.search-panel {
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  background: white;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.search-panel input {
+  padding: 8px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  font-size: 14px;
+  min-width: 200px;
+}
+
+.search-panel input:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.search-panel button {
+  padding: 8px 16px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+</style>
+```
+
+### Legend Panel
+
+```vue
+<script setup>
+import { VueFlow, Panel } from '@vue-flow/core'
+
+const nodeTypes = [
+  { type: 'input', color: '#3b82f6', label: 'Input' },
+  { type: 'process', color: '#10b981', label: 'Process' },
+  { type: 'output', color: '#f59e0b', label: 'Output' },
+]
+</script>
+
+<template>
+  <VueFlow>
+    <Panel position="bottom-left">
+      <div class="legend-panel">
+        <h3>Legend</h3>
+        <div 
+          v-for="nodeType in nodeTypes" 
+          :key="nodeType.type" 
+          class="legend-item"
+        >
+          <div 
+            class="legend-color" 
+            :style="{ background: nodeType.color }"
+          />
+          <span>{{ nodeType.label }}</span>
+        </div>
+      </div>
+    </Panel>
+  </VueFlow>
+</template>
+
+<style scoped>
+.legend-panel {
+  padding: 12px;
+  background: white;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  min-width: 120px;
+}
+
+.legend-panel h3 {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 13px;
+}
+
+.legend-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+}
+</style>
+```
+
+## Use with Controls, MiniMap, etc.
+
+The Panel component is the base for other positioned components like Controls and MiniMap:
+
+```vue
+<template>
+  <VueFlow>
+    <!-- These components use Panel internally -->
+    <Controls position="bottom-left" />
+    <MiniMap position="bottom-right" />
+    
+    <!-- Custom panels alongside them -->
+    <Panel position="top-left">
+      <div>Custom panel</div>
+    </Panel>
+  </VueFlow>
+</template>
+```
+
+## Styling
+
+```css
+/* Panel container */
+.vue-flow__panel {
+  position: absolute;
+  z-index: 5;
+  margin: 15px;
+}
+
+/* Position-specific styles */
+.vue-flow__panel.top-left {
+  top: 0;
+  left: 0;
+}
+
+.vue-flow__panel.top-center {
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.vue-flow__panel.top-right {
+  top: 0;
+  right: 0;
+}
+
+.vue-flow__panel.bottom-left {
+  bottom: 0;
+  left: 0;
+}
+
+.vue-flow__panel.bottom-center {
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.vue-flow__panel.bottom-right {
+  bottom: 0;
+  right: 0;
+}
+```
+
+<Note>
+  Panels automatically disable pointer events during user selection to avoid interfering with selection boxes. Pointer events are re-enabled when selection is not active.
+</Note>

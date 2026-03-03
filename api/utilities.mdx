@@ -1,0 +1,481 @@
+---
+title: Utilities
+description: Utility functions for graph manipulation and calculations
+---
+
+Vue Flow provides a comprehensive set of utility functions for working with nodes, edges, and viewport transformations.
+
+## Graph Utilities
+
+<CardGroup cols={2}>
+  <Card title="addEdge" icon="plus">
+    Add a new edge to the flow
+  </Card>
+  
+  <Card title="updateEdge" icon="pen-to-square">
+    Update an existing edge connection
+  </Card>
+  
+  <Card title="getConnectedEdges" icon="diagram-project">
+    Get all edges connected to node(s)
+  </Card>
+  
+  <Card title="connectionExists" icon="check">
+    Check if a connection already exists
+  </Card>
+</CardGroup>
+
+## Node Relationships
+
+<CardGroup cols={2}>
+  <Card title="getIncomers" icon="arrow-down">
+    Get all nodes with edges pointing to a node
+  </Card>
+  
+  <Card title="getOutgoers" icon="arrow-up">
+    Get all nodes with edges coming from a node
+  </Card>
+</CardGroup>
+
+## Viewport Calculations
+
+<CardGroup cols={2}>
+  <Card title="getTransformForBounds" icon="maximize">
+    Calculate viewport transform to fit bounds
+  </Card>
+  
+  <Card title="getRectOfNodes" icon="border-all">
+    Calculate bounding rectangle of nodes
+  </Card>
+  
+  <Card title="getNodesInside" icon="crop">
+    Find all nodes within a rectangle
+  </Card>
+  
+  <Card title="getBoundsofRects" icon="square">
+    Calculate combined bounds of rectangles
+  </Card>
+</CardGroup>
+
+## Coordinate Transformations
+
+<CardGroup cols={2}>
+  <Card title="pointToRendererPoint" icon="location-crosshairs">
+    Convert screen coordinates to flow coordinates
+  </Card>
+  
+  <Card title="rendererPointToPoint" icon="location-dot">
+    Convert flow coordinates to screen coordinates
+  </Card>
+</CardGroup>
+
+## Type Guards
+
+<CardGroup cols={2}>
+  <Card title="isNode" icon="circle-nodes">
+    Check if element is a node
+  </Card>
+  
+  <Card title="isEdge" icon="arrow-right">
+    Check if element is an edge
+  </Card>
+  
+  <Card title="isGraphNode" icon="diagram-project">
+    Check if element is a graph node
+  </Card>
+  
+  <Card title="isGraphEdge" icon="share-nodes">
+    Check if element is a graph edge
+  </Card>
+</CardGroup>
+
+## Edge Path Utilities
+
+<CardGroup cols={2}>
+  <Card title="getBezierPath" icon="bezier-curve">
+    Calculate bezier curve path
+  </Card>
+  
+  <Card title="getSimpleBezierPath" icon="wave-sine">
+    Calculate simplified bezier path
+  </Card>
+  
+  <Card title="getSmoothStepPath" icon="stairs">
+    Calculate smooth step path
+  </Card>
+  
+  <Card title="getStraightPath" icon="minus">
+    Calculate straight line path
+  </Card>
+  
+  <Card title="getBezierEdgeCenter" icon="circle-dot">
+    Calculate center point of bezier edge
+  </Card>
+  
+  <Card title="getSimpleEdgeCenter" icon="bullseye">
+    Calculate center point of straight edge
+  </Card>
+</CardGroup>
+
+## Markers & Styling
+
+<CardGroup cols={2}>
+  <Card title="getMarkerId" icon="location-arrow">
+    Generate unique marker ID for edges
+  </Card>
+</CardGroup>
+
+## Miscellaneous
+
+<CardGroup cols={2}>
+  <Card title="clamp" icon="arrows-left-right">
+    Clamp value between min and max
+  </Card>
+  
+  <Card title="wheelDelta" icon="computer-mouse">
+    Calculate wheel delta with platform adjustments
+  </Card>
+  
+  <Card title="isMacOs" icon="apple">
+    Detect macOS platform
+  </Card>
+</CardGroup>
+
+## Usage Examples
+
+<CodeGroup>
+```typescript Graph Operations
+import {
+  addEdge,
+  getIncomers,
+  getOutgoers,
+  getConnectedEdges,
+  connectionExists
+} from '@vue-flow/core'
+
+const nodes = ref([...])
+const edges = ref([...])
+
+// Add a new edge
+const newConnection = {
+  source: 'node-1',
+  target: 'node-2',
+  sourceHandle: 'output-1',
+  targetHandle: 'input-1'
+}
+
+if (!connectionExists(newConnection, edges.value)) {
+  edges.value = addEdge(newConnection, edges.value)
+}
+
+// Get related nodes
+const incoming = getIncomers('node-2', nodes.value, edges.value)
+const outgoing = getOutgoers('node-2', nodes.value, edges.value)
+const connected = getConnectedEdges(['node-2'], edges.value)
+```
+
+```typescript Viewport Calculations
+import {
+  getTransformForBounds,
+  getRectOfNodes,
+  getNodesInside,
+  pointToRendererPoint
+} from '@vue-flow/core'
+import { useVueFlow } from '@vue-flow/core'
+
+const { nodes, viewport, setViewport } = useVueFlow()
+
+// Fit selected nodes in view
+const selectedNodes = nodes.value.filter(n => n.selected)
+const bounds = getRectOfNodes(selectedNodes)
+
+const transform = getTransformForBounds(
+  bounds,
+  1200, // viewport width
+  800,  // viewport height
+  0.5,  // min zoom
+  2,    // max zoom
+  0.1   // padding
+)
+
+setViewport(transform)
+
+// Find nodes in selection area
+const selectionRect = { x: 0, y: 0, width: 200, height: 200 }
+const nodesInside = getNodesInside(
+  nodes.value,
+  selectionRect,
+  viewport.value,
+  true // partially
+)
+```
+
+```typescript Coordinate Transformations
+import {
+  pointToRendererPoint,
+  rendererPointToPoint
+} from '@vue-flow/core'
+import { useVueFlow } from '@vue-flow/core'
+
+const { viewport } = useVueFlow()
+
+// Convert mouse position to flow coordinates
+function onMouseClick(event: MouseEvent) {
+  const flowPosition = pointToRendererPoint(
+    { x: event.clientX, y: event.clientY },
+    viewport.value,
+    false, // snapToGrid
+    [15, 15] // snapGrid
+  )
+  
+  console.log('Flow position:', flowPosition)
+}
+
+// Convert flow position to screen coordinates
+const nodeScreenPos = rendererPointToPoint(
+  { x: 100, y: 100 },
+  viewport.value
+)
+```
+
+```typescript Edge Path Utilities
+import {
+  getBezierPath,
+  getSmoothStepPath,
+  getStraightPath,
+  Position
+} from '@vue-flow/core'
+
+// Calculate bezier path
+const [path, labelX, labelY, offsetX, offsetY] = getBezierPath({
+  sourceX: 0,
+  sourceY: 0,
+  sourcePosition: Position.Right,
+  targetX: 200,
+  targetY: 100,
+  targetPosition: Position.Left,
+  curvature: 0.25
+})
+
+// Use in custom edge component
+const edgePath = computed(() => {
+  return getBezierPath({
+    sourceX: sourceX.value,
+    sourceY: sourceY.value,
+    sourcePosition: sourcePosition.value,
+    targetX: targetX.value,
+    targetY: targetY.value,
+    targetPosition: targetPosition.value
+  })
+})
+```
+
+```typescript Type Guards
+import {
+  isNode,
+  isEdge,
+  isGraphNode,
+  isGraphEdge
+} from '@vue-flow/core'
+
+function processElement(element: Node | Edge) {
+  if (isNode(element)) {
+    console.log('Node position:', element.position)
+  } else if (isEdge(element)) {
+    console.log('Edge connection:', element.source, '->', element.target)
+  }
+}
+
+function processGraphElement(element: GraphNode | GraphEdge) {
+  if (isGraphNode(element)) {
+    console.log('Computed position:', element.computedPosition)
+    console.log('Dimensions:', element.dimensions)
+  } else if (isGraphEdge(element)) {
+    console.log('Source node:', element.sourceNode)
+    console.log('Target node:', element.targetNode)
+  }
+}
+```
+</CodeGroup>
+
+## Function Signatures
+
+### Graph Operations
+
+```typescript
+// Add edge to elements
+function addEdge(
+  edgeParams: Edge | Connection,
+  elements: Elements,
+  defaults?: DefaultEdgeOptions
+): Elements
+
+// Update edge connection
+function updateEdge(
+  oldEdge: Edge,
+  newConnection: Connection,
+  elements: Elements
+): Elements
+
+// Get connected edges
+function getConnectedEdges<E extends Edge>(
+  nodesOrId: Node[] | string,
+  edges: E[]
+): E[]
+
+// Check connection existence
+function connectionExists(
+  edge: Edge | Connection,
+  elements: Elements
+): boolean
+```
+
+### Node Relationships
+
+```typescript
+// Get incoming nodes
+function getIncomers<N extends Node>(
+  nodeOrId: Node | { id: string } | string,
+  nodes: N[],
+  edges: Edge[]
+): N[]
+
+// Get outgoing nodes
+function getOutgoers<N extends Node>(
+  nodeOrId: Node | { id: string } | string,
+  nodes: N[],
+  edges: Edge[]
+): N[]
+```
+
+### Viewport Calculations
+
+```typescript
+// Get transform for bounds
+function getTransformForBounds(
+  bounds: Rect,
+  width: number,
+  height: number,
+  minZoom: number,
+  maxZoom: number,
+  padding?: Padding
+): ViewportTransform
+
+// Get rectangle of nodes
+function getRectOfNodes(nodes: GraphNode[]): Rect
+
+// Get nodes inside rectangle
+function getNodesInside(
+  nodes: GraphNode[],
+  rect: Rect,
+  viewport?: ViewportTransform,
+  partially?: boolean,
+  excludeNonSelectableNodes?: boolean
+): GraphNode[]
+
+// Get combined bounds
+function getBoundsofRects(rect1: Rect, rect2: Rect): Rect
+```
+
+### Coordinate Transformations
+
+```typescript
+// Screen to flow coordinates
+function pointToRendererPoint(
+  { x, y }: XYPosition,
+  viewport: ViewportTransform,
+  snapToGrid?: boolean,
+  snapGrid?: [number, number]
+): XYPosition
+
+// Flow to screen coordinates
+function rendererPointToPoint(
+  { x, y }: XYPosition,
+  viewport: ViewportTransform
+): XYPosition
+```
+
+### Edge Path Utilities
+
+```typescript
+// Returns [path, labelX, labelY, offsetX, offsetY]
+type EdgePathParams = [string, number, number, number, number]
+
+function getBezierPath(params: GetBezierPathParams): EdgePathParams
+
+function getSimpleBezierPath(params: GetBezierPathParams): EdgePathParams
+
+function getSmoothStepPath(params: GetSmoothStepPathParams): EdgePathParams
+
+function getStraightPath(params: GetStraightPathParams): EdgePathParams
+
+function getBezierEdgeCenter(params: GetBezierEdgeCenterParams): [number, number, number, number]
+
+function getSimpleEdgeCenter(params: GetSimpleEdgeCenterParams): [number, number, number, number]
+```
+
+### Type Guards
+
+```typescript
+function isNode<Data = ElementData>(element: MaybeElement): element is Node<Data>
+
+function isEdge<Data = ElementData>(element: MaybeElement): element is Edge<Data>
+
+function isGraphNode<Data = ElementData>(element: MaybeElement): element is GraphNode<Data>
+
+function isGraphEdge<Data = ElementData>(element: MaybeElement): element is GraphEdge<Data>
+```
+
+### Utility Functions
+
+```typescript
+// Clamp value between min and max
+function clamp(val: number, min?: number, max?: number): number
+
+// Calculate wheel delta
+function wheelDelta(event: WheelEvent): number
+
+// Detect macOS
+function isMacOs(): boolean
+
+// Generate marker ID
+function getMarkerId(marker: EdgeMarkerType | undefined, vueFlowId?: string): string
+```
+
+<Note>
+  **Deprecated Utilities**: Some utilities like `addEdge`, `updateEdge`, and change application functions are deprecated for direct use. It's recommended to use the store instance methods from `useVueFlow()` instead:
+  
+  ```typescript
+  const { addEdges, updateEdge, applyNodeChanges } = useVueFlow()
+  ```
+</Note>
+
+## Utility Categories
+
+### Graph Manipulation
+- Edge operations (add, update, check)
+- Node relationship queries
+- Connection validation
+
+### Viewport & Positioning
+- Viewport transform calculations
+- Coordinate conversions
+- Bounds and rect calculations
+
+### Edge Rendering
+- Path calculation for different edge types
+- Edge center point calculation
+- Marker ID generation
+
+### Type Checking
+- Runtime type guards
+- Element type validation
+
+### Math & Platform
+- Value clamping
+- Platform detection
+- Event normalization
+
+<Note>
+  For detailed information about each utility function, including all parameters, return types, and advanced usage examples, refer to the individual utility documentation pages.
+</Note>

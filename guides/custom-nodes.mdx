@@ -1,0 +1,432 @@
+---
+title: 'Creating custom node components'
+description: 'Learn how to create custom node components in Vue Flow with handles, events, and advanced patterns.'
+keywords: ['custom nodes', 'vue flow', 'node components', 'handles']
+---
+
+Custom nodes allow you to create specialized components that fit your application's needs. This guide covers everything from basic custom nodes to advanced patterns with TypeScript.
+
+## Basic custom node
+
+Every custom node needs three core elements: a node definition, a component, and registration with Vue Flow.
+
+<Steps>
+  <Step title="Define your node type">
+    Create a node with a custom type in your graph data:
+
+    ```typescript
+    const nodes = ref([
+      {
+        id: '1',
+        type: 'custom',
+        position: { x: 50, y: 50 },
+        data: { label: 'Custom Node' },
+      },
+    ])
+    ```
+  </Step>
+
+  <Step title="Create the component">
+    Build your custom node component with handles:
+
+    ```vue
+    <script setup lang="ts">
+    import { Handle, Position } from '@vue-flow/core'
+
+    defineProps(['data'])
+    </script>
+
+    <template>
+      <div>
+        <Handle type="target" :position="Position.Top" />
+        <div>{{ data.label }}</div>
+        <Handle type="source" :position="Position.Bottom" />
+      </div>
+    </template>
+    ```
+  </Step>
+
+  <Step title="Register the component">
+    Register your custom node using a template slot:
+
+    ```vue
+    <script setup>
+    import { VueFlow } from '@vue-flow/core'
+    import CustomNode from './CustomNode.vue'
+    </script>
+
+    <template>
+      <VueFlow :nodes="nodes">
+        <template #node-custom="props">
+          <CustomNode v-bind="props" />
+        </template>
+      </VueFlow>
+    </template>
+    ```
+  </Step>
+</Steps>
+
+## Using node types object
+
+For better organization, register nodes using the `nodeTypes` prop:
+
+```vue
+<script setup>
+import { markRaw } from 'vue'
+import CustomNode from './CustomNode.vue'
+import SpecialNode from './SpecialNode.vue'
+
+const nodeTypes = {
+  custom: markRaw(CustomNode),
+  special: markRaw(SpecialNode),
+}
+</script>
+
+<template>
+  <VueFlow :nodes="nodes" :node-types="nodeTypes" />
+</template>
+```
+
+<Warning>
+Always wrap components with `markRaw()` to prevent Vue from converting them into reactive objects. This avoids performance issues and console warnings.
+</Warning>
+
+## Working with node props
+
+Custom nodes receive props from Vue Flow with node data and state:
+
+```vue
+<script setup lang="ts">
+import type { NodeProps } from '@vue-flow/core'
+import { Handle, Position } from '@vue-flow/core'
+
+interface CustomData {
+  label: string
+  value: number
+}
+
+const props = defineProps<NodeProps<CustomData>>()
+</script>
+
+<template>
+  <div :class="{ selected: props.selected }">
+    <Handle type="target" :position="Position.Top" />
+    <div>
+      <strong>{{ props.data.label }}</strong>
+      <p>Value: {{ props.data.value }}</p>
+    </div>
+    <Handle type="source" :position="Position.Bottom" />
+  </div>
+</template>
+```
+
+### Available node props
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `id` | string | Unique node identifier |
+| `type` | string | Node type |
+| `data` | object | Custom data passed to the node |
+| `selected` | boolean | Whether node is selected |
+| `position` | XYPosition | Node position on canvas |
+| `dimensions` | Dimensions | Width and height |
+| `dragging` | boolean | Whether node is being dragged |
+| `connectable` | boolean | Whether handles can connect |
+| `targetPosition` | Position | Default target handle position |
+| `sourcePosition` | Position | Default source handle position |
+
+## Multiple handles
+
+Create nodes with multiple connection points using handle IDs:
+
+```vue
+<script setup lang="ts">
+import type { CSSProperties } from 'vue'
+import { Handle, Position } from '@vue-flow/core'
+
+const handleStyleA: CSSProperties = { top: '10px' }
+const handleStyleB: CSSProperties = { bottom: '10px', top: 'auto' }
+</script>
+
+<template>
+  <div>
+    <Handle type="target" :position="Position.Left" />
+    <div>Color Selector</div>
+    
+    <Handle 
+      id="a" 
+      type="source" 
+      :position="Position.Right" 
+      :style="handleStyleA" 
+    />
+    <Handle 
+      id="b" 
+      type="source" 
+      :position="Position.Right" 
+      :style="handleStyleB" 
+    />
+  </div>
+</template>
+```
+
+When connecting, specify which handle to use:
+
+```typescript
+const edges = ref([
+  { 
+    id: 'e1-2a', 
+    source: '1', 
+    target: '2',
+    sourceHandle: 'a',  // Connect to handle 'a'
+  },
+  { 
+    id: 'e1-2b', 
+    source: '1', 
+    target: '2',
+    sourceHandle: 'b',  // Connect to handle 'b'
+  },
+])
+```
+
+## Updating node data
+
+Use the `useNode` composable to update node data directly from within the component:
+
+```vue
+<script setup lang="ts">
+import { useNode } from '@vue-flow/core'
+
+const { node } = useNode()
+
+function updateValue(newValue: number) {
+  node.data = {
+    ...node.data,
+    value: newValue,
+  }
+}
+
+function toggleSelectable() {
+  node.selectable = !node.selectable
+}
+</script>
+
+<template>
+  <div>
+    <input 
+      class="nodrag" 
+      type="number" 
+      :value="node.data.value" 
+      @input="updateValue($event.target.value)" 
+    />
+    <button @click="toggleSelectable">Toggle Selectable</button>
+  </div>
+</template>
+```
+
+<Tip>
+Add the `nodrag` class to interactive elements like inputs and buttons to prevent dragging when interacting with them.
+</Tip>
+
+## Interactive elements
+
+Prevent node dragging when interacting with specific elements:
+
+```vue
+<template>
+  <div class="custom-node">
+    <!-- This input won't trigger node dragging -->
+    <input class="nodrag" type="text" placeholder="Type here..." />
+    
+    <!-- This button won't trigger node dragging -->
+    <button class="nodrag" @click="handleClick">Click me</button>
+    
+    <!-- This area allows dragging -->
+    <div>Drag from here</div>
+  </div>
+</template>
+```
+
+## Scrollable content
+
+For nodes with scrollable content, use the `nowheel` class:
+
+```vue
+<template>
+  <div class="custom-node">
+    <div class="header">Scrollable Node</div>
+    
+    <!-- This area scrolls without zooming the canvas -->
+    <ul class="nowheel" style="max-height: 150px; overflow-y: auto;">
+      <li v-for="item in items" :key="item">{{ item }}</li>
+    </ul>
+  </div>
+</template>
+```
+
+## Custom drag handle
+
+Restrict dragging to specific areas using the `dragHandle` property:
+
+```vue
+<script setup>
+const nodes = ref([
+  {
+    id: '1',
+    type: 'custom',
+    position: { x: 0, y: 0 },
+    dragHandle: '.drag-handle',  // Only drag from this selector
+    data: { label: 'Custom Node' },
+  },
+])
+</script>
+
+<template>
+  <div class="custom-node">
+    <div class="drag-handle" style="cursor: move; padding: 10px; background: #ddd;">
+      Drag from here
+    </div>
+    <div class="nodrag" style="padding: 10px;">
+      <input type="text" placeholder="Type without dragging" />
+    </div>
+  </div>
+</template>
+```
+
+## Styling custom nodes
+
+Add styles to your custom nodes:
+
+```css
+.vue-flow__node-custom {
+  background: #9ca8b3;
+  color: #fff;
+  padding: 10px;
+  border-radius: 8px;
+  border: 2px solid #555;
+}
+
+.vue-flow__node-custom.selected {
+  border-color: #ff0072;
+  box-shadow: 0 0 0 2px #ff0072;
+}
+```
+
+Or use inline styles in node definitions:
+
+```typescript
+const nodes = ref([
+  {
+    id: '1',
+    type: 'custom',
+    position: { x: 100, y: 100 },
+    style: { 
+      backgroundColor: 'purple',
+      border: '2px solid white',
+      borderRadius: '8px',
+      padding: '10px',
+    },
+    data: { label: 'Styled Node' },
+  },
+])
+```
+
+## Complete example
+
+Here's a full example with a color picker node:
+
+<CodeGroup>
+
+```vue ColorSelectorNode.vue
+<script setup lang="ts">
+import type { CSSProperties } from 'vue'
+import type { NodeProps } from '@vue-flow/core'
+import { Handle, Position } from '@vue-flow/core'
+
+interface Data {
+  color: string
+  onChange: (event: InputEvent) => void
+}
+
+interface ColorSelectorNodeProps extends NodeProps<Data> {
+  data: Data
+}
+
+const props = defineProps<ColorSelectorNodeProps>()
+
+const targetHandleStyle: CSSProperties = { background: '#555' }
+const sourceHandleStyleA: CSSProperties = { ...targetHandleStyle, top: '10px' }
+const sourceHandleStyleB: CSSProperties = { ...targetHandleStyle, bottom: '10px', top: 'auto' }
+</script>
+
+<template>
+  <Handle type="target" :position="Position.Left" :style="targetHandleStyle" />
+  
+  <div>
+    <div>Custom Color Picker Node: <strong>{{ data.color }}</strong></div>
+    <input class="nodrag" type="color" :value="data.color" @input="props.data.onChange" />
+  </div>
+
+  <Handle id="a" type="source" :position="Position.Right" :style="sourceHandleStyleA" />
+  <Handle id="b" type="source" :position="Position.Right" :style="sourceHandleStyleB" />
+</template>
+```
+
+```vue App.vue
+<script setup lang="ts">
+import { ref } from 'vue'
+import { VueFlow, Position } from '@vue-flow/core'
+import ColorSelectorNode from './ColorSelectorNode.vue'
+
+const bgColor = ref('#1A192B')
+
+const elements = ref([
+  {
+    id: '1',
+    type: 'input',
+    label: 'Input Node',
+    position: { x: 0, y: 50 },
+    sourcePosition: Position.Right,
+  },
+  {
+    id: '2',
+    type: 'selectorNode',
+    data: { onChange, color: bgColor },
+    position: { x: 250, y: 50 },
+  },
+  {
+    id: '3',
+    type: 'output',
+    label: 'Output A',
+    position: { x: 650, y: 25 },
+    targetPosition: Position.Left,
+  },
+  { id: 'e1-2', source: '1', target: '2', animated: true },
+  { id: 'e2a-3', source: '2', sourceHandle: 'a', target: '3', animated: true },
+])
+
+function onChange(event: InputEvent) {
+  bgColor.value = (event.target as HTMLInputElement).value
+}
+</script>
+
+<template>
+  <VueFlow v-model="elements" :style="{ backgroundColor: bgColor }">
+    <template #node-selectorNode="props">
+      <ColorSelectorNode v-bind="props" />
+    </template>
+  </VueFlow>
+</template>
+```
+
+</CodeGroup>
+
+## Next steps
+
+<Columns cols={2}>
+  <Card title="Node events" icon="mouse-pointer" href="/api-reference/nodes">
+    Learn about node interaction events
+  </Card>
+  <Card title="TypeScript guide" icon="code" href="/guides/typescript">
+    Type-safe custom nodes with TypeScript
+  </Card>
+</Columns>

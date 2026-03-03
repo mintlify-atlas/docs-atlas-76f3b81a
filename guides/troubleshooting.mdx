@@ -1,0 +1,627 @@
+---
+title: 'Common issues and solutions'
+description: 'Troubleshoot common Vue Flow issues, understand error codes, and learn debugging techniques.'
+keywords: ['troubleshooting', 'errors', 'debugging', 'vue flow']
+---
+
+This guide helps you diagnose and fix common issues when working with Vue Flow. Learn about error codes, debugging strategies, and solutions to frequent problems.
+
+## Error codes
+
+Vue Flow emits specific error codes to help you identify issues quickly. Errors are logged to the console in development and can be caught using the `onError` event handler.
+
+### MISSING_VIEWPORT_DIMENSIONS
+
+The Vue Flow container needs explicit dimensions to render correctly.
+
+<Warning>
+Vue Flow cannot render without a defined width and height on its parent container.
+</Warning>
+
+**Solution:**
+
+```vue
+<template>
+  <!-- Set explicit dimensions on the parent container -->
+  <div style="width: 100%; height: 100vh;">
+    <VueFlow :nodes="nodes" :edges="edges" />
+  </div>
+</template>
+```
+
+Or use CSS:
+
+```css
+.flow-container {
+  width: 100%;
+  height: 100vh;
+}
+```
+
+```vue
+<template>
+  <div class="flow-container">
+    <VueFlow :nodes="nodes" :edges="edges" />
+  </div>
+</template>
+```
+
+### NODE_INVALID
+
+A node configuration is invalid or missing required properties.
+
+**Common causes:**
+- Missing `id` property
+- Missing `position` property
+- Invalid position format
+
+**Solution:**
+
+```typescript
+// Invalid - missing position
+const invalidNode = {
+  id: '1',
+  data: { label: 'Node' },
+}
+
+// Valid
+const validNode = {
+  id: '1',
+  position: { x: 0, y: 0 },
+  data: { label: 'Node' },
+}
+```
+
+### NODE_NOT_FOUND
+
+Attempting to access a node that doesn't exist in the graph.
+
+**Common causes:**
+- Using `useNode()` outside a node component without a valid ID
+- Referencing a deleted node
+- Typo in node ID
+
+**Solution:**
+
+```typescript
+import { useVueFlow } from '@vue-flow/core'
+
+const { findNode } = useVueFlow()
+
+const node = findNode('1')
+
+if (node) {
+  // Node exists, safe to use
+  console.log(node.data)
+} else {
+  console.error('Node not found')
+}
+```
+
+### NODE_MISSING_PARENT
+
+A child node references a parent that doesn't exist.
+
+**Solution:**
+
+Ensure parent nodes are added before their children:
+
+```typescript
+const nodes = ref([
+  // Add parent first
+  {
+    id: 'parent',
+    position: { x: 0, y: 0 },
+    data: { label: 'Parent' },
+  },
+  // Then add child
+  {
+    id: 'child',
+    position: { x: 50, y: 50 },
+    parentNode: 'parent',  // References parent above
+    data: { label: 'Child' },
+  },
+])
+```
+
+### NODE_TYPE_MISSING
+
+A node's type has no corresponding component defined.
+
+**Solution:**
+
+Register all custom node types:
+
+```vue
+<script setup>
+import { markRaw } from 'vue'
+import CustomNode from './CustomNode.vue'
+
+const nodeTypes = {
+  custom: markRaw(CustomNode),
+}
+</script>
+
+<template>
+  <!-- Register via prop -->
+  <VueFlow :nodes="nodes" :node-types="nodeTypes" />
+  
+  <!-- OR via template slot -->
+  <VueFlow :nodes="nodes">
+    <template #node-custom="props">
+      <CustomNode v-bind="props" />
+    </template>
+  </VueFlow>
+</template>
+```
+
+### NODE_EXTENT_INVALID
+
+Only child nodes can use the `parent` extent.
+
+**Solution:**
+
+```typescript
+const nodes = ref([
+  {
+    id: 'parent',
+    position: { x: 0, y: 0 },
+    data: { label: 'Parent' },
+    // Cannot use 'parent' extent on root node
+  },
+  {
+    id: 'child',
+    position: { x: 50, y: 50 },
+    parentNode: 'parent',
+    extent: 'parent',  // Valid - this is a child node
+    data: { label: 'Child' },
+  },
+])
+```
+
+### EDGE_INVALID
+
+An edge is missing required properties.
+
+**Common causes:**
+- Missing `source` or `target`
+- Missing `id`
+
+**Solution:**
+
+```typescript
+// Invalid - missing id
+const invalidEdge = {
+  source: '1',
+  target: '2',
+}
+
+// Valid
+const validEdge = {
+  id: 'e1-2',
+  source: '1',
+  target: '2',
+}
+```
+
+### EDGE_NOT_FOUND
+
+Attempting to access an edge that doesn't exist.
+
+**Solution:**
+
+```typescript
+import { useVueFlow } from '@vue-flow/core'
+
+const { findEdge } = useVueFlow()
+
+const edge = findEdge('e1-2')
+
+if (edge) {
+  // Edge exists
+  console.log(edge.source, edge.target)
+} else {
+  console.error('Edge not found')
+}
+```
+
+### EDGE_SOURCE_MISSING / EDGE_TARGET_MISSING
+
+An edge references a source or target node that doesn't exist.
+
+**Solution:**
+
+Ensure nodes exist before creating edges:
+
+```typescript
+const nodes = ref([
+  { id: '1', position: { x: 0, y: 0 }, data: {} },
+  { id: '2', position: { x: 200, y: 0 }, data: {} },
+])
+
+const edges = ref([
+  {
+    id: 'e1-2',
+    source: '1',  // Node '1' exists
+    target: '2',  // Node '2' exists
+  },
+])
+```
+
+### EDGE_TYPE_MISSING
+
+An edge's type has no corresponding component.
+
+**Solution:**
+
+```vue
+<script setup>
+import { markRaw } from 'vue'
+import CustomEdge from './CustomEdge.vue'
+
+const edgeTypes = {
+  custom: markRaw(CustomEdge),
+}
+</script>
+
+<template>
+  <VueFlow :edges="edges" :edge-types="edgeTypes" />
+</template>
+```
+
+### EDGE_SOURCE_TARGET_SAME
+
+An edge's source and target are the same node.
+
+**This is often intentional for self-referencing nodes. You can safely ignore this warning.**
+
+### EDGE_ORPHANED
+
+An edge lost its source or target node, likely due to node deletion.
+
+**Solution:**
+
+Remove edges when deleting their connected nodes:
+
+```typescript
+import { useVueFlow } from '@vue-flow/core'
+
+const { removeNodes, edges } = useVueFlow()
+
+function deleteNode(nodeId: string) {
+  // Remove connected edges first
+  const connectedEdges = edges.value.filter(
+    (e) => e.source === nodeId || e.target === nodeId
+  )
+  removeEdges(connectedEdges.map((e) => e.id))
+  
+  // Then remove the node
+  removeNodes(nodeId)
+}
+```
+
+## Handling errors
+
+Catch and handle errors programmatically:
+
+```vue
+<script setup lang="ts">
+import { useVueFlow, isErrorOfType, ErrorCode, VueFlowError } from '@vue-flow/core'
+
+const { onError } = useVueFlow()
+
+onError(handleError)
+
+function handleError(error: VueFlowError) {
+  // Check specific error types
+  if (isErrorOfType(error, ErrorCode.NODE_INVALID)) {
+    const [nodeId] = error.args
+    console.error('Invalid node:', nodeId)
+  }
+  
+  if (isErrorOfType(error, ErrorCode.EDGE_SOURCE_MISSING)) {
+    const [edgeId, sourceId] = error.args
+    console.error('Edge', edgeId, 'has missing source:', sourceId)
+  }
+  
+  // Log all errors
+  console.error(error.message, error)
+}
+</script>
+
+<template>
+  <VueFlow @error="handleError" />
+</template>
+```
+
+## Common issues
+
+### Nodes not rendering
+
+<AccordionGroup>
+  <Accordion title="Container has no dimensions">
+    Ensure the parent container has explicit width and height:
+
+    ```vue
+    <template>
+      <div style="width: 100%; height: 100vh;">
+        <VueFlow :nodes="nodes" :edges="edges" />
+      </div>
+    </template>
+    ```
+  </Accordion>
+
+  <Accordion title="Styles not imported">
+    Import required Vue Flow styles:
+
+    ```css
+    @import '@vue-flow/core/dist/style.css';
+    @import '@vue-flow/core/dist/theme-default.css';
+    ```
+  </Accordion>
+
+  <Accordion title="Nodes outside viewport">
+    Use `fitView` to center nodes:
+
+    ```vue
+    <template>
+      <VueFlow :nodes="nodes" fit-view-on-init />
+    </template>
+    ```
+
+    Or programmatically:
+
+    ```typescript
+    import { useVueFlow } from '@vue-flow/core'
+
+    const { fitView } = useVueFlow()
+
+    onMounted(() => {
+      fitView()
+    })
+    ```
+  </Accordion>
+</AccordionGroup>
+
+### Edges not connecting
+
+<AccordionGroup>
+  <Accordion title="Handles not defined">
+    Ensure your custom nodes have handles:
+
+    ```vue
+    <script setup>
+    import { Handle, Position } from '@vue-flow/core'
+    </script>
+
+    <template>
+      <div>
+        <Handle type="target" :position="Position.Top" />
+        <!-- Node content -->
+        <Handle type="source" :position="Position.Bottom" />
+      </div>
+    </template>
+    ```
+  </Accordion>
+
+  <Accordion title="Handles not connectable">
+    Check the `connectable` prop:
+
+    ```vue
+    <template>
+      <VueFlow 
+        :nodes="nodes" 
+        :edges="edges"
+        :nodes-connectable="true"
+      />
+    </template>
+    ```
+
+    Or per node:
+
+    ```typescript
+    const nodes = ref([
+      {
+        id: '1',
+        position: { x: 0, y: 0 },
+        connectable: true,  // Enable connections
+        data: {},
+      },
+    ])
+    ```
+  </Accordion>
+
+  <Accordion title="Connection validation failing">
+    Check your connection validation logic:
+
+    ```typescript
+    import type { Connection } from '@vue-flow/core'
+
+    function isValidConnection(connection: Connection) {
+      console.log('Validating connection:', connection)
+      // Your validation logic
+      return true
+    }
+    ```
+
+    ```vue
+    <template>
+      <VueFlow 
+        :nodes="nodes" 
+        :edges="edges"
+        :is-valid-connection="isValidConnection"
+      />
+    </template>
+    ```
+  </Accordion>
+</AccordionGroup>
+
+### Drag and drop not working
+
+<AccordionGroup>
+  <Accordion title="Interactive elements blocking drag">
+    Add `nodrag` class to interactive elements:
+
+    ```vue
+    <template>
+      <div>
+        <input class="nodrag" type="text" />
+        <button class="nodrag">Click me</button>
+      </div>
+    </template>
+    ```
+  </Accordion>
+
+  <Accordion title="Drag handle configured">
+    If using a drag handle, ensure it exists:
+
+    ```typescript
+    const nodes = ref([
+      {
+        id: '1',
+        position: { x: 0, y: 0 },
+        dragHandle: '.drag-area',  // Must exist in component
+        data: {},
+      },
+    ])
+    ```
+
+    ```vue
+    <template>
+      <div>
+        <div class="drag-area">Drag from here</div>
+        <div class="nodrag">Can't drag from here</div>
+      </div>
+    </template>
+    ```
+  </Accordion>
+</AccordionGroup>
+
+### Performance issues
+
+<AccordionGroup>
+  <Accordion title="Too many nodes">
+    Use viewport optimization:
+
+    ```vue
+    <template>
+      <VueFlow 
+        :nodes="nodes" 
+        :edges="edges"
+        :only-render-visible-elements="true"
+      />
+    </template>
+    ```
+  </Accordion>
+
+  <Accordion title="Components not marked raw">
+    Wrap components with `markRaw()`:
+
+    ```typescript
+    import { markRaw } from 'vue'
+    import CustomNode from './CustomNode.vue'
+
+    const nodeTypes = {
+      custom: markRaw(CustomNode),  // Prevents reactivity
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Expensive computations in nodes">
+    Use `computed` and memoization:
+
+    ```vue
+    <script setup>
+    import { computed } from 'vue'
+
+    const props = defineProps(['data'])
+
+    const expensiveValue = computed(() => {
+      // Expensive computation
+      return heavyCalculation(props.data)
+    })
+    </script>
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Debugging tips
+
+### Enable dev tools
+
+```vue
+<script setup>
+import { useVueFlow } from '@vue-flow/core'
+
+const { nodes, edges, getNodes, getEdges } = useVueFlow()
+
+// Expose for debugging
+if (import.meta.env.DEV) {
+  window.vueFlowDebug = {
+    nodes: () => console.table(getNodes()),
+    edges: () => console.table(getEdges()),
+    state: () => console.log({ nodes: nodes.value, edges: edges.value }),
+  }
+}
+</script>
+```
+
+Access in browser console:
+
+```javascript
+vueFlowDebug.nodes()
+vueFlowDebug.edges()
+vueFlowDebug.state()
+```
+
+### Log events
+
+```vue
+<script setup>
+import { useVueFlow } from '@vue-flow/core'
+
+const { 
+  onNodeClick,
+  onEdgeClick,
+  onConnect,
+  onNodesChange,
+  onEdgesChange,
+} = useVueFlow()
+
+if (import.meta.env.DEV) {
+  onNodeClick((e) => console.log('Node click:', e))
+  onEdgeClick((e) => console.log('Edge click:', e))
+  onConnect((c) => console.log('Connect:', c))
+  onNodesChange((c) => console.log('Nodes change:', c))
+  onEdgesChange((c) => console.log('Edges change:', c))
+}
+</script>
+```
+
+### Inspect internal state
+
+Use Vue DevTools to inspect Vue Flow's internal state:
+
+1. Open Vue DevTools
+2. Find the VueFlow component
+3. Inspect the component's state and props
+
+## Getting help
+
+If you're still experiencing issues:
+
+1. Check the [examples](/examples/overview) for similar use cases
+2. Search [GitHub issues](https://github.com/bcakmakoglu/vue-flow/issues)
+3. Create a minimal reproduction on [StackBlitz](https://stackblitz.com/)
+4. Ask on [Discord](https://discord.gg/YEJ6EcAm)
+
+## Next steps
+
+<Columns cols={2}>
+  <Card title="Examples" icon="code" href="/examples">
+    Explore working examples
+  </Card>
+  <Card title="API reference" icon="book" href="/api-reference">
+    Complete API documentation
+  </Card>
+</Columns>

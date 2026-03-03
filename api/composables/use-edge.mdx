@@ -1,0 +1,270 @@
+---
+title: useEdge
+description: Access edge data and DOM element from within a custom edge component
+---
+
+`useEdge` provides access to an edge's data and its DOM element reference. This composable is designed to be used within custom edge components.
+
+## Usage
+
+<CodeGroup>
+```vue Inside Custom Edge
+<script setup>
+import { useEdge } from '@vue-flow/core'
+
+const { edge, edgeEl } = useEdge()
+
+console.log('Current edge:', edge)
+console.log('Source:', edge.source)
+console.log('Target:', edge.target)
+console.log('DOM element:', edgeEl.value)
+</script>
+
+<template>
+  <g>
+    <path :d="edgePath" />
+    <text>{{ edge.data?.label }}</text>
+  </g>
+</template>
+```
+
+```vue With Explicit ID
+<script setup>
+import { useEdge } from '@vue-flow/core'
+
+// Access a specific edge by ID (can be used anywhere)
+const { edge } = useEdge('edge-1')
+</script>
+```
+
+```vue With TypeScript
+<script setup lang="ts">
+import { useEdge } from '@vue-flow/core'
+
+interface MyEdgeData {
+  label: string
+  weight: number
+}
+
+const { edge } = useEdge<MyEdgeData>()
+
+// edge.data is now typed as MyEdgeData
+console.log(edge.data?.label)
+console.log(edge.data?.weight)
+</script>
+```
+</CodeGroup>
+
+## Signature
+
+```typescript
+function useEdge<Data = ElementData, CustomEvents = any>(
+  id?: string
+): {
+  id: string
+  edge: GraphEdge<Data, CustomEvents>
+  edgeEl: Ref<SVGElement | null>
+}
+```
+
+## Parameters
+
+<ParamField path="id" type="string" optional>
+  The ID of the edge to access. If not provided, the edge ID is automatically injected from the component context.
+  
+  **Note:** When used inside a custom edge component, you typically don't need to provide this parameter.
+</ParamField>
+
+## Return Value
+
+<ResponseField name="id" type="string">
+  The ID of the edge
+</ResponseField>
+
+<ResponseField name="edge" type="GraphEdge<Data, CustomEvents>">
+  The complete edge object with all its properties:
+  - `id` - Edge identifier
+  - `source` - Source node ID
+  - `target` - Target node ID
+  - `sourceHandle` - Source handle ID (optional)
+  - `targetHandle` - Target handle ID (optional)
+  - `type` - Edge type
+  - `data` - Custom data object (optional)
+  - `label` - Edge label (optional)
+  - `selected` - Whether the edge is selected
+  - `animated` - Whether the edge is animated
+  - `style` - Custom CSS styles
+  - And other edge properties
+</ResponseField>
+
+<ResponseField name="edgeEl" type="Ref<SVGElement | null>">
+  A Vue ref to the edge's SVG element. Useful for measurements or direct DOM manipulation.
+</ResponseField>
+
+## Examples
+
+### Custom Edge with Label
+
+```vue
+<script setup>
+import { useEdge } from '@vue-flow/core'
+import { computed } from 'vue'
+
+const { edge } = useEdge()
+
+const edgeLabel = computed(() => edge.data?.label || '')
+const isSelected = computed(() => edge.selected)
+</script>
+
+<template>
+  <g :class="{ selected: isSelected }">
+    <path 
+      :d="edgePath" 
+      :stroke="isSelected ? '#555' : '#b1b1b7'"
+      stroke-width="2"
+    />
+    <text v-if="edgeLabel" class="edge-label">
+      {{ edgeLabel }}
+    </text>
+  </g>
+</template>
+```
+
+### Animated Custom Edge
+
+```vue
+<script setup>
+import { useEdge } from '@vue-flow/core'
+import { computed } from 'vue'
+
+const { edge } = useEdge()
+
+const strokeDasharray = computed(() => edge.animated ? '5,5' : 'none')
+</script>
+
+<template>
+  <g>
+    <path 
+      :d="edgePath"
+      :stroke-dasharray="strokeDasharray"
+      class="edge-path"
+    >
+      <animate
+        v-if="edge.animated"
+        attributeName="stroke-dashoffset"
+        from="0"
+        to="10"
+        dur="1s"
+        repeatCount="indefinite"
+      />
+    </path>
+  </g>
+</template>
+```
+
+### Edge with Connection Info
+
+```vue
+<script setup>
+import { useEdge } from '@vue-flow/core'
+import { useVueFlow } from '@vue-flow/core'
+import { computed } from 'vue'
+
+const { edge } = useEdge()
+const { findNode } = useVueFlow()
+
+const sourceNode = computed(() => findNode(edge.source))
+const targetNode = computed(() => findNode(edge.target))
+
+const connectionInfo = computed(() => {
+  const from = sourceNode.value?.data.label || edge.source
+  const to = targetNode.value?.data.label || edge.target
+  return `${from} → ${to}`
+})
+</script>
+
+<template>
+  <g>
+    <path :d="edgePath" />
+    <text class="connection-label">{{ connectionInfo }}</text>
+  </g>
+</template>
+```
+
+### Typed Edge Data
+
+```vue
+<script setup lang="ts">
+import { useEdge } from '@vue-flow/core'
+import { computed } from 'vue'
+
+interface FlowEdgeData {
+  label: string
+  capacity: number
+  currentFlow: number
+}
+
+const { edge } = useEdge<FlowEdgeData>()
+
+const utilizationPercent = computed(() => {
+  if (!edge.data) return 0
+  return (edge.data.currentFlow / edge.data.capacity) * 100
+})
+
+const strokeColor = computed(() => {
+  const utilization = utilizationPercent.value
+  if (utilization > 90) return 'red'
+  if (utilization > 70) return 'orange'
+  return 'green'
+})
+</script>
+
+<template>
+  <g>
+    <path 
+      :d="edgePath"
+      :stroke="strokeColor"
+      stroke-width="3"
+    />
+    <text class="edge-label">
+      {{ edge.data?.label }} ({{ utilizationPercent.toFixed(0) }}%)
+    </text>
+  </g>
+</template>
+```
+
+### Using Edge DOM Reference
+
+```vue
+<script setup>
+import { useEdge } from '@vue-flow/core'
+import { watch, onMounted } from 'vue'
+
+const { edge, edgeEl } = useEdge()
+
+// Get edge path length for animations
+onMounted(() => {
+  if (edgeEl.value) {
+    const pathElement = edgeEl.value.querySelector('path')
+    if (pathElement) {
+      const length = pathElement.getTotalLength()
+      console.log('Edge path length:', length)
+    }
+  }
+})
+
+// Highlight edge on selection
+watch(() => edge.selected, (selected) => {
+  if (edgeEl.value) {
+    edgeEl.value.classList.toggle('highlighted', selected)
+  }
+})
+</script>
+```
+
+## Notes
+
+- When used without an ID parameter, this composable must be called within a custom edge component or a child component of a custom edge
+- If the edge is not found, an error will be emitted through the Vue Flow error system
+- Type parameters allow you to type the edge's data and custom events for better TypeScript support
+- Edge data is optional and may be `null` or `undefined`, so always check before accessing properties

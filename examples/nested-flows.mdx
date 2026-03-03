@@ -1,0 +1,541 @@
+---
+title: Nested Flows
+description: Create parent-child node relationships and nested structures
+---
+
+This example demonstrates how to create nested node structures in Vue Flow, where nodes can be parents to other nodes, creating hierarchical relationships.
+
+## Live Demo
+
+View the [live demo](https://vueflow.dev/examples/#/nesting) on vueflow.dev.
+
+## Complete Example
+
+<CodeGroup>
+```vue Nesting.vue
+<script lang="ts" setup>
+import { ConnectionMode, VueFlow, useVueFlow } from '@vue-flow/core'
+import { Background } from '@vue-flow/background'
+import { Controls } from '@vue-flow/controls'
+import { MiniMap } from '@vue-flow/minimap'
+
+const { onConnect, addEdges, addNodes, findNode } = useVueFlow({
+  fitViewOnInit: true,
+  connectionMode: ConnectionMode.Loose,
+  nodes: [
+    { id: '1', type: 'input', label: 'Node 1', position: { x: 250, y: 5 }, class: 'light' },
+    {
+      id: '2',
+      label: 'Node 2',
+      position: { x: 100, y: 100 },
+      class: 'light',
+      style: { backgroundColor: 'rgba(255, 0, 0, 0.8)' },
+    },
+    {
+      id: '2a',
+      label: 'Node 2a',
+      position: { x: 10, y: 50 },
+      parentNode: '2',
+    },
+    { id: '3', label: 'Node 3', position: { x: 320, y: 100 }, class: 'light' },
+    {
+      id: '4',
+      label: 'Node 4',
+      position: { x: 320, y: 200 },
+      class: 'light',
+      style: { backgroundColor: 'rgba(255, 0, 0, 0.7)', width: '300px', height: '300px' },
+    },
+    {
+      id: '4a',
+      label: 'Node 4a',
+      position: { x: 15, y: 65 },
+      class: 'light',
+      extent: 'parent',
+      parentNode: '4',
+    },
+    {
+      id: '4b',
+      label: 'Node 4b',
+      position: { x: 15, y: 120 },
+      class: 'light',
+      style: { backgroundColor: 'rgba(255, 0, 255, 0.7)', height: '150px', width: '270px' },
+      parentNode: '4',
+    },
+    {
+      id: '4b1',
+      label: 'Node 4b1',
+      position: { x: 20, y: 40 },
+      class: 'light',
+      parentNode: '4b',
+    },
+    {
+      id: '4b2',
+      label: 'Node 4b2',
+      position: { x: 100, y: 100 },
+      class: 'light',
+      parentNode: '4b',
+    },
+  ],
+  edges: [
+    { id: 'e1-2', source: '1', target: '2', animated: true },
+    { id: 'e1-3', source: '1', target: '3' },
+    { id: 'e2a-4a', source: '2a', target: '4a' },
+    { id: 'e3-4', source: '3', target: '4' },
+    { id: 'e3-4b', source: '3', target: '4b' },
+    { id: 'e4a-4b1', source: '4a', target: '4b1' },
+    { id: 'e4a-4b2', source: '4a', target: '4b2' },
+    { id: 'e4b1-4b2', source: '4b1', target: '4b2' },
+  ],
+})
+
+onConnect(addEdges)
+
+onMounted(() => {
+  // Add nodes to parent dynamically
+  addNodes({
+    id: '999',
+    type: 'input',
+    label: 'Added after mount',
+    position: { x: 20, y: 100 },
+    class: 'light',
+    expandParent: true,
+    parentNode: '2',
+  })
+
+  setTimeout(() => {
+    const node = findNode('999')!
+    node.expandParent = false
+    node.extent = {
+      range: 'parent',
+      padding: [10],
+    }
+  })
+})
+</script>
+
+<template>
+  <VueFlow>
+    <MiniMap />
+    <Controls />
+    <Background />
+  </VueFlow>
+</template>
+```
+</CodeGroup>
+
+## Key Concepts
+
+### Parent-Child Relationships
+
+Create nested nodes by setting the `parentNode` property:
+
+```typescript
+const nodes = ref([
+  {
+    id: 'parent',
+    label: 'Parent Node',
+    position: { x: 100, y: 100 },
+    style: { width: '300px', height: '200px' },
+  },
+  {
+    id: 'child',
+    label: 'Child Node',
+    position: { x: 10, y: 50 }, // Position relative to parent
+    parentNode: 'parent',
+  },
+])
+```
+
+<Note>
+  Child node positions are **relative** to the parent node's position, not absolute.
+</Note>
+
+### Multi-Level Nesting
+
+You can nest nodes multiple levels deep:
+
+```typescript
+const nodes = ref([
+  // Level 1
+  { id: 'parent', position: { x: 0, y: 0 } },
+  
+  // Level 2
+  { id: 'child', position: { x: 10, y: 10 }, parentNode: 'parent' },
+  
+  // Level 3
+  { id: 'grandchild', position: { x: 10, y: 10 }, parentNode: 'child' },
+])
+```
+
+## Node Extent
+
+Control how child nodes can be positioned:
+
+<Tabs>
+  <Tab title="Parent Extent">
+    Constrain child node within parent boundaries:
+    
+    ```typescript
+    {
+      id: 'child',
+      position: { x: 10, y: 10 },
+      parentNode: 'parent',
+      extent: 'parent' // Cannot be dragged outside parent
+    }
+    ```
+  </Tab>
+  
+  <Tab title="With Padding">
+    Add padding to the extent:
+    
+    ```typescript
+    {
+      id: 'child',
+      position: { x: 10, y: 10 },
+      parentNode: 'parent',
+      extent: {
+        range: 'parent',
+        padding: [10] // 10px padding on all sides
+      }
+    }
+    ```
+    
+    Or different padding per side:
+    ```typescript
+    extent: {
+      range: 'parent',
+      padding: [10, 20, 10, 20] // [top, right, bottom, left]
+    }
+    ```
+  </Tab>
+  
+  <Tab title="Custom Bounds">
+    Define custom boundaries:
+    
+    ```typescript
+    {
+      id: 'child',
+      position: { x: 10, y: 10 },
+      extent: [
+        [0, 0],      // [minX, minY]
+        [500, 500]   // [maxX, maxY]
+      ]
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Expand Parent
+
+Automatically expand parent nodes to fit children:
+
+```typescript
+{
+  id: 'child',
+  position: { x: 10, y: 10 },
+  parentNode: 'parent',
+  expandParent: true // Parent will expand to fit this node
+}
+```
+
+Dynamically toggle expand behavior:
+
+```typescript
+const { findNode } = useVueFlow()
+
+function addChildNode() {
+  addNodes({
+    id: 'newChild',
+    position: { x: 20, y: 100 },
+    parentNode: 'parent',
+    expandParent: true,
+  })
+  
+  // Disable expand after adding
+  setTimeout(() => {
+    const node = findNode('newChild')
+    if (node) {
+      node.expandParent = false
+      node.extent = 'parent'
+    }
+  }, 100)
+}
+```
+
+## Styling Parent Nodes
+
+### Size Parent Nodes
+
+Parent nodes need explicit dimensions:
+
+```typescript
+{
+  id: 'parent',
+  label: 'Parent',
+  position: { x: 100, y: 100 },
+  style: {
+    width: '300px',
+    height: '200px',
+    backgroundColor: 'rgba(255, 0, 0, 0.2)',
+  },
+}
+```
+
+### Visual Hierarchy
+
+Create visual distinction between parent and child nodes:
+
+```css
+/* Parent nodes */
+.vue-flow__node.parent {
+  background-color: rgba(100, 100, 100, 0.1);
+  border: 2px dashed #999;
+  padding: 20px;
+}
+
+/* Child nodes */
+.vue-flow__node[data-parent] {
+  background-color: white;
+  border: 1px solid #ccc;
+}
+```
+
+## Connection Mode
+
+For nested flows, use `ConnectionMode.Loose` to allow connections between nodes at different nesting levels:
+
+```typescript
+import { ConnectionMode } from '@vue-flow/core'
+
+useVueFlow({
+  connectionMode: ConnectionMode.Loose,
+})
+```
+
+Available modes:
+- `ConnectionMode.Strict`: Only connect to visible handles
+- `ConnectionMode.Loose`: Connect to any node (recommended for nested flows)
+
+## Dynamic Nesting
+
+### Add Child Nodes Dynamically
+
+```typescript
+const { addNodes } = useVueFlow()
+
+function addChild(parentId: string) {
+  addNodes({
+    id: `child-${Date.now()}`,
+    label: 'New Child',
+    position: { x: 10, y: 10 },
+    parentNode: parentId,
+    expandParent: true,
+  })
+}
+```
+
+### Change Parent
+
+```typescript
+const { findNode } = useVueFlow()
+
+function changeParent(nodeId: string, newParentId: string) {
+  const node = findNode(nodeId)
+  if (node) {
+    node.parentNode = newParentId
+    // Reset position relative to new parent
+    node.position = { x: 10, y: 10 }
+  }
+}
+```
+
+### Remove from Parent
+
+```typescript
+function removeFromParent(nodeId: string) {
+  const node = findNode(nodeId)
+  if (node) {
+    // Get absolute position before removing parent
+    const absolutePos = getAbsolutePosition(node)
+    
+    node.parentNode = undefined
+    node.position = absolutePos
+  }
+}
+```
+
+## Working with Nested Nodes
+
+### Get All Children
+
+```typescript
+function getChildren(parentId: string) {
+  const { nodes } = useVueFlow()
+  return nodes.value.filter(node => node.parentNode === parentId)
+}
+```
+
+### Get All Descendants
+
+```typescript
+function getDescendants(parentId: string, nodes: Node[]): Node[] {
+  const children = nodes.filter(n => n.parentNode === parentId)
+  const descendants = [...children]
+  
+  children.forEach(child => {
+    descendants.push(...getDescendants(child.id, nodes))
+  })
+  
+  return descendants
+}
+```
+
+### Get Parent Chain
+
+```typescript
+function getParentChain(nodeId: string): Node[] {
+  const { findNode } = useVueFlow()
+  const chain: Node[] = []
+  
+  let currentNode = findNode(nodeId)
+  while (currentNode?.parentNode) {
+    const parent = findNode(currentNode.parentNode)
+    if (parent) {
+      chain.unshift(parent)
+      currentNode = parent
+    } else {
+      break
+    }
+  }
+  
+  return chain
+}
+```
+
+## Interaction Behaviors
+
+### Drag Parent with Children
+
+By default, dragging a parent node moves all its children. To prevent this:
+
+```typescript
+{
+  id: 'child',
+  parentNode: 'parent',
+  draggable: true, // Child can be dragged independently
+}
+```
+
+### Select Parent and Children
+
+```typescript
+function selectWithChildren(nodeId: string) {
+  const { findNode, nodes } = useVueFlow()
+  const descendants = getDescendants(nodeId, nodes.value)
+  
+  // Select parent
+  const parent = findNode(nodeId)
+  if (parent) {
+    parent.selected = true
+  }
+  
+  // Select all descendants
+  descendants.forEach(node => {
+    node.selected = true
+  })
+}
+```
+
+## Performance Considerations
+
+<Note>
+  - Deeply nested structures (>3 levels) may impact performance
+  - Consider using virtual rendering for large nested hierarchies
+  - Use `expandParent` sparingly to avoid layout recalculations
+  - Cache parent-child relationships for frequent lookups
+</Note>
+
+## Use Cases
+
+1. **Grouping**: Group related nodes together
+2. **Swimlanes**: Create workflow lanes
+3. **Hierarchies**: Represent organizational structures
+4. **Containers**: Create collapsible sections
+5. **Subflows**: Nest entire flows within nodes
+
+## Example: Collapsible Parent
+
+```vue
+<script setup>
+const { findNode } = useVueFlow()
+
+function toggleChildren(parentId: string) {
+  const children = getChildren(parentId)
+  const parent = findNode(parentId)
+  
+  children.forEach(child => {
+    child.hidden = !child.hidden
+  })
+  
+  // Update parent style
+  if (parent) {
+    parent.data.collapsed = !parent.data.collapsed
+  }
+}
+</script>
+
+<template>
+  <CustomParentNode @toggle="toggleChildren">
+    {{ data.label }}
+  </CustomParentNode>
+</template>
+```
+
+## TypeScript Support
+
+```typescript
+import type { Node } from '@vue-flow/core'
+
+interface ParentNode extends Node {
+  style: {
+    width: string
+    height: string
+  }
+}
+
+interface ChildNode extends Node {
+  parentNode: string
+  extent?: 'parent' | { range: 'parent'; padding: number[] }
+  expandParent?: boolean
+}
+```
+
+## Best Practices
+
+<Note>
+  - Always set explicit dimensions on parent nodes
+  - Use `extent: 'parent'` to keep children within boundaries
+  - Position children relative to parent (0,0 is top-left of parent)
+  - Use `ConnectionMode.Loose` for nested flows
+  - Provide visual feedback for parent-child relationships
+</Note>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Custom Nodes" icon="cube" href="/examples/custom-nodes">
+    Create custom parent node components
+  </Card>
+  
+  <Card title="Layouting" icon="sitemap" href="/examples/nested-flows">
+    Auto-layout nested structures
+  </Card>
+  
+  <Card title="Node API" icon="book" href="/api/types/node">
+    Complete node type reference
+  </Card>
+  
+  <Card title="State Management" icon="database" href="/concepts/state-management">
+    Managing complex nested state
+  </Card>
+</CardGroup>

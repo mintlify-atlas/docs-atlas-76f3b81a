@@ -1,0 +1,338 @@
+---
+title: MiniMap
+description: Add a miniature overview map of your flow with navigation capabilities
+---
+
+The `MiniMap` component provides a bird's-eye view of your entire flow, allowing users to see and navigate the overall structure.
+
+## Installation
+
+```bash
+npm install @vue-flow/minimap
+```
+
+## Basic Usage
+
+```vue
+<script setup>
+import { VueFlow } from '@vue-flow/core'
+import { MiniMap } from '@vue-flow/minimap'
+</script>
+
+<template>
+  <VueFlow>
+    <MiniMap />
+  </VueFlow>
+</template>
+
+<style>
+@import '@vue-flow/core/dist/style.css';
+@import '@vue-flow/minimap/dist/style.css';
+</style>
+```
+
+## Props
+
+### Appearance
+
+<ParamField path="nodeColor" type="string | MiniMapNodeFunc" default="'#e2e2e2'">
+  Color of nodes in the minimap. Can be a string or a function that receives the node and returns a color.
+  
+  ```vue
+  <!-- Static color -->
+  <MiniMap node-color="#3b82f6" />
+  
+  <!-- Dynamic color -->
+  <MiniMap :node-color="(node) => node.type === 'input' ? '#3b82f6' : '#e2e2e2'" />
+  ```
+</ParamField>
+
+<ParamField path="nodeStrokeColor" type="string | MiniMapNodeFunc" default="'transparent'">
+  Stroke color of nodes. Can be a string or a function.
+</ParamField>
+
+<ParamField path="nodeClassName" type="string | MiniMapNodeFunc">
+  Additional CSS class for nodes. Can be a string or a function.
+</ParamField>
+
+<ParamField path="nodeBorderRadius" type="number" default="5">
+  Border radius of nodes in pixels.
+</ParamField>
+
+<ParamField path="nodeStrokeWidth" type="number" default="2">
+  Stroke width of nodes in pixels.
+</ParamField>
+
+### Mask
+
+<ParamField path="maskColor" type="string" default="'rgb(240, 240, 240, 0.6)'">
+  Color of the viewport mask overlay.
+</ParamField>
+
+<ParamField path="maskStrokeColor" type="string" default="'none'">
+  Stroke color of the viewport mask.
+</ParamField>
+
+<ParamField path="maskStrokeWidth" type="number" default="1">
+  Stroke width of the viewport mask.
+</ParamField>
+
+<ParamField path="maskBorderRadius" type="number" default="0">
+  Border radius of the viewport mask.
+</ParamField>
+
+### Size & Position
+
+<ParamField path="width" type="number" default="200">
+  Width of the minimap in pixels.
+</ParamField>
+
+<ParamField path="height" type="number" default="150">
+  Height of the minimap in pixels.
+</ParamField>
+
+<ParamField path="position" type="PanelPosition" default="'bottom-right'">
+  Position of the minimap panel. Options:
+  - `'top-left'`
+  - `'top-center'`
+  - `'top-right'`
+  - `'bottom-left'`
+  - `'bottom-center'`
+  - `'bottom-right'`
+</ParamField>
+
+### Interaction
+
+<ParamField path="pannable" type="boolean" default="false">
+  Enable dragging the minimap to pan the main viewport.
+</ParamField>
+
+<ParamField path="zoomable" type="boolean" default="false">
+  Enable scrolling on the minimap to zoom the main viewport.
+</ParamField>
+
+<ParamField path="inversePan" type="boolean" default="false">
+  Invert the panning direction when `pannable` is enabled.
+</ParamField>
+
+<ParamField path="zoomStep" type="number" default="1">
+  Zoom step when using scroll wheel on minimap.
+</ParamField>
+
+### Other
+
+<ParamField path="ariaLabel" type="string" default="'Vue Flow mini map'">
+  ARIA label for accessibility.
+</ParamField>
+
+<ParamField path="offsetScale" type="number" default="5">
+  Scale offset for the minimap viewport calculation.
+</ParamField>
+
+## Events
+
+<ParamField path="@click" type="(params: { event: MouseEvent; position: { x: number; y: number } }) => void">
+  Fired when the minimap is clicked.
+</ParamField>
+
+<ParamField path="@nodeClick" type="(params: NodeMouseEvent) => void">
+  Fired when a node in the minimap is clicked.
+</ParamField>
+
+<ParamField path="@nodeDblclick" type="(params: NodeMouseEvent) => void">
+  Fired when a node in the minimap is double-clicked.
+</ParamField>
+
+<ParamField path="@nodeMouseenter" type="(params: NodeMouseEvent) => void">
+  Fired when mouse enters a node in the minimap.
+</ParamField>
+
+<ParamField path="@nodeMousemove" type="(params: NodeMouseEvent) => void">
+  Fired when mouse moves over a node in the minimap.
+</ParamField>
+
+<ParamField path="@nodeMouseleave" type="(params: NodeMouseEvent) => void">
+  Fired when mouse leaves a node in the minimap.
+</ParamField>
+
+## Slots
+
+<ParamField path="node-{type}" type="(props: MiniMapNodeProps) => any">
+  Custom node renderer for specific node types. Replace `{type}` with your node type.
+</ParamField>
+
+## Examples
+
+### Custom Colors
+
+```vue
+<script setup>
+function getNodeColor(node) {
+  switch (node.type) {
+    case 'input': return '#3b82f6'
+    case 'output': return '#10b981'
+    default: return '#6b7280'
+  }
+}
+</script>
+
+<template>
+  <VueFlow>
+    <MiniMap 
+      :node-color="getNodeColor"
+      node-stroke-color="#1f2937"
+      :node-stroke-width="3"
+    />
+  </VueFlow>
+</template>
+```
+
+### Interactive MiniMap
+
+```vue
+<template>
+  <VueFlow>
+    <MiniMap 
+      pannable 
+      zoomable 
+      :zoom-step="0.5"
+    />
+  </VueFlow>
+</template>
+```
+
+### Custom Size and Position
+
+```vue
+<template>
+  <VueFlow>
+    <MiniMap 
+      :width="300" 
+      :height="200" 
+      position="top-left"
+    />
+  </VueFlow>
+</template>
+```
+
+### Custom Mask
+
+```vue
+<template>
+  <VueFlow>
+    <MiniMap 
+      mask-color="rgba(59, 130, 246, 0.3)"
+      mask-stroke-color="#3b82f6"
+      :mask-stroke-width="2"
+      :mask-border-radius="5"
+    />
+  </VueFlow>
+</template>
+```
+
+### Event Handling
+
+```vue
+<script setup>
+function handleNodeClick({ node, event }) {
+  console.log('Clicked node:', node.id)
+  console.log('Event:', event)
+}
+
+function handleMinimapClick({ position, event }) {
+  console.log('Clicked at position:', position)
+}
+</script>
+
+<template>
+  <VueFlow>
+    <MiniMap 
+      @node-click="handleNodeClick"
+      @click="handleMinimapClick"
+    />
+  </VueFlow>
+</template>
+```
+
+### Custom Node Rendering
+
+```vue
+<template>
+  <VueFlow>
+    <MiniMap>
+      <template #node-custom="{ id, position, dimensions, color }">
+        <circle
+          :cx="position.x + dimensions.width / 2"
+          :cy="position.y + dimensions.height / 2"
+          :r="Math.min(dimensions.width, dimensions.height) / 2"
+          :fill="color"
+        />
+      </template>
+    </MiniMap>
+  </VueFlow>
+</template>
+```
+
+### Dynamic Node Classes
+
+```vue
+<script setup>
+function getNodeClass(node) {
+  if (node.selected) return 'selected'
+  if (node.dragging) return 'dragging'
+  return ''
+}
+</script>
+
+<template>
+  <VueFlow>
+    <MiniMap :node-class-name="getNodeClass" />
+  </VueFlow>
+</template>
+
+<style>
+.vue-flow__minimap-node.selected {
+  stroke: #3b82f6;
+  stroke-width: 3;
+}
+
+.vue-flow__minimap-node.dragging {
+  opacity: 0.5;
+}
+</style>
+```
+
+## Styling
+
+```css
+/* Minimap container */
+.vue-flow__minimap {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+}
+
+/* Minimap when pannable */
+.vue-flow__minimap.pannable {
+  cursor: grab;
+}
+
+/* Minimap when zoomable */
+.vue-flow__minimap.zoomable {
+  cursor: zoom-in;
+}
+
+/* Viewport mask */
+.vue-flow__minimap-mask {
+  fill: rgba(240, 240, 240, 0.6);
+}
+
+/* Individual nodes */
+.vue-flow__minimap-node {
+  /* Custom node styles */
+}
+```
+
+<Note>
+  The minimap automatically scales to show all nodes. Use `offsetScale` to adjust the padding around the visible area.
+</Note>

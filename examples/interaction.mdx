@@ -1,0 +1,538 @@
+---
+title: Interaction
+description: Control all interaction settings and behaviors dynamically
+---
+
+This example demonstrates how to control various interaction settings in Vue Flow, including dragging, zooming, panning, and selection behaviors.
+
+## Live Demo
+
+View the [live demo](https://vueflow.dev/examples/#/interaction) on vueflow.dev.
+
+## Complete Example
+
+<CodeGroup>
+```vue InteractionExample.vue
+<script lang="ts" setup>
+import { Panel, VueFlow, useVueFlow } from '@vue-flow/core'
+import { Controls } from '@vue-flow/controls'
+import { MiniMap } from '@vue-flow/minimap'
+
+const {
+  nodesDraggable,
+  nodesConnectable,
+  elementsSelectable,
+  zoomOnScroll,
+  zoomOnDoubleClick,
+  zoomOnPinch,
+  panOnScroll,
+  panOnScrollMode,
+  panOnDrag,
+  onConnect,
+  onNodeDragStart,
+  onNodeDragStop,
+  onPaneClick,
+  onPaneScroll,
+  onPaneContextMenu,
+  onMoveEnd,
+  addEdges,
+} = useVueFlow({
+  modelValue: [
+    { id: '1', type: 'input', label: 'Node 1', position: { x: 250, y: 5 } },
+    { id: '2', label: 'Node 2', position: { x: 100, y: 100 } },
+    { id: '3', label: 'Node 3', position: { x: 400, y: 100 } },
+    { id: '4', label: 'Node 4', position: { x: 400, y: 200 } },
+    { id: 'e1-2', source: '1', target: '2', animated: true },
+    { id: 'e1-3', source: '1', target: '3' },
+  ],
+})
+
+const captureZoomClick = ref(false)
+const captureZoomScroll = ref(false)
+
+onConnect(addEdges)
+
+onNodeDragStart((e) => console.log('drag start', e))
+onNodeDragStop((e) => console.log('drag stop', e))
+onPaneClick((event) => captureZoomClick.value && console.log('pane click', event))
+onPaneScroll((event) => captureZoomScroll.value && console.log('pane scroll', event))
+onPaneContextMenu((event) => console.log('pane ctx menu', event))
+onMoveEnd((flowTransform) => console.log('move end', flowTransform))
+</script>
+
+<template>
+  <VueFlow>
+    <MiniMap />
+    <Controls />
+    
+    <Panel position="top-left">
+      <div>
+        <label for="draggable">
+          nodesDraggable
+          <input id="draggable" v-model="nodesDraggable" type="checkbox" />
+        </label>
+      </div>
+      <div>
+        <label for="connectable">
+          nodesConnectable
+          <input id="connectable" v-model="nodesConnectable" type="checkbox" />
+        </label>
+      </div>
+      <div>
+        <label for="selectable">
+          elementsSelectable
+          <input id="selectable" v-model="elementsSelectable" type="checkbox" />
+        </label>
+      </div>
+      <div>
+        <label for="zoomonscroll">
+          zoomOnScroll
+          <input id="zoomonscroll" v-model="zoomOnScroll" type="checkbox" />
+        </label>
+      </div>
+      <div>
+        <label for="zoomondbl">
+          zoomOnDoubleClick
+          <input id="zoomondbl" v-model="zoomOnDoubleClick" type="checkbox" />
+        </label>
+      </div>
+      <div>
+        <label for="panonscroll">
+          panOnScroll
+          <input id="panonscroll" v-model="panOnScroll" type="checkbox" />
+        </label>
+      </div>
+      <div>
+        <label>
+          panOnScrollMode
+          <select v-model="panOnScrollMode">
+            <option value="free">free</option>
+            <option value="horizontal">horizontal</option>
+            <option value="vertical">vertical</option>
+          </select>
+        </label>
+      </div>
+      <div>
+        <label for="panemoveable">
+          panOnDrag
+          <input id="panemoveable" v-model="panOnDrag" type="checkbox" />
+        </label>
+      </div>
+    </Panel>
+  </VueFlow>
+</template>
+```
+</CodeGroup>
+
+## Interaction Options
+
+### Node Interactions
+
+<Tabs>
+  <Tab title="nodesDraggable">
+    Control whether nodes can be dragged:
+    
+    ```typescript
+    const { nodesDraggable } = useVueFlow()
+    
+    // Enable/disable node dragging
+    nodesDraggable.value = true
+    ```
+    
+    You can also set it per node:
+    ```typescript
+    {
+      id: '1',
+      position: { x: 0, y: 0 },
+      draggable: false // This node cannot be dragged
+    }
+    ```
+  </Tab>
+  
+  <Tab title="nodesConnectable">
+    Control whether nodes can be connected:
+    
+    ```typescript
+    const { nodesConnectable } = useVueFlow()
+    
+    // Enable/disable node connections
+    nodesConnectable.value = true
+    ```
+    
+    Per-node setting:
+    ```typescript
+    {
+      id: '1',
+      position: { x: 0, y: 0 },
+      connectable: false // Cannot create connections
+    }
+    ```
+  </Tab>
+  
+  <Tab title="elementsSelectable">
+    Control whether elements can be selected:
+    
+    ```typescript
+    const { elementsSelectable } = useVueFlow()
+    
+    // Enable/disable element selection
+    elementsSelectable.value = true
+    ```
+    
+    Per-element setting:
+    ```typescript
+    {
+      id: '1',
+      position: { x: 0, y: 0 },
+      selectable: false // Cannot be selected
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### Zoom Interactions
+
+<Tabs>
+  <Tab title="zoomOnScroll">
+    Enable zooming with mouse wheel:
+    
+    ```typescript
+    const { zoomOnScroll } = useVueFlow()
+    
+    zoomOnScroll.value = true
+    ```
+  </Tab>
+  
+  <Tab title="zoomOnDoubleClick">
+    Enable zooming on double-click:
+    
+    ```typescript
+    const { zoomOnDoubleClick } = useVueFlow()
+    
+    zoomOnDoubleClick.value = true
+    ```
+  </Tab>
+  
+  <Tab title="zoomOnPinch">
+    Enable pinch-to-zoom on touch devices:
+    
+    ```typescript
+    const { zoomOnPinch } = useVueFlow()
+    
+    zoomOnPinch.value = true
+    ```
+  </Tab>
+  
+  <Tab title="Zoom Limits">
+    Set minimum and maximum zoom levels:
+    
+    ```typescript
+    const { minZoom, maxZoom } = useVueFlow({
+      minZoom: 0.5,
+      maxZoom: 2
+    })
+    ```
+  </Tab>
+</Tabs>
+
+### Pan Interactions
+
+<Tabs>
+  <Tab title="panOnDrag">
+    Enable panning by dragging the canvas:
+    
+    ```typescript
+    const { panOnDrag } = useVueFlow()
+    
+    // Enable panning
+    panOnDrag.value = true
+    
+    // Or set specific mouse buttons
+    panOnDrag.value = [0, 1] // Left and middle click
+    ```
+    
+    Mouse button values:
+    - `0`: Left click
+    - `1`: Middle click
+    - `2`: Right click
+  </Tab>
+  
+  <Tab title="panOnScroll">
+    Enable panning with scroll:
+    
+    ```typescript
+    const { panOnScroll } = useVueFlow()
+    
+    panOnScroll.value = true
+    ```
+  </Tab>
+  
+  <Tab title="panOnScrollMode">
+    Control scroll pan direction:
+    
+    ```typescript
+    const { panOnScrollMode } = useVueFlow()
+    
+    // Possible values:
+    panOnScrollMode.value = 'free' // Pan in any direction
+    panOnScrollMode.value = 'horizontal' // Only horizontal
+    panOnScrollMode.value = 'vertical' // Only vertical
+    ```
+  </Tab>
+</Tabs>
+
+## Interaction Events
+
+### Node Events
+
+```typescript
+const { 
+  onNodeClick,
+  onNodeDoubleClick,
+  onNodeDragStart,
+  onNodeDrag,
+  onNodeDragStop,
+  onNodeMouseEnter,
+  onNodeMouseLeave,
+  onNodeMouseMove,
+  onNodeContextMenu,
+} = useVueFlow()
+
+onNodeClick((event) => {
+  console.log('Node clicked:', event.node.id)
+})
+
+onNodeDragStart((event) => {
+  console.log('Drag started:', event.node.id)
+})
+
+onNodeDragStop((event) => {
+  console.log('Drag stopped:', event.node.id, event.node.position)
+})
+```
+
+### Edge Events
+
+```typescript
+const {
+  onEdgeClick,
+  onEdgeDoubleClick,
+  onEdgeMouseEnter,
+  onEdgeMouseLeave,
+  onEdgeContextMenu,
+  onEdgeUpdateStart,
+  onEdgeUpdate,
+  onEdgeUpdateEnd,
+} = useVueFlow()
+
+onEdgeClick((event) => {
+  console.log('Edge clicked:', event.edge.id)
+})
+```
+
+### Pane Events
+
+```typescript
+const {
+  onPaneClick,
+  onPaneScroll,
+  onPaneContextMenu,
+  onPaneMouseMove,
+} = useVueFlow()
+
+onPaneClick((event) => {
+  console.log('Pane clicked at:', event.clientX, event.clientY)
+})
+
+onPaneContextMenu((event) => {
+  event.preventDefault()
+  console.log('Right-click on pane')
+})
+```
+
+### Connection Events
+
+```typescript
+const {
+  onConnect,
+  onConnectStart,
+  onConnectEnd,
+} = useVueFlow()
+
+onConnect((params) => {
+  console.log('Connection created:', params)
+  addEdges(params)
+})
+
+onConnectStart((params) => {
+  console.log('Connection started from:', params.nodeId, params.handleType)
+})
+
+onConnectEnd((event) => {
+  console.log('Connection ended')
+})
+```
+
+### Viewport Events
+
+```typescript
+const {
+  onMoveStart,
+  onMove,
+  onMoveEnd,
+} = useVueFlow()
+
+onMoveStart((viewport) => {
+  console.log('Viewport move started')
+})
+
+onMove((viewport) => {
+  console.log('Viewport:', viewport.x, viewport.y, viewport.zoom)
+})
+
+onMoveEnd((viewport) => {
+  console.log('Viewport move ended')
+})
+```
+
+## Selection Settings
+
+### Multi-Selection
+
+```typescript
+const { multiSelectionActive } = useVueFlow({
+  multiSelectionKeyCode: 'Meta', // Cmd on Mac, Ctrl on Windows
+})
+
+// Check if multi-selection is active
+watch(multiSelectionActive, (active) => {
+  console.log('Multi-selection:', active)
+})
+```
+
+### Delete Key
+
+```typescript
+const { deleteKeyCode } = useVueFlow({
+  deleteKeyCode: 'Backspace', // or 'Delete'
+})
+```
+
+### Selection Key Code
+
+```typescript
+useVueFlow({
+  selectionKeyCode: 'Shift', // Hold Shift to select
+})
+```
+
+## Programmatic Control
+
+### Zoom Control
+
+```typescript
+const { zoomIn, zoomOut, zoomTo, fitView } = useVueFlow()
+
+// Zoom in by 0.2
+zoomIn()
+
+// Zoom out by 0.2
+zoomOut()
+
+// Zoom to specific level
+zoomTo(1.5)
+
+// Fit all nodes in view
+fitView({
+  padding: 0.2,
+  includeHiddenNodes: false,
+  duration: 200,
+})
+```
+
+### Pan Control
+
+```typescript
+const { setViewport, getViewport, project, screenToFlowCoordinate } = useVueFlow()
+
+// Set viewport
+setViewport({ x: 0, y: 0, zoom: 1 })
+
+// Get current viewport
+const viewport = getViewport()
+
+// Convert screen to flow coordinates
+const flowPosition = project({ x: 100, y: 100 })
+```
+
+## Conditional Interactions
+
+Enable/disable interactions based on conditions:
+
+```typescript
+const isEditMode = ref(true)
+
+const { nodesDraggable, nodesConnectable } = useVueFlow()
+
+watch(isEditMode, (editMode) => {
+  nodesDraggable.value = editMode
+  nodesConnectable.value = editMode
+})
+```
+
+## Best Practices
+
+<Note>
+  - Provide visual feedback for interaction state changes
+  - Consider mobile touch interactions (pinch-to-zoom, touch drag)
+  - Use keyboard shortcuts for power users
+  - Disable unnecessary interactions for performance
+  - Document interaction controls for users
+</Note>
+
+## Accessibility
+
+Make your flow accessible:
+
+```typescript
+// Enable keyboard navigation
+useVueFlow({
+  elementsSelectable: true,
+  deleteKeyCode: 'Delete',
+})
+
+// Provide keyboard shortcuts
+onMounted(() => {
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'f') {
+      fitView()
+    }
+    if (e.key === '+') {
+      zoomIn()
+    }
+    if (e.key === '-') {
+      zoomOut()
+    }
+  })
+})
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Save & Restore" icon="floppy-disk" href="/examples/save-restore">
+    Save and restore flow state
+  </Card>
+  
+  <Card title="Events" icon="bolt" href="/api/types/events">
+    Complete events reference
+  </Card>
+  
+  <Card title="useVueFlow" icon="code" href="/api/composables/use-vue-flow">
+    Composable API reference
+  </Card>
+  
+  <Card title="VueFlow Props" icon="book" href="/components/vue-flow">
+    All available props
+  </Card>
+</CardGroup>

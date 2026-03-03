@@ -1,0 +1,461 @@
+---
+title: 'Controlled flow patterns'
+description: 'Learn how to implement controlled flow patterns, manual change handling, and state synchronization in Vue Flow.'
+keywords: ['controlled flow', 'state management', 'changes', 'vue flow']
+---
+
+By default, Vue Flow automatically applies changes to nodes and edges. This guide shows you how to take control of these changes for validation, custom processing, and advanced state management.
+
+## Understanding changes
+
+A change is any modification triggered by user interaction with the flow, including:
+
+- Adding nodes or edges
+- Removing nodes or edges
+- Selecting or deselecting elements
+- Moving nodes (position changes)
+- Resizing nodes (dimension changes)
+
+<Warning>
+Changes only apply to user interactions and API calls. Simply updating your nodes array directly will not emit changes.
+</Warning>
+
+### What emits changes
+
+These actions emit changes:
+
+```typescript
+import { useVueFlow } from '@vue-flow/core'
+
+const { addNodes, removeNodes, updateNode } = useVueFlow()
+
+// These emit changes
+addNodes({ id: '1', position: { x: 0, y: 0 }, data: {} })
+removeNodes('1')
+updateNode('1', { position: { x: 100, y: 100 } })
+
+// User interactions like dragging, selecting, and deleting also emit changes
+```
+
+### What does not emit changes
+
+These actions do not emit changes:
+
+```typescript
+const nodes = ref([
+  { id: '1', position: { x: 0, y: 0 }, data: { label: 'Node 1' } },
+])
+
+// This does NOT emit a change
+nodes.value = nodes.value.filter((node) => node.id !== '1')
+
+// This does NOT emit a change
+nodes.value[0].data.label = 'Updated Label'
+```
+
+## Types of changes
+
+Vue Flow emits different change types:
+
+<CodeGroup>
+
+```typescript Add change
+interface NodeAddChange {
+  type: 'add'
+  item: Node
+}
+```
+
+```typescript Remove change
+interface NodeRemoveChange {
+  type: 'remove'
+  id: string
+}
+```
+
+```typescript Select change
+interface NodeSelectionChange {
+  type: 'select'
+  id: string
+  selected: boolean
+}
+```
+
+```typescript Position change
+interface NodePositionChange {
+  type: 'position'
+  id: string
+  position?: XYPosition
+  dragging?: boolean
+}
+```
+
+```typescript Dimensions change
+interface NodeDimensionChange {
+  type: 'dimensions'
+  id: string
+  dimensions?: Dimensions
+  resizing?: boolean
+}
+```
+
+</CodeGroup>
+
+## Disabling automatic changes
+
+Set `apply-default` to `false` to handle changes manually:
+
+```vue
+<template>
+  <VueFlow 
+    :nodes="nodes" 
+    :edges="edges" 
+    :apply-default="false"
+  />
+</template>
+```
+
+With automatic changes disabled, you must manually apply changes using the provided functions.
+
+## Listening to changes
+
+Use change events to intercept and process changes:
+
+<Tabs>
+  <Tab title="useVueFlow">
+    ```vue
+    <script setup>
+    import { useVueFlow } from '@vue-flow/core'
+
+    const { onNodesChange, onEdgesChange } = useVueFlow()
+
+    onNodesChange((changes) => {
+      console.log('Node changes:', changes)
+    })
+
+    onEdgesChange((changes) => {
+      console.log('Edge changes:', changes)
+    })
+    </script>
+
+    <template>
+      <VueFlow :nodes="nodes" :edges="edges" />
+    </template>
+    ```
+  </Tab>
+  
+  <Tab title="Component events">
+    ```vue
+    <script setup>
+    function handleNodesChange(changes) {
+      console.log('Node changes:', changes)
+    }
+
+    function handleEdgesChange(changes) {
+      console.log('Edge changes:', changes)
+    }
+    </script>
+
+    <template>
+      <VueFlow 
+        :nodes="nodes" 
+        :edges="edges"
+        @nodes-change="handleNodesChange"
+        @edges-change="handleEdgesChange"
+      />
+    </template>
+    ```
+  </Tab>
+</Tabs>
+
+## Applying changes manually
+
+Use `applyNodeChanges` and `applyEdgeChanges` to apply changes:
+
+```vue
+<script setup>
+import { ref } from 'vue'
+import { VueFlow, useVueFlow } from '@vue-flow/core'
+
+const nodes = ref([
+  { id: '1', position: { x: 0, y: 0 }, data: { label: 'Node 1' } },
+])
+
+const { applyNodeChanges, applyEdgeChanges, onNodesChange, onEdgesChange } = useVueFlow()
+
+// Handle node changes
+onNodesChange((changes) => {
+  // Process changes here if needed
+  console.log('Processing node changes:', changes)
+  
+  // Apply changes to state
+  applyNodeChanges(changes)
+})
+
+// Handle edge changes
+onEdgesChange((changes) => {
+  console.log('Processing edge changes:', changes)
+  applyEdgeChanges(changes)
+})
+</script>
+
+<template>
+  <VueFlow 
+    :nodes="nodes" 
+    :edges="edges" 
+    :apply-default="false"
+  />
+</template>
+```
+
+## Validating changes
+
+Filter and validate changes before applying them:
+
+```vue
+<script setup>
+import { ref } from 'vue'
+import { useVueFlow } from '@vue-flow/core'
+
+const nodes = ref([
+  { id: '1', position: { x: 0, y: 0 }, data: { label: 'Node 1' } },
+  { id: '2', position: { x: 100, y: 100 }, data: { label: 'Protected Node', protected: true } },
+])
+
+const { applyNodeChanges, onNodesChange } = useVueFlow()
+
+onNodesChange((changes) => {
+  const validChanges = changes.filter((change) => {
+    // Prevent removing protected nodes
+    if (change.type === 'remove') {
+      const node = nodes.value.find((n) => n.id === change.id)
+      if (node?.data.protected) {
+        console.warn(`Cannot remove protected node ${change.id}`)
+        return false
+      }
+    }
+    return true
+  })
+  
+  applyNodeChanges(validChanges)
+})
+</script>
+
+<template>
+  <VueFlow 
+    :nodes="nodes" 
+    :apply-default="false"
+  />
+</template>
+```
+
+## Confirm before delete
+
+Show a confirmation dialog before deleting nodes:
+
+```vue
+<script setup>
+import { ref } from 'vue'
+import { useVueFlow } from '@vue-flow/core'
+
+const nodes = ref([
+  { id: '1', position: { x: 0, y: 0 }, data: { label: 'Node 1' } },
+  { id: '2', position: { x: 100, y: 100 }, data: { label: 'Node 2' } },
+])
+
+const { applyNodeChanges, onNodesChange } = useVueFlow()
+
+onNodesChange(async (changes) => {
+  const validChanges = []
+  
+  for (const change of changes) {
+    if (change.type === 'remove') {
+      const confirmed = await confirm('Are you sure you want to delete this node?')
+      if (confirmed) {
+        validChanges.push(change)
+      }
+    } else {
+      validChanges.push(change)
+    }
+  }
+  
+  applyNodeChanges(validChanges)
+})
+</script>
+
+<template>
+  <VueFlow 
+    :nodes="nodes" 
+    :apply-default="false"
+  />
+</template>
+```
+
+<Tip>
+For production applications, use a proper dialog component instead of the native `confirm()` function.
+</Tip>
+
+## Custom change processing
+
+Add custom logic before applying changes:
+
+```vue
+<script setup>
+import { ref } from 'vue'
+import { useVueFlow } from '@vue-flow/core'
+
+const nodes = ref([
+  { id: '1', position: { x: 0, y: 0 }, data: { label: 'Node 1' } },
+])
+
+const { applyNodeChanges, onNodesChange } = useVueFlow()
+
+onNodesChange((changes) => {
+  const processedChanges = changes.map((change) => {
+    // Snap position changes to grid
+    if (change.type === 'position' && change.position) {
+      const gridSize = 20
+      return {
+        ...change,
+        position: {
+          x: Math.round(change.position.x / gridSize) * gridSize,
+          y: Math.round(change.position.y / gridSize) * gridSize,
+        },
+      }
+    }
+    return change
+  })
+  
+  applyNodeChanges(processedChanges)
+})
+</script>
+
+<template>
+  <VueFlow 
+    :nodes="nodes" 
+    :apply-default="false"
+  />
+</template>
+```
+
+## V-model synchronization
+
+Use `v-model` to keep your state synchronized with internal state:
+
+```vue
+<script setup>
+import { ref } from 'vue'
+import { useVueFlow } from '@vue-flow/core'
+
+const nodes = ref([
+  { id: '1', position: { x: 0, y: 0 }, data: { label: 'Node 1' } },
+])
+
+const edges = ref([
+  { id: 'e1-2', source: '1', target: '2' },
+])
+
+const { updateNode } = useVueFlow()
+
+// This will update both internal state and your nodes ref
+updateNode('1', { type: 'custom' })
+
+// Your nodes ref now reflects the change
+console.log(nodes.value[0].type) // 'custom'
+</script>
+
+<template>
+  <!-- Use v-model to sync state -->
+  <VueFlow v-model:nodes="nodes" v-model:edges="edges" />
+</template>
+```
+
+<Info>
+Using `v-model` enables two-way binding between your state and Vue Flow's internal state. Changes made via API methods will be reflected in your refs.
+</Info>
+
+## State management patterns
+
+### With Pinia
+
+```typescript
+import { defineStore } from 'pinia'
+import type { Node, Edge } from '@vue-flow/core'
+
+export const useFlowStore = defineStore('flow', () => {
+  const nodes = ref<Node[]>([])
+  const edges = ref<Edge[]>([])
+  
+  function addNode(node: Node) {
+    nodes.value.push(node)
+  }
+  
+  function removeNode(id: string) {
+    nodes.value = nodes.value.filter((n) => n.id !== id)
+  }
+  
+  return {
+    nodes,
+    edges,
+    addNode,
+    removeNode,
+  }
+})
+```
+
+```vue
+<script setup>
+import { useFlowStore } from './store'
+
+const store = useFlowStore()
+</script>
+
+<template>
+  <VueFlow v-model:nodes="store.nodes" v-model:edges="store.edges" />
+</template>
+```
+
+### With computed state
+
+```vue
+<script setup>
+import { ref, computed } from 'vue'
+
+const rawNodes = ref([
+  { id: '1', position: { x: 0, y: 0 }, data: { label: 'Node 1' } },
+])
+
+const nodes = computed(() => {
+  return rawNodes.value.map((node) => ({
+    ...node,
+    // Add computed properties
+    class: node.data.active ? 'active' : '',
+  }))
+})
+</script>
+
+<template>
+  <VueFlow :nodes="nodes" />
+</template>
+```
+
+## Best practices
+
+<Tip>
+- Only disable automatic changes when you need custom validation or processing
+- Always apply changes after processing to keep the UI in sync
+- Use `v-model` when you need bidirectional state synchronization
+- Filter invalid changes before applying them rather than reverting after
+- Consider performance when processing large numbers of changes
+</Tip>
+
+## Next steps
+
+<Columns cols={2}>
+  <Card title="State management" icon="database" href="/guides/state-management">
+    Learn about state management patterns
+  </Card>
+  <Card title="Validation" icon="shield-check" href="/examples/validation">
+    See complete validation example
+  </Card>
+</Columns>

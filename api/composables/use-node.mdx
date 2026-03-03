@@ -1,0 +1,219 @@
+---
+title: useNode
+description: Access node data, parent node, connected edges, and DOM element from within a custom node component
+---
+
+`useNode` provides access to a node's data, its parent node, connected edges, and DOM element reference. This composable is designed to be used within custom node components.
+
+## Usage
+
+<CodeGroup>
+```vue Inside Custom Node
+<script setup>
+import { useNode } from '@vue-flow/core'
+
+const { node, parentNode, connectedEdges, nodeEl } = useNode()
+
+console.log('Current node:', node)
+console.log('Parent node:', parentNode.value)
+console.log('Connected edges:', connectedEdges.value)
+console.log('DOM element:', nodeEl.value)
+</script>
+
+<template>
+  <div>
+    <h3>{{ node.data.label }}</h3>
+    <p>Connected to {{ connectedEdges.length }} edges</p>
+  </div>
+</template>
+```
+
+```vue With Explicit ID
+<script setup>
+import { useNode } from '@vue-flow/core'
+
+// Access a specific node by ID (can be used anywhere)
+const { node, connectedEdges } = useNode('node-1')
+</script>
+```
+
+```vue With TypeScript
+<script setup lang="ts">
+import { useNode } from '@vue-flow/core'
+
+interface MyNodeData {
+  label: string
+  value: number
+}
+
+const { node } = useNode<MyNodeData>()
+
+// node.data is now typed as MyNodeData
+console.log(node.data.label)
+console.log(node.data.value)
+</script>
+```
+</CodeGroup>
+
+## Signature
+
+```typescript
+function useNode<Data = ElementData, CustomEvents = any>(
+  id?: string
+): {
+  id: string
+  node: GraphNode<Data, CustomEvents>
+  nodeEl: Ref<HTMLDivElement | null>
+  parentNode: ComputedRef<GraphNode | undefined>
+  connectedEdges: ComputedRef<GraphEdge[]>
+}
+```
+
+## Parameters
+
+<ParamField path="id" type="string" optional>
+  The ID of the node to access. If not provided, the node ID is automatically injected from the component context.
+  
+  **Note:** When used inside a custom node component, you typically don't need to provide this parameter.
+</ParamField>
+
+## Return Value
+
+<ResponseField name="id" type="string">
+  The ID of the node
+</ResponseField>
+
+<ResponseField name="node" type="GraphNode<Data, CustomEvents>">
+  The complete node object with all its properties:
+  - `id` - Node identifier
+  - `position` - X and Y coordinates
+  - `data` - Custom data object
+  - `type` - Node type
+  - `label` - Optional label
+  - `parentNode` - ID of parent node (if nested)
+  - `selected` - Whether the node is selected
+  - `dragging` - Whether the node is being dragged
+  - And other node properties
+</ResponseField>
+
+<ResponseField name="nodeEl" type="Ref<HTMLDivElement | null>">
+  A Vue ref to the node's DOM element. Useful for measurements or direct DOM manipulation.
+</ResponseField>
+
+<ResponseField name="parentNode" type="ComputedRef<GraphNode | undefined>">
+  A computed reference to the parent node if this node is nested. Returns `undefined` if there's no parent.
+</ResponseField>
+
+<ResponseField name="connectedEdges" type="ComputedRef<GraphEdge[]>">
+  A computed array of all edges connected to this node (both incoming and outgoing).
+</ResponseField>
+
+## Examples
+
+### Custom Node with Connected Edges Count
+
+```vue
+<script setup>
+import { useNode } from '@vue-flow/core'
+
+const { node, connectedEdges } = useNode()
+
+const incomingCount = computed(() => 
+  connectedEdges.value.filter(edge => edge.target === node.id).length
+)
+
+const outgoingCount = computed(() => 
+  connectedEdges.value.filter(edge => edge.source === node.id).length
+)
+</script>
+
+<template>
+  <div class="custom-node">
+    <div class="node-header">{{ node.data.label }}</div>
+    <div class="node-stats">
+      <span>In: {{ incomingCount }}</span>
+      <span>Out: {{ outgoingCount }}</span>
+    </div>
+  </div>
+</template>
+```
+
+### Accessing Parent Node Data
+
+```vue
+<script setup>
+import { useNode } from '@vue-flow/core'
+
+const { node, parentNode } = useNode()
+
+const isNested = computed(() => !!parentNode.value)
+const parentLabel = computed(() => parentNode.value?.data.label ?? 'No parent')
+</script>
+
+<template>
+  <div :class="{ nested: isNested }">
+    <h4>{{ node.data.label }}</h4>
+    <small v-if="isNested">Parent: {{ parentLabel }}</small>
+  </div>
+</template>
+```
+
+### Using Node DOM Reference
+
+```vue
+<script setup>
+import { useNode } from '@vue-flow/core'
+import { watch } from 'vue'
+
+const { node, nodeEl } = useNode()
+
+// Watch for selection and scroll into view
+watch(() => node.selected, (selected) => {
+  if (selected && nodeEl.value) {
+    nodeEl.value.scrollIntoView({ 
+      behavior: 'smooth', 
+      block: 'center' 
+    })
+  }
+})
+</script>
+```
+
+### Typed Node Data
+
+```vue
+<script setup lang="ts">
+import { useNode } from '@vue-flow/core'
+
+interface TaskNodeData {
+  title: string
+  status: 'pending' | 'completed' | 'failed'
+  assignee?: string
+}
+
+const { node } = useNode<TaskNodeData>()
+
+const statusColor = computed(() => {
+  switch (node.data.status) {
+    case 'completed': return 'green'
+    case 'failed': return 'red'
+    default: return 'orange'
+  }
+})
+</script>
+
+<template>
+  <div class="task-node" :style="{ borderColor: statusColor }">
+    <h3>{{ node.data.title }}</h3>
+    <p v-if="node.data.assignee">Assignee: {{ node.data.assignee }}</p>
+    <span class="status">{{ node.data.status }}</span>
+  </div>
+</template>
+```
+
+## Notes
+
+- When used without an ID parameter, this composable must be called within a custom node component or a child component of a custom node
+- If the node is not found, an error will be emitted through the Vue Flow error system
+- The `parentNode` and `connectedEdges` are computed properties that automatically update when the flow state changes
+- Type parameters allow you to type the node's data and custom events for better TypeScript support

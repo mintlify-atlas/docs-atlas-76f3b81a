@@ -1,0 +1,535 @@
+---
+title: Viewport
+description: Control viewport transform, zoom levels, and panning behavior
+---
+
+# Viewport
+
+The viewport controls the visible area of your flow diagram, including zoom level, pan position, and user interaction settings. Understanding viewport management is essential for creating intuitive flow experiences.
+
+## Viewport Transform
+
+The viewport transform defines the current view state:
+
+```typescript
+interface ViewportTransform {
+  x: number      // Horizontal pan offset
+  y: number      // Vertical pan offset
+  zoom: number   // Zoom level (1 = 100%)
+}
+```
+
+<Info>
+Viewport coordinates use **screen space**, not flow space. Positive `x` moves the canvas left, positive `y` moves it up.
+</Info>
+
+## Getting Viewport State
+
+Access the current viewport:
+
+<Tabs>
+  <Tab title="useVueFlow">
+    ```typescript
+    import { useVueFlow } from '@vue-flow/core'
+
+    const { viewport, getViewport } = useVueFlow()
+
+    // Reactive viewport ref
+    console.log(viewport.value) // { x: 0, y: 0, zoom: 1 }
+
+    // Get current transform
+    const transform = getViewport()
+    console.log(transform) // { x: 0, y: 0, zoom: 1 }
+    ```
+  </Tab>
+  
+  <Tab title="Viewport Events">
+    ```vue
+    <script setup>
+    import { useVueFlow } from '@vue-flow/core'
+
+    const { onViewportChange } = useVueFlow()
+
+    onViewportChange((viewport) => {
+      console.log('Viewport changed:', viewport)
+    })
+    </script>
+    ```
+  </Tab>
+</Tabs>
+
+## Setting Viewport
+
+Programmatically control the viewport:
+
+```typescript
+import { useVueFlow } from '@vue-flow/core'
+
+const { setViewport, viewport } = useVueFlow()
+
+// Set viewport instantly
+await setViewport({ x: 100, y: 50, zoom: 1.5 })
+
+// Set with animation
+await setViewport(
+  { x: 100, y: 50, zoom: 1.5 },
+  { 
+    duration: 300,
+    ease: (t) => t * t // Easing function
+  }
+)
+
+// Or mutate directly (no animation)
+viewport.value = { x: 0, y: 0, zoom: 1 }
+```
+
+<ParamField path="duration" type="number" default="0">
+  Animation duration in milliseconds
+</ParamField>
+
+<ParamField path="ease" type="(t: number) => number">
+  Easing function (receives value 0-1, returns 0-1)
+</ParamField>
+
+<ParamField path="interpolate" type="'smooth' | 'linear'" default="'smooth'">
+  Interpolation method for smooth transitions
+</ParamField>
+
+## Zoom Controls
+
+### Zoom In/Out
+
+```typescript
+import { useVueFlow } from '@vue-flow/core'
+
+const { zoomIn, zoomOut } = useVueFlow()
+
+// Zoom in by 20%
+await zoomIn()
+
+// Zoom out by 20%
+await zoomOut()
+
+// With animation
+await zoomIn({ duration: 300 })
+```
+
+### Zoom to Level
+
+```typescript
+const { zoomTo } = useVueFlow()
+
+// Set specific zoom level
+await zoomTo(1.5) // 150%
+await zoomTo(0.5) // 50%
+
+// With animation
+await zoomTo(2, { 
+  duration: 500,
+  interpolate: 'linear'
+})
+```
+
+### Zoom Constraints
+
+Control minimum and maximum zoom levels:
+
+```vue
+<script setup>
+import { useVueFlow } from '@vue-flow/core'
+
+const { setMinZoom, setMaxZoom, minZoom, maxZoom } = useVueFlow()
+
+// Set zoom bounds
+setMinZoom(0.5)  // 50%
+setMaxZoom(3)    // 300%
+
+// Access current bounds
+console.log(minZoom.value) // 0.5
+console.log(maxZoom.value) // 3
+</script>
+
+<template>
+  <!-- Or set via props -->
+  <VueFlow :min-zoom="0.5" :max-zoom="3" />
+</template>
+```
+
+## Fit View
+
+Automatically frame all nodes in the viewport:
+
+```typescript
+import { useVueFlow } from '@vue-flow/core'
+
+const { fitView } = useVueFlow()
+
+// Fit all nodes
+await fitView()
+
+// With options
+await fitView({
+  padding: 0.2,              // 20% padding around nodes
+  includeHiddenNodes: false, // Exclude hidden nodes
+  minZoom: 0.5,              // Override min zoom
+  maxZoom: 1.5,              // Override max zoom
+  duration: 300,             // Animation duration
+  nodes: ['1', '2']          // Only fit specific nodes
+})
+```
+
+<ParamField path="padding" type="number | Padding" default="0.1">
+  Padding around nodes. Use number (0.1 = 10%) or object:
+  ```typescript
+  padding: {
+    top: 50,    // or '10%'
+    right: 50,
+    bottom: 50,
+    left: 50,
+    x: 50,      // Shorthand for left + right
+    y: 50       // Shorthand for top + bottom
+  }
+  ```
+</ParamField>
+
+<ParamField path="includeHiddenNodes" type="boolean" default="false">
+  Include hidden nodes in fit calculation
+</ParamField>
+
+<ParamField path="nodes" type="string[]">
+  Array of node IDs to fit. If not provided, fits all nodes.
+</ParamField>
+
+### Fit View on Init
+
+```vue
+<template>
+  <!-- Automatically fit view when component mounts -->
+  <VueFlow :fit-view-on-init="true" />
+</template>
+```
+
+## Center Viewport
+
+Center the viewport on specific coordinates:
+
+```typescript
+import { useVueFlow } from '@vue-flow/core'
+
+const { setCenter } = useVueFlow()
+
+// Center on coordinates
+await setCenter(100, 200)
+
+// Center with zoom
+await setCenter(100, 200, { zoom: 1.5 })
+
+// With animation
+await setCenter(100, 200, { 
+  zoom: 2,
+  duration: 500
+})
+```
+
+## Fit Bounds
+
+Fit viewport to a specific rectangular area:
+
+```typescript
+import { useVueFlow } from '@vue-flow/core'
+import type { Rect } from '@vue-flow/core'
+
+const { fitBounds } = useVueFlow()
+
+const bounds: Rect = {
+  x: 0,
+  y: 0,
+  width: 500,
+  height: 300
+}
+
+await fitBounds(bounds, {
+  padding: 0.1,
+  duration: 300
+})
+```
+
+## Panning
+
+### Pan by Delta
+
+```typescript
+import { useVueFlow } from '@vue-flow/core'
+
+const { panBy } = useVueFlow()
+
+// Pan viewport
+panBy({ x: 100, y: 50 }) // Returns boolean indicating if transform changed
+```
+
+### Pan on Drag
+
+Control panning behavior when dragging the canvas:
+
+```vue
+<template>
+  <!-- Enable pan on drag (default: true) -->
+  <VueFlow :pan-on-drag="true" />
+  
+  <!-- Disable pan on drag -->
+  <VueFlow :pan-on-drag="false" />
+  
+  <!-- Pan only with specific mouse buttons -->
+  <VueFlow :pan-on-drag="[1, 2]" /> <!-- Middle and right click -->
+</template>
+```
+
+### Pan on Scroll
+
+Use scroll wheel for panning instead of zooming:
+
+```vue
+<script setup>
+import { PanOnScrollMode } from '@vue-flow/core'
+</script>
+
+<template>
+  <!-- Pan in all directions -->
+  <VueFlow 
+    :pan-on-scroll="true"
+    :zoom-on-scroll="false"
+    :pan-on-scroll-mode="PanOnScrollMode.Free"
+    :pan-on-scroll-speed="0.5"
+  />
+  
+  <!-- Pan vertically only -->
+  <VueFlow
+    :pan-on-scroll="true"
+    :pan-on-scroll-mode="PanOnScrollMode.Vertical"
+  />
+  
+  <!-- Pan horizontally only -->
+  <VueFlow
+    :pan-on-scroll="true"
+    :pan-on-scroll-mode="PanOnScrollMode.Horizontal"
+  />
+</template>
+```
+
+## Coordinate Conversion
+
+Convert between screen and flow coordinates:
+
+```typescript
+import { useVueFlow } from '@vue-flow/core'
+
+const { 
+  project,                  // Alias for screenToFlowCoordinate
+  screenToFlowCoordinate,   // Screen -> Flow
+  flowToScreenCoordinate    // Flow -> Screen
+} = useVueFlow()
+
+// Convert mouse position to flow coordinates
+function handleClick(event: MouseEvent) {
+  const flowPosition = screenToFlowCoordinate({
+    x: event.clientX,
+    y: event.clientY
+  })
+  console.log('Flow position:', flowPosition)
+}
+
+// Convert node position to screen coordinates
+const node = { position: { x: 100, y: 100 } }
+const screenPosition = flowToScreenCoordinate(node.position)
+console.log('Screen position:', screenPosition)
+```
+
+## Translate Extent
+
+Limit how far users can pan the viewport:
+
+```typescript
+import { useVueFlow } from '@vue-flow/core'
+import type { CoordinateExtent } from '@vue-flow/core'
+
+const { setTranslateExtent } = useVueFlow()
+
+// Define boundaries
+const extent: CoordinateExtent = [
+  [0, 0],       // Top-left corner
+  [1000, 1000]  // Bottom-right corner
+]
+
+setTranslateExtent(extent)
+```
+
+```vue
+<template>
+  <!-- Or via props -->
+  <VueFlow :translate-extent="[[0, 0], [1000, 1000]]" />
+</template>
+```
+
+## Viewport Interaction Settings
+
+```vue
+<template>
+  <VueFlow
+    <!-- Zoom Controls -->
+    :zoom-on-scroll="true"         
+    :zoom-on-pinch="true"          
+    :zoom-on-double-click="true"   
+    :min-zoom="0.5"                
+    :max-zoom="2"                  
+    
+    <!-- Pan Controls -->
+    :pan-on-drag="true"            
+    :pan-on-scroll="false"         
+    :pan-on-scroll-speed="0.5"     
+    :pan-on-scroll-mode="PanOnScrollMode.Free"
+    
+    <!-- Interaction Keys -->
+    :zoom-activation-key-code="'Control'"
+    :pan-activation-key-code="'Space'"
+    
+    <!-- Prevent page scroll when interacting -->
+    :prevent-scrolling="true"
+    
+    <!-- Default viewport on mount -->
+    :default-viewport="{ x: 100, y: 100, zoom: 1.5 }"
+  />
+</template>
+```
+
+## Viewport Events
+
+```vue
+<script setup>
+import { useVueFlow } from '@vue-flow/core'
+
+const { 
+  onViewportChange,
+  onViewportChangeStart,
+  onViewportChangeEnd,
+  onMoveStart,
+  onMove,
+  onMoveEnd
+} = useVueFlow()
+
+// Viewport transform changes
+onViewportChange((viewport) => {
+  console.log('Viewport:', viewport)
+})
+
+onViewportChangeStart((viewport) => {
+  console.log('Viewport change started')
+})
+
+onViewportChangeEnd((viewport) => {
+  console.log('Viewport change ended')
+})
+
+// User movement (dragging, zooming)
+onMoveStart((event) => {
+  console.log('User started moving viewport')
+})
+
+onMove((event) => {
+  console.log('User is moving viewport')
+})
+
+onMoveEnd((event) => {
+  console.log('User stopped moving viewport')
+})
+</script>
+```
+
+## Save and Restore Viewport
+
+```typescript
+import { useVueFlow } from '@vue-flow/core'
+
+const { toObject, fromObject, getViewport } = useVueFlow()
+
+// Save flow state including viewport
+function saveFlow() {
+  const flowObject = toObject()
+  localStorage.setItem('flow', JSON.stringify(flowObject))
+  // flowObject contains: { nodes, edges, viewport }
+}
+
+// Restore flow state
+async function restoreFlow() {
+  const flowData = JSON.parse(localStorage.getItem('flow')!)
+  await fromObject(flowData)
+  // Automatically restores viewport, nodes, and edges
+}
+
+// Or save/restore viewport only
+function saveViewport() {
+  const viewport = getViewport()
+  localStorage.setItem('viewport', JSON.stringify(viewport))
+}
+
+async function restoreViewport() {
+  const viewport = JSON.parse(localStorage.getItem('viewport')!)
+  await setViewport(viewport)
+}
+```
+
+## Practical Examples
+
+### Reset Viewport
+
+```typescript
+import { useVueFlow } from '@vue-flow/core'
+
+const { setViewport } = useVueFlow()
+
+function resetViewport() {
+  setViewport({ x: 0, y: 0, zoom: 1 }, { duration: 300 })
+}
+```
+
+### Focus on Node
+
+```typescript
+import { useVueFlow } from '@vue-flow/core'
+
+const { setCenter, findNode } = useVueFlow()
+
+function focusNode(nodeId: string) {
+  const node = findNode(nodeId)
+  if (node) {
+    setCenter(
+      node.position.x + (node.dimensions.width / 2),
+      node.position.y + (node.dimensions.height / 2),
+      { zoom: 1.5, duration: 500 }
+    )
+  }
+}
+```
+
+### Minimap Integration
+
+```vue
+<script setup>
+import { VueFlow } from '@vue-flow/core'
+import { MiniMap } from '@vue-flow/minimap'
+import '@vue-flow/minimap/dist/style.css'
+</script>
+
+<template>
+  <VueFlow>
+    <MiniMap />
+  </VueFlow>
+</template>
+```
+
+The MiniMap automatically syncs with viewport changes and allows clicking to navigate.
+
+## See Also
+
+- [State Management](/concepts/state-management) - Access viewport in global state
+- [Nodes](/concepts/nodes) - Position nodes in flow space
+- [Edges](/concepts/edges) - Understand coordinate systems for edges

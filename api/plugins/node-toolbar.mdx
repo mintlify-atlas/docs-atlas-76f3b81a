@@ -1,0 +1,238 @@
+---
+title: NodeToolbar
+description: API reference for the NodeToolbar plugin component
+---
+
+The NodeToolbar component displays a toolbar positioned relative to one or more nodes, perfect for contextual actions.
+
+## Installation
+
+<CodeGroup>
+```bash npm
+npm install @vue-flow/node-toolbar
+```
+
+```bash pnpm
+pnpm add @vue-flow/node-toolbar
+```
+
+```bash yarn
+yarn add @vue-flow/node-toolbar
+```
+</CodeGroup>
+
+## Usage
+
+```vue
+<script setup>
+import { VueFlow } from '@vue-flow/core'
+import { NodeToolbar } from '@vue-flow/node-toolbar'
+
+const nodes = ref([
+  {
+    id: '1',
+    type: 'custom',
+    position: { x: 100, y: 100 }
+  }
+])
+
+function deleteNode() {
+  console.log('Delete clicked')
+}
+</script>
+
+<template>
+  <VueFlow :nodes="nodes">
+    <template #node-custom="{ data }">
+      <NodeToolbar>
+        <button @click="deleteNode">Delete</button>
+        <button>Copy</button>
+      </NodeToolbar>
+      <div>{{ data.label }}</div>
+    </template>
+  </VueFlow>
+</template>
+```
+
+## Props
+
+<ParamField path="nodeId" type="string | string[]">
+  ID(s) of the node(s) to attach the toolbar to. 
+  
+  - Single node: `nodeId="1"`
+  - Multiple nodes: `:nodeId="['1', '2', '3']"`
+  
+  If not provided, the component will use the node ID from context (when used inside a node template).
+</ParamField>
+
+<ParamField path="isVisible" type="boolean">
+  Control toolbar visibility explicitly. 
+  
+  If not set, the toolbar will automatically show when:
+  - A single node is attached
+  - That node is selected
+  - No other nodes are selected
+</ParamField>
+
+<ParamField path="position" type="Position" default="Position.Top">
+  Position of the toolbar relative to the node(s).
+  
+  Options: `Position.Top` | `Position.Right` | `Position.Bottom` | `Position.Left`
+</ParamField>
+
+<ParamField path="offset" type="number" default="10">
+  Distance in pixels between the toolbar and the node edge.
+</ParamField>
+
+<ParamField path="align" type="'center' | 'start' | 'end'" default="'center'">
+  Alignment of the toolbar along the edge.
+  
+  - `center` - Center of the edge
+  - `start` - Beginning of the edge
+  - `end` - End of the edge
+</ParamField>
+
+## Slots
+
+<ParamField path="default">
+  The content to display in the toolbar. Typically buttons or other interactive elements.
+</ParamField>
+
+## Examples
+
+### Basic Toolbar
+
+```vue
+<template #node-custom>
+  <NodeToolbar>
+    <button>Edit</button>
+    <button>Delete</button>
+    <button>Duplicate</button>
+  </NodeToolbar>
+  <div>Node Content</div>
+</template>
+```
+
+### Custom Position
+
+```vue
+<NodeToolbar :position="Position.Right" :offset="20">
+  <button>Action</button>
+</NodeToolbar>
+```
+
+### Custom Alignment
+
+```vue
+<NodeToolbar align="start">
+  <button>Top Left Action</button>
+</NodeToolbar>
+```
+
+### Multiple Nodes
+
+```vue
+<script setup>
+const selectedNodeIds = ref(['1', '2', '3'])
+</script>
+
+<template>
+  <NodeToolbar :node-id="selectedNodeIds">
+    <button>Bulk Action</button>
+  </NodeToolbar>
+</template>
+```
+
+### Always Visible
+
+```vue
+<NodeToolbar :is-visible="true">
+  <button>Always Shown</button>
+</NodeToolbar>
+```
+
+### Conditional Visibility
+
+```vue
+<script setup>
+const showToolbar = ref(false)
+</script>
+
+<template>
+  <NodeToolbar :is-visible="showToolbar">
+    <button>Conditional Action</button>
+  </NodeToolbar>
+</template>
+```
+
+### Styled Toolbar
+
+```vue
+<template>
+  <NodeToolbar 
+    class="custom-toolbar" 
+    :style="{ background: '#fff', padding: '8px', borderRadius: '4px' }"
+  >
+    <button>Styled</button>
+  </NodeToolbar>
+</template>
+
+<style scoped>
+.custom-toolbar {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.custom-toolbar button {
+  margin: 0 4px;
+}
+</style>
+```
+
+### All Positions Example
+
+```vue
+<script setup>
+import { Position } from '@vue-flow/core'
+</script>
+
+<template>
+  <div>
+    <!-- Top -->
+    <NodeToolbar :position="Position.Top" align="center">
+      <button>Top Center</button>
+    </NodeToolbar>
+    
+    <!-- Right -->
+    <NodeToolbar :position="Position.Right" align="center">
+      <button>Right Center</button>
+    </NodeToolbar>
+    
+    <!-- Bottom -->
+    <NodeToolbar :position="Position.Bottom" align="start">
+      <button>Bottom Start</button>
+    </NodeToolbar>
+    
+    <!-- Left -->
+    <NodeToolbar :position="Position.Left" align="end">
+      <button>Left End</button>
+    </NodeToolbar>
+    
+    <div>Node with multiple toolbars</div>
+  </div>
+</template>
+```
+
+## TypeScript
+
+```typescript
+import type { NodeToolbarProps, Align } from '@vue-flow/node-toolbar'
+import { Position } from '@vue-flow/core'
+
+type Align = 'center' | 'start' | 'end'
+```
+
+## Exports
+
+- `NodeToolbar` - The main NodeToolbar component
+- `NodeToolbarProps` - TypeScript interface for component props
+- `Align` - Type for toolbar alignment

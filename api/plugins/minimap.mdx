@@ -1,0 +1,251 @@
+---
+title: MiniMap
+description: API reference for the MiniMap plugin component
+---
+
+The MiniMap component displays a small overview of your entire flow graph with viewport visualization.
+
+## Installation
+
+<CodeGroup>
+```bash npm
+npm install @vue-flow/minimap
+```
+
+```bash pnpm
+pnpm add @vue-flow/minimap
+```
+
+```bash yarn
+yarn add @vue-flow/minimap
+```
+</CodeGroup>
+
+<Note>Don't forget to import the styles: `import '@vue-flow/minimap/dist/style.css'`</Note>
+
+## Usage
+
+```vue
+<script setup>
+import { VueFlow } from '@vue-flow/core'
+import { MiniMap } from '@vue-flow/minimap'
+import '@vue-flow/minimap/dist/style.css'
+
+const nodes = ref([])
+const edges = ref([])
+</script>
+
+<template>
+  <VueFlow :nodes="nodes" :edges="edges">
+    <MiniMap />
+  </VueFlow>
+</template>
+```
+
+## Props
+
+<ParamField path="nodeColor" type="string | MiniMapNodeFunc" default="'#e2e2e2'">
+  Color for nodes in the minimap. Can be a static color string or a function that returns a color based on the node.
+  
+  ```typescript
+  type MiniMapNodeFunc = (node: GraphNode) => string
+  ```
+</ParamField>
+
+<ParamField path="nodeStrokeColor" type="string | MiniMapNodeFunc" default="'transparent'">
+  Stroke color for nodes in the minimap. Can be a static color or a function.
+</ParamField>
+
+<ParamField path="nodeClassName" type="string | MiniMapNodeFunc">
+  Additional CSS class name(s) for nodes. Can be a static string or a function that returns a class name.
+</ParamField>
+
+<ParamField path="nodeBorderRadius" type="number" default="5">
+  Border radius for node shapes in the minimap.
+</ParamField>
+
+<ParamField path="nodeStrokeWidth" type="number" default="2">
+  Width of the node stroke in the minimap.
+</ParamField>
+
+<ParamField path="maskColor" type="string" default="'rgb(240, 240, 240, 0.6)'">
+  Color of the viewport mask overlay.
+</ParamField>
+
+<ParamField path="maskStrokeColor" type="string" default="'none'">
+  Stroke color for the viewport mask border.
+</ParamField>
+
+<ParamField path="maskStrokeWidth" type="number" default="1">
+  Width of the viewport mask border.
+</ParamField>
+
+<ParamField path="maskBorderRadius" type="number" default="0">
+  Border radius for the viewport mask.
+</ParamField>
+
+<ParamField path="position" type="PanelPosition" default="'bottom-right'">
+  Position of the minimap on the canvas.
+  
+  Options: `'top-left'` | `'top-center'` | `'top-right'` | `'bottom-left'` | `'bottom-center'` | `'bottom-right'`
+</ParamField>
+
+<ParamField path="pannable" type="boolean" default="false">
+  Enable dragging the minimap to pan the main viewport.
+</ParamField>
+
+<ParamField path="zoomable" type="boolean" default="false">
+  Enable scrolling on the minimap to zoom the main viewport.
+</ParamField>
+
+<ParamField path="inversePan" type="boolean" default="false">
+  Invert the panning direction when dragging the minimap.
+</ParamField>
+
+<ParamField path="zoomStep" type="number" default="1">
+  Step size for zooming when `zoomable` is enabled.
+</ParamField>
+
+<ParamField path="width" type="number" default="200">
+  Width of the minimap in pixels.
+</ParamField>
+
+<ParamField path="height" type="number" default="150">
+  Height of the minimap in pixels.
+</ParamField>
+
+<ParamField path="ariaLabel" type="string | null" default="'Vue Flow mini map'">
+  ARIA label for accessibility. Set to `null` to disable.
+</ParamField>
+
+<ParamField path="offsetScale" type="number" default="5">
+  Scale factor for the minimap offset/padding.
+</ParamField>
+
+## Events
+
+<ParamField path="@click" type="(params: { event: MouseEvent, position: { x: number, y: number } }) => void">
+  Emitted when the minimap background is clicked.
+</ParamField>
+
+<ParamField path="@node-click" type="(params: NodeMouseEvent) => void">
+  Emitted when a node in the minimap is clicked.
+  
+  ```typescript
+  interface NodeMouseEvent {
+    event: MouseEvent
+    node: GraphNode
+    connectedEdges: Edge[]
+  }
+  ```
+</ParamField>
+
+<ParamField path="@node-dblclick" type="(params: NodeMouseEvent) => void">
+  Emitted when a node in the minimap is double-clicked.
+</ParamField>
+
+<ParamField path="@node-mouseenter" type="(params: NodeMouseEvent) => void">
+  Emitted when the mouse enters a node in the minimap.
+</ParamField>
+
+<ParamField path="@node-mousemove" type="(params: NodeMouseEvent) => void">
+  Emitted when the mouse moves over a node in the minimap.
+</ParamField>
+
+<ParamField path="@node-mouseleave" type="(params: NodeMouseEvent) => void">
+  Emitted when the mouse leaves a node in the minimap.
+</ParamField>
+
+## Slots
+
+<ParamField path="node-{type}">
+  Custom slot for rendering specific node types in the minimap. Replace `{type}` with your node type.
+  
+  Receives `MiniMapNodeProps`:
+  
+  ```typescript
+  interface MiniMapNodeProps {
+    id: string
+    type: string
+    selected?: boolean
+    dragging?: boolean
+    position: XYPosition
+    dimensions: Dimensions
+    borderRadius?: number
+    color?: string
+    strokeColor?: string
+    strokeWidth?: number
+    hidden?: boolean
+  }
+  ```
+</ParamField>
+
+## Examples
+
+### Interactive MiniMap
+
+```vue
+<MiniMap 
+  :pannable="true" 
+  :zoomable="true" 
+  :zoom-step="0.5"
+/>
+```
+
+### Custom Node Colors
+
+```vue
+<script setup>
+function getNodeColor(node) {
+  if (node.type === 'input') return '#6ede87'
+  if (node.type === 'output') return '#ff6b6b'
+  return '#1a192b'
+}
+</script>
+
+<template>
+  <MiniMap 
+    :node-color="getNodeColor"
+    :node-stroke-color="'#fff'"
+    :node-stroke-width="3"
+  />
+</template>
+```
+
+### Custom Position and Size
+
+```vue
+<MiniMap 
+  position="top-left"
+  :width="300"
+  :height="200"
+/>
+```
+
+### Handle Node Events
+
+```vue
+<script setup>
+function onNodeClick({ node, event }) {
+  console.log('Clicked node:', node.id)
+}
+</script>
+
+<template>
+  <MiniMap @node-click="onNodeClick" />
+</template>
+```
+
+## TypeScript
+
+```typescript
+import type { MiniMapProps, MiniMapNodeFunc, MiniMapNodeProps } from '@vue-flow/minimap'
+```
+
+## Exports
+
+- `MiniMap` - The main MiniMap component
+- `MiniMapNode` - Internal component for rendering nodes (can be used for custom implementations)
+- `MiniMapProps` - TypeScript interface for MiniMap props
+- `MiniMapNodeFunc` - Type for node styling functions
+- `MiniMapNodeProps` - TypeScript interface for minimap node properties

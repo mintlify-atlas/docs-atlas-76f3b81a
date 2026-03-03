@@ -1,0 +1,516 @@
+---
+title: NodeToolbar
+description: Add contextual toolbars that appear next to nodes
+---
+
+The `NodeToolbar` component creates a toolbar that appears next to one or more nodes, perfect for contextual actions and controls.
+
+## Installation
+
+```bash
+npm install @vue-flow/node-toolbar
+```
+
+## Basic Usage
+
+```vue
+<script setup>
+import { NodeToolbar } from '@vue-flow/node-toolbar'
+import { Position } from '@vue-flow/core'
+</script>
+
+<template>
+  <div class="custom-node">
+    <NodeToolbar :position="Position.Top">
+      <button>Delete</button>
+      <button>Copy</button>
+    </NodeToolbar>
+    
+    <div>Node Content</div>
+  </div>
+</template>
+
+<style>
+@import '@vue-flow/node-toolbar/dist/style.css';
+</style>
+```
+
+## Props
+
+<ParamField path="nodeId" type="string | string[]">
+  ID(s) of the node(s) to attach the toolbar to. If not provided, uses the node ID from context (when used inside a custom node component).
+  
+  ```vue
+  <!-- Single node -->
+  <NodeToolbar node-id="node-1" />
+  
+  <!-- Multiple nodes -->
+  <NodeToolbar :node-id="['node-1', 'node-2', 'node-3']" />
+  ```
+</ParamField>
+
+<ParamField path="isVisible" type="boolean">
+  Control toolbar visibility. By default, the toolbar is visible when:
+  - Exactly one node is provided
+  - That node is selected
+  - Only that node is selected (no other selections)
+  
+  ```vue
+  <!-- Always visible -->
+  <NodeToolbar :is-visible="true" />
+  
+  <!-- Conditionally visible -->
+  <NodeToolbar :is-visible="node.data.showToolbar" />
+  ```
+</ParamField>
+
+<ParamField path="position" type="Position" default="Position.Top">
+  Position of the toolbar relative to the node(s):
+  - `Position.Top`
+  - `Position.Right`
+  - `Position.Bottom`
+  - `Position.Left`
+</ParamField>
+
+<ParamField path="offset" type="number" default="10">
+  Distance in pixels between the toolbar and node(s).
+</ParamField>
+
+<ParamField path="align" type="'center' | 'start' | 'end'" default="'center'">
+  Alignment of the toolbar relative to the node(s):
+  - `'center'`: Centered
+  - `'start'`: Aligned to the start (left/top)
+  - `'end'`: Aligned to the end (right/bottom)
+</ParamField>
+
+## Slots
+
+<ParamField path="default">
+  Toolbar content.
+</ParamField>
+
+## Examples
+
+### Basic Toolbar
+
+```vue
+<script setup>
+import { NodeToolbar } from '@vue-flow/node-toolbar'
+import { Position } from '@vue-flow/core'
+</script>
+
+<template>
+  <div class="custom-node">
+    <NodeToolbar :position="Position.Top">
+      <div class="toolbar-content">
+        <button>Edit</button>
+        <button>Delete</button>
+        <button>Duplicate</button>
+      </div>
+    </NodeToolbar>
+    
+    <div>My Node</div>
+  </div>
+</template>
+
+<style scoped>
+.toolbar-content {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: white;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+</style>
+```
+
+### Different Positions
+
+```vue
+<script setup>
+import { NodeToolbar } from '@vue-flow/node-toolbar'
+import { Position } from '@vue-flow/core'
+</script>
+
+<template>
+  <div class="custom-node">
+    <!-- Top toolbar -->
+    <NodeToolbar :position="Position.Top">
+      <button>Top</button>
+    </NodeToolbar>
+    
+    <!-- Right toolbar -->
+    <NodeToolbar :position="Position.Right" :offset="15">
+      <button>Right</button>
+    </NodeToolbar>
+    
+    <div>Node with multiple toolbars</div>
+  </div>
+</template>
+```
+
+### Different Alignments
+
+```vue
+<script setup>
+import { NodeToolbar } from '@vue-flow/node-toolbar'
+import { Position } from '@vue-flow/core'
+</script>
+
+<template>
+  <div class="custom-node">
+    <!-- Aligned to start (left) -->
+    <NodeToolbar :position="Position.Top" align="start">
+      <button>Start</button>
+    </NodeToolbar>
+    
+    <!-- Centered (default) -->
+    <NodeToolbar :position="Position.Bottom" align="center">
+      <button>Center</button>
+    </NodeToolbar>
+    
+    <div>Wide Node Content</div>
+  </div>
+</template>
+```
+
+### Multi-Node Toolbar
+
+```vue
+<script setup>
+import { NodeToolbar } from '@vue-flow/node-toolbar'
+import { Position, useVueFlow } from '@vue-flow/core'
+import { computed } from 'vue'
+
+const { getSelectedNodes } = useVueFlow()
+
+const selectedNodeIds = computed(() => 
+  getSelectedNodes.value.map(node => node.id)
+)
+
+function groupNodes() {
+  console.log('Grouping nodes:', selectedNodeIds.value)
+}
+</script>
+
+<template>
+  <VueFlow>
+    <!-- Toolbar appears when multiple nodes are selected -->
+    <NodeToolbar 
+      :node-id="selectedNodeIds" 
+      :is-visible="selectedNodeIds.length > 1"
+      :position="Position.Top"
+    >
+      <button @click="groupNodes">
+        Group {{ selectedNodeIds.length }} nodes
+      </button>
+    </NodeToolbar>
+  </VueFlow>
+</template>
+```
+
+### Conditional Visibility
+
+```vue
+<script setup>
+import { NodeToolbar } from '@vue-flow/node-toolbar'
+import { Position } from '@vue-flow/core'
+import { inject, ref } from 'vue'
+
+const node = inject('node')
+const isHovered = ref(false)
+</script>
+
+<template>
+  <div 
+    class="custom-node"
+    @mouseenter="isHovered = true"
+    @mouseleave="isHovered = false"
+  >
+    <!-- Show only when hovered -->
+    <NodeToolbar 
+      :position="Position.Top" 
+      :is-visible="isHovered"
+    >
+      <button>Quick action</button>
+    </NodeToolbar>
+    
+    <!-- Show only when selected -->
+    <NodeToolbar 
+      :position="Position.Bottom" 
+      :is-visible="node.selected"
+    >
+      <button>Selected action</button>
+    </NodeToolbar>
+    
+    <div>Hover or select me</div>
+  </div>
+</template>
+```
+
+### Custom Offset
+
+```vue
+<template>
+  <div class="custom-node">
+    <NodeToolbar 
+      :position="Position.Right" 
+      :offset="30"
+    >
+      <button>Far away</button>
+    </NodeToolbar>
+    
+    <div>Node</div>
+  </div>
+</template>
+```
+
+### Rich Toolbar Content
+
+```vue
+<script setup>
+import { NodeToolbar } from '@vue-flow/node-toolbar'
+import { Position } from '@vue-flow/core'
+import { inject } from 'vue'
+
+const node = inject('node')
+
+function updateColor(color) {
+  node.data.color = color
+}
+
+function deleteNode() {
+  // Delete logic
+}
+</script>
+
+<template>
+  <div class="custom-node">
+    <NodeToolbar :position="Position.Top">
+      <div class="toolbar">
+        <div class="toolbar-section">
+          <label>Color:</label>
+          <input 
+            type="color" 
+            :value="node.data.color" 
+            @input="updateColor($event.target.value)"
+          />
+        </div>
+        
+        <div class="toolbar-section">
+          <button @click="deleteNode" class="danger">
+            Delete
+          </button>
+        </div>
+      </div>
+    </NodeToolbar>
+    
+    <div :style="{ background: node.data.color }">
+      {{ node.label }}
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.toolbar {
+  display: flex;
+  gap: 12px;
+  padding: 8px;
+  background: white;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  align-items: center;
+}
+
+.toolbar-section {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.danger {
+  color: #ef4444;
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+</style>
+```
+
+### Icon Toolbar
+
+```vue
+<script setup>
+import { NodeToolbar } from '@vue-flow/node-toolbar'
+import { Position } from '@vue-flow/core'
+</script>
+
+<template>
+  <div class="custom-node">
+    <NodeToolbar :position="Position.Top">
+      <div class="icon-toolbar">
+        <button title="Edit">
+          <svg><!-- edit icon --></svg>
+        </button>
+        <button title="Copy">
+          <svg><!-- copy icon --></svg>
+        </button>
+        <button title="Delete">
+          <svg><!-- delete icon --></svg>
+        </button>
+      </div>
+    </NodeToolbar>
+    
+    <div>Node</div>
+  </div>
+</template>
+
+<style scoped>
+.icon-toolbar {
+  display: flex;
+  background: white;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.icon-toolbar button {
+  padding: 8px;
+  border: none;
+  background: white;
+  cursor: pointer;
+  border-right: 1px solid #e5e7eb;
+}
+
+.icon-toolbar button:last-child {
+  border-right: none;
+}
+
+.icon-toolbar button:hover {
+  background: #f3f4f6;
+}
+</style>
+```
+
+## Complete Example
+
+```vue
+<script setup>
+import { NodeToolbar } from '@vue-flow/node-toolbar'
+import { Position, Handle } from '@vue-flow/core'
+import { inject } from 'vue'
+import { useVueFlow } from '@vue-flow/core'
+
+const node = inject('node')
+const { removeNodes, updateNode } = useVueFlow()
+
+function deleteNode() {
+  removeNodes([node.id])
+}
+
+function duplicateNode() {
+  const newNode = {
+    ...node,
+    id: `${node.id}-copy`,
+    position: {
+      x: node.position.x + 50,
+      y: node.position.y + 50,
+    },
+  }
+  // Add new node logic
+}
+
+function toggleLock() {
+  updateNode(node.id, {
+    draggable: !node.draggable,
+  })
+}
+</script>
+
+<template>
+  <div class="custom-node">
+    <NodeToolbar :position="Position.Top">
+      <div class="toolbar">
+        <button @click="duplicateNode" title="Duplicate">
+          Copy
+        </button>
+        <button @click="toggleLock" title="Lock/Unlock">
+          {{ node.draggable ? 'Lock' : 'Unlock' }}
+        </button>
+        <button @click="deleteNode" title="Delete" class="danger">
+          Delete
+        </button>
+      </div>
+    </NodeToolbar>
+    
+    <Handle type="target" :position="Position.Left" />
+    
+    <div class="node-content">
+      {{ node.label }}
+    </div>
+    
+    <Handle type="source" :position="Position.Right" />
+  </div>
+</template>
+
+<style scoped>
+.custom-node {
+  padding: 16px;
+  border: 2px solid #3b82f6;
+  border-radius: 8px;
+  background: white;
+}
+
+.toolbar {
+  display: flex;
+  gap: 4px;
+  padding: 6px;
+  background: white;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.toolbar button {
+  padding: 6px 12px;
+  border: 1px solid #e5e7eb;
+  background: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.toolbar button:hover {
+  background: #f3f4f6;
+}
+
+.toolbar button.danger {
+  color: #ef4444;
+  border-color: #fca5a5;
+}
+</style>
+```
+
+## Styling
+
+```css
+/* Toolbar wrapper */
+.vue-flow__node-toolbar {
+  position: absolute;
+  /* positioning is handled automatically */
+}
+
+/* Custom toolbar styles */
+.my-toolbar {
+  background: white;
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+```
+
+<Note>
+  The NodeToolbar uses CSS transforms to position itself relative to nodes. When used with multiple nodes, it positions itself relative to the bounding box of all specified nodes.
+</Note>

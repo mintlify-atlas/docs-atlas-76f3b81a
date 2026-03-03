@@ -1,0 +1,500 @@
+---
+title: Flow State Types
+description: Type definitions for Vue Flow state and configuration
+---
+
+## FlowProps
+
+All available configuration options for Vue Flow.
+
+### Core Properties
+
+<ParamField path="id" type="string">
+  Unique identifier for the flow instance
+</ParamField>
+
+<ParamField path="nodes" type="Node[]">
+  Array of nodes in the flow
+</ParamField>
+
+<ParamField path="edges" type="Edge[]">
+  Array of edges in the flow
+</ParamField>
+
+<ParamField path="modelValue" type="Elements">
+  <Warning>Deprecated - use `nodes` and `edges` instead</Warning>
+  All elements (nodes + edges)
+</ParamField>
+
+### Node & Edge Types
+
+<ParamField path="nodeTypes" type="NodeTypesObject">
+  Custom node type components. Alternative to using slots
+</ParamField>
+
+<ParamField path="edgeTypes" type="EdgeTypesObject">
+  Custom edge type components. Alternative to using slots
+</ParamField>
+
+### Connection Settings
+
+<ParamField path="connectionMode" type="ConnectionMode">
+  Connection mode: `'strict'` or `'loose'`. Default: `'strict'`
+</ParamField>
+
+<ParamField path="connectionLineOptions" type="ConnectionLineOptions">
+  Options for the connection line appearance and behavior
+</ParamField>
+
+<ParamField path="connectionRadius" type="number">
+  Radius around handles where connections can be made
+</ParamField>
+
+<ParamField path="isValidConnection" type="ValidConnectionFunc | null">
+  Function to validate connections before they are created
+</ParamField>
+
+<ParamField path="autoConnect" type="boolean | Connector">
+  <Warning>Deprecated - will be removed in next major release</Warning>
+  Automatically create edges when connections are made
+</ParamField>
+
+<ParamField path="connectOnClick" type="boolean">
+  Allow connections with click handlers (useful for touch devices)
+</ParamField>
+
+### Interaction Settings
+
+<ParamField path="nodesDraggable" type="boolean">
+  Enable/disable dragging for all nodes. Default: `true`
+</ParamField>
+
+<ParamField path="nodesConnectable" type="boolean">
+  Enable/disable connecting for all nodes. Default: `true`
+</ParamField>
+
+<ParamField path="elementsSelectable" type="boolean">
+  Enable/disable selecting elements. Default: `true`
+</ParamField>
+
+<ParamField path="selectNodesOnDrag" type="boolean">
+  Select nodes when dragging. Default: `true`
+</ParamField>
+
+<ParamField path="edgesUpdatable" type="EdgeUpdatable">
+  Enable/disable updating edges. Can be `boolean`, `'source'`, or `'target'`
+</ParamField>
+
+<ParamField path="nodeDragThreshold" type="number">
+  Distance in pixels before drag is triggered. Default: `0`
+</ParamField>
+
+### Keyboard Settings
+
+<ParamField path="deleteKeyCode" type="KeyFilter | null">
+  Key(s) to delete selected elements. Default: `'Backspace'`
+</ParamField>
+
+<ParamField path="selectionKeyCode" type="KeyFilter | boolean | null">
+  Key(s) to enable selection mode. Default: `'Shift'`
+</ParamField>
+
+<ParamField path="multiSelectionKeyCode" type="KeyFilter | null">
+  Key(s) to enable multi-selection. Default: `'Meta'` (Cmd/Ctrl)
+</ParamField>
+
+<ParamField path="zoomActivationKeyCode" type="KeyFilter | null">
+  Key(s) to enable zoom. Default: `'Meta'`
+</ParamField>
+
+<ParamField path="panActivationKeyCode" type="KeyFilter | null">
+  Key(s) to enable panning. Default: `'Space'`
+</ParamField>
+
+<ParamField path="disableKeyboardA11y" type="boolean">
+  Disable keyboard accessibility features
+</ParamField>
+
+### Viewport & Zoom
+
+<ParamField path="defaultViewport" type="Partial<ViewportTransform>">
+  Initial viewport position and zoom level
+</ParamField>
+
+<ParamField path="minZoom" type="number">
+  Minimum zoom level. Default: `0.5`
+</ParamField>
+
+<ParamField path="maxZoom" type="number">
+  Maximum zoom level. Default: `2`
+</ParamField>
+
+<ParamField path="zoomOnScroll" type="boolean">
+  Enable zoom on scroll. Default: `true`
+</ParamField>
+
+<ParamField path="zoomOnPinch" type="boolean">
+  Enable zoom on pinch (touch). Default: `true`
+</ParamField>
+
+<ParamField path="zoomOnDoubleClick" type="boolean">
+  Enable zoom on double click. Default: `true`
+</ParamField>
+
+<ParamField path="panOnScroll" type="boolean">
+  Enable panning on scroll. Default: `false`
+</ParamField>
+
+<ParamField path="panOnScrollSpeed" type="number">
+  Speed of panning when scrolling. Default: `0.5`
+</ParamField>
+
+<ParamField path="panOnScrollMode" type="PanOnScrollMode">
+  Pan direction: `'free'`, `'vertical'`, or `'horizontal'`. Default: `'free'`
+</ParamField>
+
+<ParamField path="panOnDrag" type="boolean | number[]">
+  Enable panning by dragging. Can be boolean or array of mouse buttons. Default: `true`
+</ParamField>
+
+<ParamField path="preventScrolling" type="boolean">
+  Prevent page scrolling inside viewport. Default: `true`
+</ParamField>
+
+<ParamField path="paneClickDistance" type="number">
+  Distance that mouse can move between mousedown/up to trigger click. Default: `0`
+</ParamField>
+
+### Extent & Boundaries
+
+<ParamField path="translateExtent" type="CoordinateExtent">
+  Limits for panning the viewport
+</ParamField>
+
+<ParamField path="nodeExtent" type="CoordinateExtent | CoordinateExtentRange">
+  Default extent for all nodes
+</ParamField>
+
+### Grid & Snapping
+
+<ParamField path="snapToGrid" type="boolean">
+  Enable snapping nodes to grid. Default: `false`
+</ParamField>
+
+<ParamField path="snapGrid" type="SnapGrid">
+  Grid size as `[x, y]`. Default: `[15, 15]`
+</ParamField>
+
+### Selection
+
+<ParamField path="selectionMode" type="SelectionMode">
+  Selection mode: `'partial'` or `'full'`. Default: `'full'`
+</ParamField>
+
+### Performance
+
+<ParamField path="onlyRenderVisibleElements" type="boolean">
+  Only render elements visible in viewport. Default: `false`
+</ParamField>
+
+### Auto Pan
+
+<ParamField path="autoPanOnConnect" type="boolean">
+  Auto pan when connecting near viewport edges. Default: `true`
+</ParamField>
+
+<ParamField path="autoPanOnNodeDrag" type="boolean">
+  Auto pan when dragging nodes near viewport edges. Default: `true`
+</ParamField>
+
+<ParamField path="autoPanSpeed" type="number">
+  Speed of auto panning. Default: `15`
+</ParamField>
+
+### Initial Behavior
+
+<ParamField path="fitViewOnInit" type="boolean">
+  Fit view to nodes on initialization. Default: `false`
+</ParamField>
+
+### Edge Settings
+
+<ParamField path="defaultEdgeOptions" type="DefaultEdgeOptions">
+  Default options applied to new edges
+</ParamField>
+
+<ParamField path="edgeUpdaterRadius" type="number">
+  Radius of edge updater handles. Default: `10`
+</ParamField>
+
+<ParamField path="defaultMarkerColor" type="string">
+  Default color for edge markers. Default: `'#b1b1b7'`
+</ParamField>
+
+<ParamField path="elevateEdgesOnSelect" type="boolean">
+  Elevate edges when selected using z-index. Default: `false`
+</ParamField>
+
+### Focus
+
+<ParamField path="nodesFocusable" type="boolean">
+  Enable focus for nodes (a11y). Default: `true`
+</ParamField>
+
+<ParamField path="edgesFocusable" type="boolean">
+  Enable focus for edges (a11y). Default: `true`
+</ParamField>
+
+<ParamField path="elevateNodesOnSelect" type="boolean">
+  Elevate nodes when selected using z-index + 1000. Default: `false`
+</ParamField>
+
+### Class Names
+
+<ParamField path="noDragClassName" type="string">
+  Class name to disable dragging. Default: `'nodrag'`
+</ParamField>
+
+<ParamField path="noWheelClassName" type="string">
+  Class name to disable wheel events. Default: `'nowheel'`
+</ParamField>
+
+<ParamField path="noPanClassName" type="string">
+  Class name to disable panning. Default: `'nopan'`
+</ParamField>
+
+### Changes
+
+<ParamField path="applyDefault" type="boolean">
+  <Warning>Deprecated - will be removed in next major release</Warning>
+  Apply default change handlers automatically. Default: `true`
+</ParamField>
+
+---
+
+## ViewportTransform
+
+Represents the viewport transformation state.
+
+```typescript
+interface ViewportTransform {
+  x: number
+  y: number
+  zoom: number
+}
+```
+
+<ParamField path="x" type="number" required>
+  X translation of viewport
+</ParamField>
+
+<ParamField path="y" type="number" required>
+  Y translation of viewport
+</ParamField>
+
+<ParamField path="zoom" type="number" required>
+  Zoom level of viewport
+</ParamField>
+
+---
+
+## FlowExportObject
+
+Object structure for exporting flow state.
+
+<ResponseField name="nodes" type="Node[]">
+  Exported nodes
+</ResponseField>
+
+<ResponseField name="edges" type="Edge[]">
+  Exported edges
+</ResponseField>
+
+<ResponseField name="viewport" type="ViewportTransform">
+  Exported viewport (position + zoom)
+</ResponseField>
+
+<ResponseField name="position" type="[number, number]">
+  <Warning>Deprecated - use `viewport` instead</Warning>
+  Exported viewport position
+</ResponseField>
+
+<ResponseField name="zoom" type="number">
+  <Warning>Deprecated - use `viewport` instead</Warning>
+  Exported zoom level
+</ResponseField>
+
+### Example
+
+```typescript
+import { toObject } from '@vue-flow/core'
+
+const flowObject: FlowExportObject = toObject()
+
+console.log(flowObject)
+// {
+//   nodes: [...],
+//   edges: [...],
+//   viewport: { x: 0, y: 0, zoom: 1 }
+// }
+```
+
+---
+
+## FlowImportObject
+
+Partial flow state for importing.
+
+```typescript
+type FlowImportObject = { 
+  [key in keyof FlowExportObject]?: FlowExportObject[key] 
+}
+```
+
+All properties are optional, allowing partial imports.
+
+---
+
+## SelectionMode
+
+Enum for selection behavior.
+
+```typescript
+enum SelectionMode {
+  Partial = 'partial',
+  Full = 'full'
+}
+```
+
+- **Partial**: Elements are selected if they partially overlap the selection box
+- **Full**: Elements are selected only if fully contained in the selection box
+
+---
+
+## Position
+
+Enum for handle positions.
+
+```typescript
+enum Position {
+  Left = 'left',
+  Top = 'top',
+  Right = 'right',
+  Bottom = 'bottom'
+}
+```
+
+---
+
+## XYPosition
+
+2D coordinate position.
+
+```typescript
+interface XYPosition {
+  x: number
+  y: number
+}
+```
+
+---
+
+## Dimensions
+
+Size dimensions.
+
+```typescript
+interface Dimensions {
+  width: number
+  height: number
+}
+```
+
+---
+
+## Rect
+
+Rectangle with position and dimensions.
+
+```typescript
+interface Rect extends Dimensions, XYPosition {}
+```
+
+Combines `XYPosition` and `Dimensions`.
+
+---
+
+## Box
+
+Bounding box coordinates.
+
+```typescript
+interface Box extends XYPosition {
+  x2: number
+  y2: number
+}
+```
+
+<ParamField path="x" type="number" required>
+  Left coordinate
+</ParamField>
+
+<ParamField path="y" type="number" required>
+  Top coordinate
+</ParamField>
+
+<ParamField path="x2" type="number" required>
+  Right coordinate
+</ParamField>
+
+<ParamField path="y2" type="number" required>
+  Bottom coordinate
+</ParamField>
+
+---
+
+## SnapGrid
+
+Grid size for snapping.
+
+```typescript
+type SnapGrid = [x: number, y: number]
+```
+
+### Example
+
+```typescript
+const snapGrid: SnapGrid = [20, 20] // 20px grid
+```
+
+---
+
+## Styles
+
+Extended CSS properties with theme vars.
+
+```typescript
+type Styles = CSSProperties & ThemeVars & CustomThemeVars
+```
+
+### ThemeVars
+
+Built-in CSS custom properties:
+
+- `--vf-node-color`
+- `--vf-box-shadow`
+- `--vf-node-bg`
+- `--vf-node-text`
+- `--vf-connection-path`
+- `--vf-handle`
+
+### Example
+
+```typescript
+const styles: Styles = {
+  '--vf-node-bg': '#ffffff',
+  '--vf-node-color': '#000000',
+  backgroundColor: 'var(--vf-node-bg)',
+  border: '1px solid #ddd'
+}
+```

@@ -1,0 +1,215 @@
+---
+title: Background
+description: Add grid or dot pattern backgrounds to your Vue Flow canvas
+---
+
+The `Background` component adds a customizable pattern (dots or lines) to your Vue Flow canvas.
+
+## Installation
+
+```bash
+npm install @vue-flow/background
+```
+
+## Basic Usage
+
+<CodeGroup>
+```vue Dots Pattern
+<script setup>
+import { VueFlow } from '@vue-flow/core'
+import { Background } from '@vue-flow/background'
+</script>
+
+<template>
+  <VueFlow>
+    <Background variant="dots" />
+  </VueFlow>
+</template>
+
+<style>
+@import '@vue-flow/core/dist/style.css';
+@import '@vue-flow/background/dist/style.css';
+</style>
+```
+
+```vue Lines Pattern
+<script setup>
+import { VueFlow } from '@vue-flow/core'
+import { Background } from '@vue-flow/background'
+</script>
+
+<template>
+  <VueFlow>
+    <Background variant="lines" />
+  </VueFlow>
+</template>
+
+<style>
+@import '@vue-flow/core/dist/style.css';
+@import '@vue-flow/background/dist/style.css';
+</style>
+```
+</CodeGroup>
+
+## Props
+
+<ParamField path="variant" type="'dots' | 'lines'" default="'dots'">
+  The background pattern variant to display.
+</ParamField>
+
+<ParamField path="gap" type="number | [number, number]" default="20">
+  Gap between pattern elements. Can be a single number or `[gapX, gapY]` array.
+  
+  ```vue
+  <!-- Same gap for X and Y -->
+  <Background :gap="20" />
+  
+  <!-- Different gap for X and Y -->
+  <Background :gap="[20, 30]" />
+  ```
+</ParamField>
+
+<ParamField path="size" type="number" default="1">
+  Size of the pattern elements (radius for dots, thickness for lines).
+</ParamField>
+
+<ParamField path="lineWidth" type="number" default="1">
+  Width of lines when using the `lines` variant.
+</ParamField>
+
+<ParamField path="color" type="string">
+  Color of the pattern. Defaults to `#81818a` for dots and `#eee` for lines.
+  
+  ```vue
+  <Background color="#ff0000" />
+  ```
+</ParamField>
+
+<ParamField path="patternColor" type="string">
+  **Deprecated**: Use `color` instead. Background pattern color.
+</ParamField>
+
+<ParamField path="bgColor" type="string">
+  **Deprecated**: Set background color on `<VueFlow />` directly instead.
+</ParamField>
+
+<ParamField path="offset" type="number | [number, number]" default="0">
+  Offset the pattern position. Can be a single number or `[offsetX, offsetY]` array.
+</ParamField>
+
+<ParamField path="x" type="number" default="0">
+  X-coordinate offset for the background.
+</ParamField>
+
+<ParamField path="y" type="number" default="0">
+  Y-coordinate offset for the background.
+</ParamField>
+
+<ParamField path="height" type="number" default="100">
+  **Deprecated**: Height percentage of the background (1-100).
+</ParamField>
+
+<ParamField path="width" type="number" default="100">
+  **Deprecated**: Width percentage of the background (1-100).
+</ParamField>
+
+<ParamField path="id" type="string">
+  Unique identifier for the background pattern. Useful when using multiple Vue Flow instances on the same page.
+</ParamField>
+
+## Slots
+
+<ParamField path="pattern-container" type="(props: { id: string }) => any">
+  Custom container for the SVG pattern element.
+</ParamField>
+
+<ParamField path="pattern">
+  Custom pattern content. Use this to create completely custom background patterns.
+</ParamField>
+
+<ParamField path="default" type="(props: { id: string }) => any">
+  Additional SVG content rendered after the background rect.
+</ParamField>
+
+## Examples
+
+### Custom Colors
+
+```vue
+<template>
+  <VueFlow>
+    <Background 
+      variant="dots" 
+      :gap="15" 
+      :size="2" 
+      color="#3b82f6" 
+    />
+  </VueFlow>
+</template>
+```
+
+### Different Gap Sizes
+
+```vue
+<template>
+  <VueFlow>
+    <Background 
+      variant="lines" 
+      :gap="[20, 40]" 
+      :line-width="1" 
+      color="#e5e7eb" 
+    />
+  </VueFlow>
+</template>
+```
+
+### Custom Pattern
+
+```vue
+<template>
+  <VueFlow>
+    <Background variant="dots">
+      <template #pattern>
+        <circle cx="5" cy="5" r="3" fill="#ff0000" />
+        <rect x="10" y="10" width="5" height="5" fill="#0000ff" />
+      </template>
+    </Background>
+  </VueFlow>
+</template>
+```
+
+### With Offset
+
+```vue
+<template>
+  <VueFlow>
+    <Background 
+      variant="dots" 
+      :gap="20" 
+      :offset="[10, 10]" 
+    />
+  </VueFlow>
+</template>
+```
+
+## Multiple Instances
+
+When using multiple Vue Flow instances on the same page, provide unique IDs to avoid pattern conflicts:
+
+```vue
+<template>
+  <div>
+    <VueFlow id="flow-1">
+      <Background id="bg-1" variant="dots" />
+    </VueFlow>
+    
+    <VueFlow id="flow-2">
+      <Background id="bg-2" variant="lines" />
+    </VueFlow>
+  </div>
+</template>
+```
+
+<Note>
+  The background pattern automatically scales with the viewport zoom level, ensuring a consistent visual appearance at any zoom.
+</Note>

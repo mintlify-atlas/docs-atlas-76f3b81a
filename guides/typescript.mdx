@@ -1,0 +1,625 @@
+---
+title: 'TypeScript usage'
+description: 'Use Vue Flow with TypeScript for type-safe flows, nodes, edges, and custom components.'
+keywords: ['typescript', 'vue flow', 'types', 'type safety']
+---
+
+Vue Flow is written in TypeScript and provides comprehensive type definitions. This guide covers type-safe patterns for nodes, edges, custom components, and advanced use cases.
+
+## Basic types
+
+Import core types from Vue Flow:
+
+```typescript
+import type { 
+  Node, 
+  Edge, 
+  Connection,
+  NodeProps,
+  EdgeProps,
+} from '@vue-flow/core'
+```
+
+## Typed nodes
+
+### Basic node typing
+
+```typescript
+import { ref } from 'vue'
+import type { Node } from '@vue-flow/core'
+
+const nodes = ref<Node[]>([
+  {
+    id: '1',
+    type: 'input',
+    position: { x: 0, y: 0 },
+    data: { label: 'Input Node' },
+  },
+])
+```
+
+### Custom node data
+
+Define custom data types for your nodes:
+
+```typescript
+import type { Node } from '@vue-flow/core'
+
+interface UserNodeData {
+  name: string
+  email: string
+  avatar?: string
+  role: 'admin' | 'user' | 'guest'
+}
+
+type UserNode = Node<UserNodeData>
+
+const nodes = ref<UserNode[]>([
+  {
+    id: '1',
+    position: { x: 0, y: 0 },
+    data: {
+      name: 'John Doe',
+      email: 'john@example.com',
+      role: 'admin',
+    },
+  },
+])
+```
+
+### Multiple node types
+
+Define a union of node types:
+
+```typescript
+import type { Node } from '@vue-flow/core'
+
+interface InputNodeData {
+  label: string
+  value: number
+}
+
+interface OutputNodeData {
+  label: string
+  result: string
+}
+
+interface ProcessNodeData {
+  label: string
+  operation: 'add' | 'subtract' | 'multiply' | 'divide'
+}
+
+type InputNode = Node<InputNodeData, {}, 'input'>
+type OutputNode = Node<OutputNodeData, {}, 'output'>
+type ProcessNode = Node<ProcessNodeData, {}, 'process'>
+
+type AppNode = InputNode | OutputNode | ProcessNode
+
+const nodes = ref<AppNode[]>([
+  {
+    id: '1',
+    type: 'input',
+    position: { x: 0, y: 0 },
+    data: { label: 'Input', value: 10 },
+  },
+  {
+    id: '2',
+    type: 'process',
+    position: { x: 150, y: 0 },
+    data: { label: 'Add', operation: 'add' },
+  },
+  {
+    id: '3',
+    type: 'output',
+    position: { x: 300, y: 0 },
+    data: { label: 'Result', result: '' },
+  },
+])
+```
+
+## Typed edges
+
+### Basic edge typing
+
+```typescript
+import { ref } from 'vue'
+import type { Edge } from '@vue-flow/core'
+
+const edges = ref<Edge[]>([
+  {
+    id: 'e1-2',
+    source: '1',
+    target: '2',
+  },
+])
+```
+
+### Custom edge data
+
+```typescript
+import type { Edge } from '@vue-flow/core'
+
+interface CustomEdgeData {
+  label: string
+  bandwidth: number
+  status: 'active' | 'inactive' | 'error'
+}
+
+type CustomEdge = Edge<CustomEdgeData>
+
+const edges = ref<CustomEdge[]>([
+  {
+    id: 'e1-2',
+    source: '1',
+    target: '2',
+    data: {
+      label: 'Connection 1',
+      bandwidth: 100,
+      status: 'active',
+    },
+  },
+])
+```
+
+## Custom node components
+
+### Basic typed node component
+
+```vue
+<script setup lang="ts">
+import type { NodeProps } from '@vue-flow/core'
+import { Handle, Position } from '@vue-flow/core'
+
+interface CustomData {
+  label: string
+  value: number
+}
+
+const props = defineProps<NodeProps<CustomData>>()
+</script>
+
+<template>
+  <div>
+    <Handle type="target" :position="Position.Top" />
+    <div>
+      <strong>{{ props.data.label }}</strong>
+      <p>Value: {{ props.data.value }}</p>
+    </div>
+    <Handle type="source" :position="Position.Bottom" />
+  </div>
+</template>
+```
+
+### With custom events
+
+```vue
+<script setup lang="ts">
+import type { NodeProps } from '@vue-flow/core'
+import { Handle, Position } from '@vue-flow/core'
+
+interface CustomData {
+  label: string
+  value: number
+}
+
+interface CustomEvents {
+  onValueChange: (value: number) => void
+  onDelete: () => void
+}
+
+const props = defineProps<NodeProps<CustomData, CustomEvents>>()
+
+function handleValueChange(event: Event) {
+  const target = event.target as HTMLInputElement
+  const value = parseFloat(target.value)
+  
+  // Update node data
+  if (props.data) {
+    props.data.value = value
+  }
+}
+</script>
+
+<template>
+  <div>
+    <Handle type="target" :position="Position.Top" />
+    <div>
+      <label>{{ props.data.label }}</label>
+      <input 
+        type="number" 
+        :value="props.data.value" 
+        @input="handleValueChange"
+        class="nodrag"
+      />
+    </div>
+    <Handle type="source" :position="Position.Bottom" />
+  </div>
+</template>
+```
+
+### With node type constraint
+
+```vue
+<script setup lang="ts">
+import type { NodeProps } from '@vue-flow/core'
+import { Handle, Position } from '@vue-flow/core'
+
+interface CustomData {
+  label: string
+}
+
+// Constrain to specific node type
+const props = defineProps<NodeProps<CustomData, {}, 'custom'>>()
+
+// TypeScript knows this is a 'custom' type node
+console.log(props.type) // 'custom'
+</script>
+
+<template>
+  <div>
+    <Handle type="target" :position="Position.Top" />
+    <div>{{ props.data.label }}</div>
+    <Handle type="source" :position="Position.Bottom" />
+  </div>
+</template>
+```
+
+## Custom edge components
+
+### Basic typed edge component
+
+```vue
+<script setup lang="ts">
+import type { EdgeProps } from '@vue-flow/core'
+import { BezierEdge } from '@vue-flow/core'
+
+interface CustomData {
+  label: string
+  color: string
+}
+
+const props = defineProps<EdgeProps<CustomData>>()
+</script>
+
+<template>
+  <BezierEdge
+    v-bind="props"
+    :style="{ stroke: props.data.color }"
+  />
+</template>
+```
+
+### With custom rendering
+
+```vue
+<script setup lang="ts">
+import type { EdgeProps, Position } from '@vue-flow/core'
+import { getBezierPath, EdgeLabelRenderer } from '@vue-flow/core'
+import type { CSSProperties } from 'vue'
+
+interface CustomData {
+  label: string
+  status: 'active' | 'inactive'
+}
+
+interface CustomEdgeProps extends EdgeProps<CustomData> {
+  id: string
+  sourceX: number
+  sourceY: number
+  targetX: number
+  targetY: number
+  sourcePosition: Position
+  targetPosition: Position
+  markerEnd: string
+  style?: CSSProperties
+}
+
+const props = defineProps<CustomEdgeProps>()
+
+const path = computed(() => getBezierPath(props))
+const strokeColor = computed(() => 
+  props.data.status === 'active' ? '#22c55e' : '#ef4444'
+)
+</script>
+
+<template>
+  <path
+    :id="id"
+    :d="path[0]"
+    :marker-end="markerEnd"
+    class="vue-flow__edge-path"
+    :style="{ stroke: strokeColor, strokeWidth: 2 }"
+  />
+  
+  <EdgeLabelRenderer>
+    <div
+      :style="{
+        position: 'absolute',
+        transform: `translate(-50%, -50%) translate(${path[1]}px, ${path[2]}px)`,
+        pointerEvents: 'all',
+      }"
+      class="nodrag nopan"
+    >
+      <div class="edge-label">
+        {{ data.label }}
+      </div>
+    </div>
+  </EdgeLabelRenderer>
+</template>
+```
+
+## useVueFlow composable
+
+Type the composable with your custom types:
+
+```typescript
+import { useVueFlow } from '@vue-flow/core'
+import type { Node, Edge } from '@vue-flow/core'
+
+interface CustomNodeData {
+  label: string
+  value: number
+}
+
+interface CustomEdgeData {
+  label: string
+}
+
+type CustomNode = Node<CustomNodeData>
+type CustomEdge = Edge<CustomEdgeData>
+
+const { 
+  nodes, 
+  edges, 
+  addNodes, 
+  addEdges,
+  findNode,
+  updateNode,
+} = useVueFlow<CustomNode, CustomEdge>()
+
+// Add typed node
+addNodes({
+  id: '1',
+  position: { x: 0, y: 0 },
+  data: {
+    label: 'Node 1',
+    value: 100,
+  },
+})
+
+// Find node with type
+const node = findNode('1')
+if (node) {
+  console.log(node.data.value) // TypeScript knows this is a number
+}
+
+// Update node
+updateNode('1', {
+  data: {
+    label: 'Updated',
+    value: 200,
+  },
+})
+```
+
+## Connection validation
+
+Type-safe connection validation:
+
+```typescript
+import type { Connection, Node } from '@vue-flow/core'
+import { useVueFlow } from '@vue-flow/core'
+
+const { nodes, isValidConnection } = useVueFlow()
+
+function validateConnection(connection: Connection): boolean {
+  const sourceNode = nodes.value.find(n => n.id === connection.source)
+  const targetNode = nodes.value.find(n => n.id === connection.target)
+  
+  if (!sourceNode || !targetNode) {
+    return false
+  }
+  
+  // Type-safe validation logic
+  if (sourceNode.type === 'output' || targetNode.type === 'input') {
+    return false
+  }
+  
+  return true
+}
+```
+
+```vue
+<template>
+  <VueFlow
+    :nodes="nodes"
+    :edges="edges"
+    :is-valid-connection="validateConnection"
+  />
+</template>
+```
+
+## Event handlers
+
+Type event handlers correctly:
+
+```vue
+<script setup lang="ts">
+import type { NodeMouseEvent, EdgeMouseEvent, Connection } from '@vue-flow/core'
+import { useVueFlow } from '@vue-flow/core'
+
+const { onNodeClick, onEdgeClick, onConnect } = useVueFlow()
+
+// Typed node click handler
+onNodeClick((event: NodeMouseEvent) => {
+  console.log('Node clicked:', event.node.id)
+  console.log('Mouse event:', event.event)
+})
+
+// Typed edge click handler
+onEdgeClick((event: EdgeMouseEvent) => {
+  console.log('Edge clicked:', event.edge.id)
+})
+
+// Typed connection handler
+onConnect((connection: Connection) => {
+  console.log('Connected:', connection.source, 'to', connection.target)
+})
+</script>
+```
+
+## Generic components
+
+Create reusable typed components:
+
+```vue
+<script setup lang="ts" generic="T extends Record<string, any>">
+import type { NodeProps } from '@vue-flow/core'
+import { Handle, Position } from '@vue-flow/core'
+
+const props = defineProps<NodeProps<T>>()
+
+defineEmits<{
+  update: [data: T]
+}>()
+</script>
+
+<template>
+  <div>
+    <Handle type="target" :position="Position.Top" />
+    <div>
+      <slot :data="props.data" />
+    </div>
+    <Handle type="source" :position="Position.Bottom" />
+  </div>
+</template>
+```
+
+Usage:
+
+```vue
+<script setup lang="ts">
+import GenericNode from './GenericNode.vue'
+
+interface UserData {
+  name: string
+  email: string
+}
+</script>
+
+<template>
+  <VueFlow :nodes="nodes">
+    <template #node-user="props">
+      <GenericNode<UserData> v-bind="props">
+        <template #default="{ data }">
+          <div>{{ data.name }}</div>
+          <div>{{ data.email }}</div>
+        </template>
+      </GenericNode>
+    </template>
+  </VueFlow>
+</template>
+```
+
+## Type utilities
+
+Use Vue Flow's type utilities:
+
+```typescript
+import type { 
+  GraphNode,
+  GraphEdge,
+  ToGraphNode,
+  ToGraphEdge,
+} from '@vue-flow/core'
+
+// Convert your node type to internal graph node
+type MyNode = Node<CustomData>
+type MyGraphNode = ToGraphNode<MyNode>
+
+// GraphNode includes computed properties like selected, dragging, etc.
+const graphNode: MyGraphNode = {
+  id: '1',
+  type: 'custom',
+  position: { x: 0, y: 0 },
+  data: { label: 'Node' },
+  // These are added by Vue Flow
+  selected: false,
+  dragging: false,
+  dimensions: { width: 100, height: 50 },
+  computedPosition: { x: 0, y: 0, z: 0 },
+  // ... other internal properties
+}
+```
+
+## Common patterns
+
+### Discriminated unions
+
+```typescript
+import type { Node } from '@vue-flow/core'
+
+interface InputNodeData {
+  type: 'input'
+  value: number
+}
+
+interface OutputNodeData {
+  type: 'output'
+  result: string
+}
+
+type NodeData = InputNodeData | OutputNodeData
+type AppNode = Node<NodeData>
+
+function processNode(node: AppNode) {
+  // TypeScript narrows the type based on discriminator
+  if (node.data.type === 'input') {
+    console.log(node.data.value) // number
+  } else {
+    console.log(node.data.result) // string
+  }
+}
+```
+
+### Type guards
+
+```typescript
+import type { Node } from '@vue-flow/core'
+
+interface CustomData {
+  value: number
+}
+
+function isCustomNode(node: Node): node is Node<CustomData> {
+  return 'value' in (node.data ?? {})
+}
+
+const node: Node = { /* ... */ }
+
+if (isCustomNode(node)) {
+  console.log(node.data.value) // TypeScript knows this is CustomData
+}
+```
+
+## Best practices
+
+<Tip>
+- Define clear data interfaces for nodes and edges
+- Use discriminated unions for multiple node types
+- Leverage type inference when possible
+- Use type guards for runtime type checking
+- Constrain generic types to improve autocomplete
+- Export types from a central types file for consistency
+</Tip>
+
+## Next steps
+
+<Columns cols={2}>
+  <Card title="API reference" icon="book" href="/api-reference/types">
+    Complete TypeScript API reference
+  </Card>
+  <Card title="Examples" icon="code" href="/examples">
+    Explore TypeScript examples
+  </Card>
+</Columns>

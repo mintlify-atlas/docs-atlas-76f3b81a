@@ -1,0 +1,541 @@
+---
+title: Nodes
+description: Understanding node concepts, types, and lifecycle in Vue Flow
+---
+
+# Nodes
+
+Nodes are the fundamental building blocks of your flow diagram. They represent individual units of data or functionality that can be connected together to create complex workflows.
+
+## Node Structure
+
+Every node in Vue Flow requires two essential properties:
+
+- **`id`** (string): A unique identifier for the node
+- **`position`** (XYPosition): The x and y coordinates on the canvas
+
+<CodeGroup>
+```typescript Basic Node
+const node = {
+  id: '1',
+  position: { x: 100, y: 100 },
+  data: { label: 'My Node' }
+}
+```
+
+```typescript Full Node Definition
+import { Position } from '@vue-flow/core'
+import type { Node } from '@vue-flow/core'
+
+const node: Node = {
+  id: '1',
+  type: 'default',
+  position: { x: 100, y: 100 },
+  data: { label: 'My Node' },
+  
+  // Optional properties
+  sourcePosition: Position.Right,
+  targetPosition: Position.Left,
+  draggable: true,
+  selectable: true,
+  connectable: true,
+  deletable: true,
+  width: 150,
+  height: 40,
+  style: { background: '#fff', border: '1px solid #ddd' },
+  class: 'custom-node',
+}
+```
+</CodeGroup>
+
+## Node Interface
+
+The complete Node interface includes:
+
+<ParamField path="id" type="string" required>
+  Unique identifier for the node
+</ParamField>
+
+<ParamField path="position" type="XYPosition" required>
+  Node position with `x` and `y` coordinates
+</ParamField>
+
+<ParamField path="data" type="any">
+  Custom data object passed to your node component
+</ParamField>
+
+<ParamField path="type" type="string" default="'default'">
+  Node type: `'default'`, `'input'`, `'output'`, or a custom type
+</ParamField>
+
+<ParamField path="label" type="string | VNode | Component">
+  Deprecated: Node label (use `data.label` instead)
+</ParamField>
+
+<ParamField path="sourcePosition" type="Position">
+  Position for source handles: `Position.Top`, `Position.Right`, `Position.Bottom`, or `Position.Left`
+</ParamField>
+
+<ParamField path="targetPosition" type="Position">
+  Position for target handles
+</ParamField>
+
+<ParamField path="draggable" type="boolean" default="true">
+  Enable or disable node dragging
+</ParamField>
+
+<ParamField path="selectable" type="boolean" default="true">
+  Enable or disable node selection
+</ParamField>
+
+<ParamField path="connectable" type="boolean | number | 'single' | HandleConnectableFunc" default="true">
+  Control handle connection behavior. Use `true` for unlimited connections, a number for max connections, `'single'` for one connection, or a function for custom logic
+</ParamField>
+
+<ParamField path="deletable" type="boolean" default="true">
+  Enable or disable node deletion
+</ParamField>
+
+<ParamField path="focusable" type="boolean" default="true">
+  Enable or disable keyboard focus (a11y)
+</ParamField>
+
+<ParamField path="width" type="number | string">
+  Fixed width (e.g., `300` or `'10rem'`)
+</ParamField>
+
+<ParamField path="height" type="number | string">
+  Fixed height
+</ParamField>
+
+<ParamField path="parentNode" type="string">
+  Parent node ID for nested nodes (will be renamed to `parentId` in next major version)
+</ParamField>
+
+<ParamField path="extent" type="CoordinateExtent | 'parent'">
+  Constrain node movement within bounds. Use `'parent'` to limit to parent node boundaries
+</ParamField>
+
+<ParamField path="expandParent" type="boolean">
+  Automatically expand parent node to fit child nodes
+</ParamField>
+
+<ParamField path="dragHandle" type="string">
+  CSS selector for drag handle element
+</ParamField>
+
+<ParamField path="hidden" type="boolean">
+  Hide the node
+</ParamField>
+
+<ParamField path="zIndex" type="number">
+  Z-index for stacking order
+</ParamField>
+
+<ParamField path="class" type="string | string[] | ClassFunc">
+  CSS classes or function returning classes
+</ParamField>
+
+<ParamField path="style" type="CSSProperties | StyleFunc">
+  Inline styles or function returning styles
+</ParamField>
+
+## Built-in Node Types
+
+Vue Flow includes three predefined node types:
+
+<Tabs>
+  <Tab title="Default">
+    A standard node with both source and target handles.
+
+    ```typescript
+    const node = {
+      id: '1',
+      type: 'default', // optional, this is the fallback
+      position: { x: 100, y: 100 },
+      data: { label: 'Default Node' }
+    }
+    ```
+  </Tab>
+  
+  <Tab title="Input">
+    A starting node with only a source handle.
+
+    ```typescript
+    const node = {
+      id: '1',
+      type: 'input',
+      position: { x: 100, y: 100 },
+      data: { label: 'Input Node' },
+      sourcePosition: Position.Bottom
+    }
+    ```
+  </Tab>
+  
+  <Tab title="Output">
+    An ending node with only a target handle.
+
+    ```typescript
+    const node = {
+      id: '1',
+      type: 'output',
+      position: { x: 100, y: 100 },
+      data: { label: 'Output Node' },
+      targetPosition: Position.Top
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Custom Node Types
+
+Create custom nodes by defining a Vue component and registering it with Vue Flow.
+
+<CodeGroup>
+```vue CustomNode.vue
+<script setup lang="ts">
+import { Handle, Position } from '@vue-flow/core'
+import type { NodeProps } from '@vue-flow/core'
+
+interface CustomData {
+  label: string
+  value: number
+}
+
+const props = defineProps<NodeProps<CustomData>>()
+</script>
+
+<template>
+  <div class="custom-node">
+    <Handle type="target" :position="Position.Left" />
+    
+    <div class="content">
+      <h3>{{ props.data.label }}</h3>
+      <p>Value: {{ props.data.value }}</p>
+    </div>
+    
+    <Handle type="source" :position="Position.Right" />
+  </div>
+</template>
+
+<style scoped>
+.custom-node {
+  padding: 10px;
+  border-radius: 5px;
+  background: white;
+  border: 2px solid #1a192b;
+}
+</style>
+```
+
+```vue App.vue (Template Slot)
+<script setup>
+import { VueFlow } from '@vue-flow/core'
+import CustomNode from './CustomNode.vue'
+
+const nodes = ref([{
+  id: '1',
+  type: 'custom',
+  position: { x: 100, y: 100 },
+  data: { label: 'Custom', value: 42 }
+}])
+</script>
+
+<template>
+  <VueFlow :nodes="nodes">
+    <template #node-custom="props">
+      <CustomNode v-bind="props" />
+    </template>
+  </VueFlow>
+</template>
+```
+
+```vue App.vue (Node Types Object)
+<script setup>
+import { markRaw } from 'vue'
+import { VueFlow } from '@vue-flow/core'
+import CustomNode from './CustomNode.vue'
+
+const nodeTypes = {
+  custom: markRaw(CustomNode)
+}
+
+const nodes = ref([{
+  id: '1',
+  type: 'custom',
+  position: { x: 100, y: 100 },
+  data: { label: 'Custom', value: 42 }
+}])
+</script>
+
+<template>
+  <VueFlow :nodes="nodes" :node-types="nodeTypes" />
+</template>
+```
+</CodeGroup>
+
+<Note>
+When using the `nodeTypes` prop, remember to wrap components with `markRaw()` to prevent Vue from making them reactive.
+</Note>
+
+## GraphNode vs Node
+
+- **`Node`**: The input type you provide to Vue Flow
+- **`GraphNode`**: The internal representation with computed properties
+
+```typescript
+interface GraphNode extends Node {
+  computedPosition: XYZPosition  // Absolute position with z-index
+  handleBounds: NodeHandleBounds  // Handle positions and dimensions
+  dimensions: Dimensions          // width and height
+  isParent: boolean              // Has child nodes
+  selected: boolean              // Selection state
+  resizing: boolean              // Currently being resized
+  dragging: boolean              // Currently being dragged
+}
+```
+
+## Node Props
+
+Your custom node components receive these props:
+
+```typescript
+interface NodeProps<Data = any> {
+  id: string
+  type: string
+  selected: boolean
+  connectable: HandleConnectable
+  position: XYPosition
+  dimensions: Dimensions
+  data: Data
+  dragging: boolean
+  resizing: boolean
+  zIndex: number
+  targetPosition?: Position
+  sourcePosition?: Position
+  dragHandle?: string
+  parentNodeId?: string
+}
+```
+
+## Adding Nodes
+
+<Tabs>
+  <Tab title="Using v-model">
+    ```vue
+    <script setup>
+    import { ref } from 'vue'
+    import { VueFlow } from '@vue-flow/core'
+
+    const nodes = ref([{
+      id: '1',
+      position: { x: 100, y: 100 },
+      data: { label: 'Node 1' }
+    }])
+
+    function addNode() {
+      nodes.value.push({
+        id: String(nodes.value.length + 1),
+        position: { x: 200, y: 200 },
+        data: { label: `Node ${nodes.value.length + 1}` }
+      })
+    }
+    </script>
+
+    <template>
+      <VueFlow :nodes="nodes" />
+    </template>
+    ```
+  </Tab>
+  
+  <Tab title="Using addNodes">
+    ```vue
+    <script setup>
+    import { useVueFlow } from '@vue-flow/core'
+
+    const { addNodes } = useVueFlow()
+
+    function addNode() {
+      addNodes({
+        id: Date.now().toString(),
+        position: { x: 200, y: 200 },
+        data: { label: 'New Node' }
+      })
+    }
+
+    // Add multiple nodes
+    function addMultiple() {
+      addNodes([
+        { id: '2', position: { x: 100, y: 100 }, data: {} },
+        { id: '3', position: { x: 200, y: 100 }, data: {} }
+      ])
+    }
+    </script>
+    ```
+  </Tab>
+</Tabs>
+
+## Updating Nodes
+
+<CodeGroup>
+```typescript useVueFlow
+import { useVueFlow } from '@vue-flow/core'
+
+const { updateNodeData, updateNode, findNode } = useVueFlow()
+
+// Update node data
+updateNodeData('1', { label: 'Updated' })
+
+// Update using a function
+updateNodeData('1', (node) => ({ value: node.data.value + 1 }))
+
+// Update entire node
+updateNode('1', { draggable: false, selectable: false })
+
+// Find and mutate directly
+const node = findNode('1')
+if (node) {
+  node.data.label = 'Changed'
+  node.position.x += 50
+}
+```
+
+```vue useNode (in custom node)
+<script setup>
+import { useNode } from '@vue-flow/core'
+
+const { node } = useNode()
+
+function handleClick() {
+  // Mutate node directly
+  node.data.count = (node.data.count || 0) + 1
+  node.style = { background: 'lightblue' }
+}
+</script>
+```
+</CodeGroup>
+
+## Removing Nodes
+
+```typescript
+import { useVueFlow } from '@vue-flow/core'
+
+const { removeNodes } = useVueFlow()
+
+// Remove single node
+removeNodes('1')
+
+// Remove multiple nodes
+removeNodes(['1', '2', '3'])
+
+// Remove with connected edges (default: true)
+removeNodes('1', true)
+
+// Remove children as well
+removeNodes('1', true, true)
+```
+
+## Parent-Child Relationships
+
+Create nested nodes by setting the `parentNode` property:
+
+```typescript
+const nodes = [
+  {
+    id: 'parent',
+    type: 'default',
+    position: { x: 0, y: 0 },
+    data: { label: 'Parent' },
+    style: {
+      width: '300px',
+      height: '200px',
+      backgroundColor: 'rgba(255, 0, 0, 0.1)'
+    }
+  },
+  {
+    id: 'child',
+    type: 'default',
+    position: { x: 50, y: 50 }, // Position relative to parent
+    data: { label: 'Child' },
+    parentNode: 'parent',
+    extent: 'parent', // Constrain to parent boundaries
+    expandParent: true // Expand parent to fit child
+  }
+]
+```
+
+<Tip>
+Child node positions are relative to their parent. Use `extent: 'parent'` to prevent children from being dragged outside parent boundaries.
+</Tip>
+
+## Interaction Controls
+
+```typescript
+const node = {
+  id: '1',
+  position: { x: 0, y: 0 },
+  data: {},
+  
+  // Prevent dragging specific nodes
+  draggable: false,
+  
+  // Prevent selection
+  selectable: false,
+  
+  // Prevent connections
+  connectable: false,
+  
+  // Prevent deletion
+  deletable: false,
+  
+  // Use specific element as drag handle
+  dragHandle: '.drag-handle',
+  
+  // Prevent user from selecting text inside node
+  class: 'nodrag',
+  
+  // Prevent zoom on scroll within node
+  class: 'nowheel'
+}
+```
+
+## TypeScript Support
+
+Define custom node types with type safety:
+
+```typescript
+import type { Node } from '@vue-flow/core'
+
+interface CustomData {
+  label: string
+  value: number
+  status: 'active' | 'inactive'
+}
+
+interface CustomEvents {
+  onCustomClick: (event: MouseEvent) => void
+}
+
+type CustomNodeType = 'custom' | 'special'
+
+type CustomNode = Node<CustomData, CustomEvents, CustomNodeType>
+
+const nodes: CustomNode[] = [
+  {
+    id: '1',
+    type: 'custom', // Type-safe!
+    position: { x: 0, y: 0 },
+    data: {
+      label: 'My Node',
+      value: 42,
+      status: 'active'
+    }
+  }
+]
+```
+
+## See Also
+
+- [Handles](/concepts/handles) - Learn about node connection points
+- [Edges](/concepts/edges) - Connect nodes together
+- [State Management](/concepts/state-management) - Access and update nodes in state

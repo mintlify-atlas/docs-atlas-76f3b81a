@@ -1,0 +1,412 @@
+---
+title: NodeResizer
+description: Add resize handles to nodes for interactive resizing
+---
+
+The `NodeResizer` component adds interactive resize handles to nodes, allowing users to dynamically change node dimensions.
+
+## Installation
+
+```bash
+npm install @vue-flow/node-resizer
+```
+
+## Basic Usage
+
+```vue
+<script setup>
+import { NodeResizer } from '@vue-flow/node-resizer'
+</script>
+
+<template>
+  <div class="custom-node">
+    <NodeResizer />
+    <div>Resizable Node Content</div>
+  </div>
+</template>
+
+<style>
+@import '@vue-flow/node-resizer/dist/style.css';
+</style>
+```
+
+## Props
+
+### Target Node
+
+<ParamField path="nodeId" type="string">
+  ID of the node to resize. If not provided, uses the node ID from context (when used inside a custom node component).
+</ParamField>
+
+### Visibility
+
+<ParamField path="isVisible" type="boolean" default="true">
+  Show or hide the resize controls.
+  
+  ```vue
+  <NodeResizer :is-visible="node.selected" />
+  ```
+</ParamField>
+
+### Dimensions
+
+<ParamField path="minWidth" type="number">
+  Minimum width the node can be resized to.
+</ParamField>
+
+<ParamField path="minHeight" type="number">
+  Minimum height the node can be resized to.
+</ParamField>
+
+<ParamField path="maxWidth" type="number">
+  Maximum width the node can be resized to.
+</ParamField>
+
+<ParamField path="maxHeight" type="number">
+  Maximum height the node can be resized to.
+</ParamField>
+
+### Aspect Ratio
+
+<ParamField path="keepAspectRatio" type="boolean | number">
+  Maintain aspect ratio during resize. 
+  - `true`: Keep original aspect ratio
+  - `false`: Free resize
+  - `number`: Use specific aspect ratio (e.g., `1.5` for 3:2 ratio)
+</ParamField>
+
+### Appearance
+
+<ParamField path="color" type="string">
+  Color of the resize handles and lines.
+  
+  ```vue
+  <NodeResizer color="#3b82f6" />
+  ```
+</ParamField>
+
+<ParamField path="handleClassName" type="string">
+  CSS class for corner resize handles.
+</ParamField>
+
+<ParamField path="handleStyle" type="CSSProperties">
+  Inline styles for corner resize handles.
+</ParamField>
+
+<ParamField path="lineClassName" type="string">
+  CSS class for edge resize lines.
+</ParamField>
+
+<ParamField path="lineStyle" type="CSSProperties">
+  Inline styles for edge resize lines.
+</ParamField>
+
+### Behavior
+
+<ParamField path="shouldResize" type="ShouldResize">
+  Function to determine if resize should occur. Receives the drag event and resize parameters.
+  
+  ```vue
+  <NodeResizer :should-resize="shouldResize" />
+  ```
+  
+  ```typescript
+  function shouldResize(event, params) {
+    // Only allow resize if width > 100
+    return params.width > 100
+  }
+  ```
+</ParamField>
+
+<ParamField path="autoScale" type="boolean" default="true">
+  Scale the resize controls with the viewport zoom level.
+</ParamField>
+
+## Events
+
+<ParamField path="@resizeStart" type="(event: OnResizeStart) => void">
+  Fired when resizing starts.
+  
+  ```typescript
+  interface OnResizeStart {
+    event: ResizeDragEvent
+    params: ResizeParams
+  }
+  
+  interface ResizeParams {
+    x: number
+    y: number
+    width: number
+    height: number
+  }
+  ```
+</ParamField>
+
+<ParamField path="@resize" type="(event: OnResize) => void">
+  Fired during resizing.
+  
+  ```typescript
+  interface OnResize {
+    event: ResizeDragEvent
+    params: ResizeParamsWithDirection
+  }
+  
+  interface ResizeParamsWithDirection extends ResizeParams {
+    direction: number[] // [x, y] direction vector
+  }
+  ```
+</ParamField>
+
+<ParamField path="@resizeEnd" type="(event: OnResizeEnd) => void">
+  Fired when resizing ends.
+</ParamField>
+
+## Examples
+
+### Basic Resizable Node
+
+```vue
+<script setup>
+import { NodeResizer } from '@vue-flow/node-resizer'
+</script>
+
+<template>
+  <div class="custom-node">
+    <NodeResizer 
+      :min-width="100" 
+      :min-height="50" 
+    />
+    <div class="content">
+      Resize me!
+    </div>
+  </div>
+</template>
+```
+
+### Show Only When Selected
+
+```vue
+<script setup>
+import { NodeResizer } from '@vue-flow/node-resizer'
+import { inject } from 'vue'
+
+const node = inject('node')
+</script>
+
+<template>
+  <div class="custom-node">
+    <NodeResizer :is-visible="node.selected" />
+    <div>Content</div>
+  </div>
+</template>
+```
+
+### Constrained Dimensions
+
+```vue
+<template>
+  <div class="custom-node">
+    <NodeResizer 
+      :min-width="200" 
+      :min-height="100" 
+      :max-width="800" 
+      :max-height="600" 
+    />
+    <div>Constrained resize</div>
+  </div>
+</template>
+```
+
+### Maintain Aspect Ratio
+
+```vue
+<template>
+  <div class="custom-node">
+    <!-- Keep original aspect ratio -->
+    <NodeResizer :keep-aspect-ratio="true" />
+    
+    <!-- Use 16:9 aspect ratio -->
+    <!-- <NodeResizer :keep-aspect-ratio="16/9" /> -->
+    
+    <div>Square content</div>
+  </div>
+</template>
+```
+
+### Custom Colors
+
+```vue
+<template>
+  <div class="custom-node">
+    <NodeResizer color="#3b82f6" />
+    <div>Blue handles</div>
+  </div>
+</template>
+```
+
+### Custom Handle Styles
+
+```vue
+<template>
+  <div class="custom-node">
+    <NodeResizer 
+      :handle-style="{ 
+        width: '12px', 
+        height: '12px', 
+        borderRadius: '50%',
+        background: '#3b82f6'
+      }"
+      :line-style="{ 
+        borderColor: '#3b82f6',
+        borderWidth: '2px' 
+      }"
+    />
+    <div>Custom styled handles</div>
+  </div>
+</template>
+```
+
+### Event Handling
+
+```vue
+<script setup>
+import { NodeResizer } from '@vue-flow/node-resizer'
+
+function onResizeStart({ params }) {
+  console.log('Start resize:', params)
+}
+
+function onResize({ params }) {
+  console.log('Resizing:', params.width, params.height)
+}
+
+function onResizeEnd({ params }) {
+  console.log('End resize:', params)
+}
+</script>
+
+<template>
+  <div class="custom-node">
+    <NodeResizer 
+      @resize-start="onResizeStart"
+      @resize="onResize"
+      @resize-end="onResizeEnd"
+    />
+    <div>Content</div>
+  </div>
+</template>
+```
+
+### Conditional Resize
+
+```vue
+<script setup>
+import { NodeResizer } from '@vue-flow/node-resizer'
+
+function shouldResize(event, params) {
+  // Only allow resize if dimensions are reasonable
+  if (params.width < 50 || params.height < 50) {
+    return false
+  }
+  
+  // Don't resize on Shift key
+  if (event.sourceEvent?.shiftKey) {
+    return false
+  }
+  
+  return true
+}
+</script>
+
+<template>
+  <div class="custom-node">
+    <NodeResizer :should-resize="shouldResize" />
+    <div>Conditional resize</div>
+  </div>
+</template>
+```
+
+### Without Auto-scaling
+
+```vue
+<template>
+  <div class="custom-node">
+    <!-- Handles won't scale with zoom -->
+    <NodeResizer :auto-scale="false" />
+    <div>Fixed size handles</div>
+  </div>
+</template>
+```
+
+## Complete Custom Node Example
+
+```vue
+<script setup>
+import { NodeResizer } from '@vue-flow/node-resizer'
+import { Handle, Position } from '@vue-flow/core'
+import { inject } from 'vue'
+
+const node = inject('node')
+</script>
+
+<template>
+  <div class="resizable-node">
+    <NodeResizer 
+      :is-visible="node.selected"
+      :min-width="150"
+      :min-height="100"
+      color="#3b82f6"
+    />
+    
+    <Handle type="target" :position="Position.Left" />
+    
+    <div class="node-content">
+      <h3>{{ node.label }}</h3>
+      <p>{{ node.data?.description }}</p>
+    </div>
+    
+    <Handle type="source" :position="Position.Right" />
+  </div>
+</template>
+
+<style scoped>
+.resizable-node {
+  padding: 20px;
+  border: 2px solid #3b82f6;
+  border-radius: 8px;
+  background: white;
+}
+
+.node-content {
+  min-width: 150px;
+}
+</style>
+```
+
+## Styling
+
+```css
+/* Resize handle (corners) */
+.vue-flow__resize-control.handle {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #3b82f6;
+  border: 2px solid white;
+}
+
+/* Resize line (edges) */
+.vue-flow__resize-control.line {
+  border-color: #3b82f6;
+  border-width: 2px;
+}
+
+/* Hover states */
+.vue-flow__resize-control.handle:hover {
+  background: #2563eb;
+}
+```
+
+<Note>
+  The NodeResizer must be used inside a custom node component. It automatically detects the parent node's ID from context, but you can override it with the `nodeId` prop.
+</Note>

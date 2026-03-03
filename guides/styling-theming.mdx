@@ -1,0 +1,502 @@
+---
+title: 'Styling and theming'
+description: 'Customize the appearance of Vue Flow with CSS variables, themes, and custom styles.'
+keywords: ['styling', 'theming', 'css', 'vue flow', 'appearance']
+---
+
+Vue Flow provides flexible styling options through CSS variables, custom classes, and inline styles. This guide covers everything from basic theming to advanced customization.
+
+## Importing styles
+
+Vue Flow requires base styles and optionally includes a default theme:
+
+```css
+/* Required base styles */
+@import '@vue-flow/core/dist/style.css';
+
+/* Optional default theme */
+@import '@vue-flow/core/dist/theme-default.css';
+```
+
+<Warning>
+The base styles in `style.css` are required for Vue Flow to work correctly. The default theme is optional and can be replaced with your own styles.
+</Warning>
+
+## CSS variables
+
+Customize Vue Flow's appearance using CSS variables:
+
+```css
+:root {
+  /* Node colors */
+  --vf-node-bg: #fff;
+  --vf-node-text: #222;
+  --vf-node-color: #1a192b;
+  
+  /* Handle colors */
+  --vf-handle: #555;
+  
+  /* Connection colors */
+  --vf-connection-path: #b1b1b7;
+  
+  /* Box shadow */
+  --vf-box-shadow: 0 1px 4px 1px rgba(0, 0, 0, 0.08);
+}
+```
+
+### Available CSS variables
+
+| Variable | Effect |
+|----------|--------|
+| `--vf-node-color` | Node border, box-shadow, and handle colors |
+| `--vf-box-shadow` | Node box-shadow color |
+| `--vf-node-bg` | Node background color |
+| `--vf-node-text` | Node text color |
+| `--vf-handle` | Node handle color |
+| `--vf-connection-path` | Connection line color |
+
+## Global theme
+
+Apply a global theme by setting CSS variables at the root level:
+
+```css
+/* Dark theme */
+:root {
+  --vf-node-bg: #1a192b;
+  --vf-node-text: #f8f8f8;
+  --vf-node-color: #ff0072;
+  --vf-handle: #ff0072;
+  --vf-connection-path: #ff0072;
+  --vf-box-shadow: 0 4px 6px rgba(255, 0, 114, 0.3);
+}
+```
+
+## Component-level styling
+
+Style the Vue Flow component directly:
+
+```vue
+<template>
+  <VueFlow
+    :nodes="nodes"
+    :edges="edges"
+    class="custom-flow"
+    :style="{
+      backgroundColor: '#1a192b',
+    }"
+  />
+</template>
+
+<style>
+.custom-flow {
+  --vf-node-color: #ff0072;
+  --vf-connection-path: #ff0072;
+}
+</style>
+```
+
+## Node styling
+
+### Using CSS classes
+
+Style custom nodes with CSS:
+
+```css
+.vue-flow__node-custom {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 16px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.vue-flow__node-custom.selected {
+  border-color: #ff0072;
+  box-shadow: 0 0 0 2px #ff0072;
+}
+
+.vue-flow__node-custom:hover {
+  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+}
+```
+
+### Inline styles
+
+Apply styles directly to node definitions:
+
+```typescript
+const nodes = ref([
+  {
+    id: '1',
+    type: 'custom',
+    position: { x: 100, y: 100 },
+    style: {
+      backgroundColor: '#9ca8b3',
+      color: '#fff',
+      padding: '10px',
+      borderRadius: '8px',
+      border: '2px solid #555',
+      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+    },
+    data: { label: 'Styled Node' },
+  },
+])
+```
+
+### CSS variables per node
+
+Override CSS variables for specific nodes:
+
+```typescript
+const nodes = ref([
+  {
+    id: '1',
+    position: { x: 100, y: 100 },
+    style: {
+      '--vf-node-color': '#ff0072',
+      '--vf-node-bg': '#1a192b',
+      '--vf-node-text': '#fff',
+    },
+    data: { label: 'Themed Node' },
+  },
+])
+```
+
+### Dynamic classes
+
+Add classes based on node state:
+
+```typescript
+const nodes = ref([
+  {
+    id: '1',
+    position: { x: 100, y: 100 },
+    class: 'priority-high',
+    data: { label: 'Important Node' },
+  },
+])
+```
+
+```css
+.vue-flow__node.priority-high {
+  border: 3px solid #ff0000;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(255, 0, 0, 0);
+  }
+}
+```
+
+## Edge styling
+
+### Using CSS classes
+
+Style edges with CSS:
+
+```css
+.vue-flow__edge-custom {
+  stroke: #ff0072;
+  stroke-width: 3px;
+}
+
+.vue-flow__edge-custom.selected {
+  stroke: #ff6b9d;
+  stroke-width: 4px;
+}
+
+.vue-flow__edge-custom.animated {
+  stroke-dasharray: 5, 5;
+  animation: dash 0.5s linear infinite;
+}
+
+@keyframes dash {
+  to {
+    stroke-dashoffset: -10;
+  }
+}
+```
+
+### Inline edge styles
+
+Apply styles directly to edges:
+
+```typescript
+import { MarkerType } from '@vue-flow/core'
+
+const edges = ref([
+  {
+    id: 'e1-2',
+    source: '1',
+    target: '2',
+    animated: true,
+    style: {
+      stroke: '#ff0072',
+      strokeWidth: 3,
+    },
+    markerEnd: {
+      type: MarkerType.ArrowClosed,
+      color: '#ff0072',
+    },
+  },
+])
+```
+
+## Handle styling
+
+Customize connection handles:
+
+```css
+.vue-flow__handle {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  background: #784be8;
+  border: 2px solid white;
+}
+
+.vue-flow__handle:hover {
+  background: #ff0072;
+  transform: scale(1.2);
+}
+
+.vue-flow__handle-connecting {
+  background: #ff6b9d;
+}
+
+.vue-flow__handle-valid {
+  background: #55dd99;
+}
+```
+
+Or use inline styles in your components:
+
+```vue
+<script setup>
+import type { CSSProperties } from 'vue'
+import { Handle, Position } from '@vue-flow/core'
+
+const handleStyle: CSSProperties = {
+  width: '12px',
+  height: '12px',
+  borderRadius: '50%',
+  background: '#784be8',
+  border: '2px solid white',
+}
+</script>
+
+<template>
+  <Handle 
+    type="target" 
+    :position="Position.Left" 
+    :style="handleStyle" 
+  />
+</template>
+```
+
+## Background styling
+
+Customize the background pattern:
+
+```vue
+<template>
+  <VueFlow :nodes="nodes" :edges="edges">
+    <Background 
+      pattern-color="#aaa"
+      :gap="16"
+      :size="1"
+      variant="dots"
+    />
+  </VueFlow>
+</template>
+```
+
+Available variants:
+- `dots` - Dot pattern
+- `lines` - Line pattern
+- `cross` - Cross pattern
+
+## Controls styling
+
+Style the controls component:
+
+```css
+.vue-flow__controls {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+.vue-flow__controls-button {
+  background: #1a192b;
+  color: white;
+  border: none;
+  border-bottom: 1px solid #555;
+}
+
+.vue-flow__controls-button:hover {
+  background: #ff0072;
+}
+```
+
+## MiniMap styling
+
+Customize the minimap appearance:
+
+```vue
+<script setup>
+import { MiniMap } from '@vue-flow/minimap'
+import type { Node } from '@vue-flow/core'
+
+function nodeColor(node: Node) {
+  switch (node.type) {
+    case 'input':
+      return '#6ede87'
+    case 'output':
+      return '#6865a5'
+    default:
+      return '#ff0072'
+  }
+}
+
+function nodeStrokeColor(node: Node) {
+  return node.selected ? '#ff0072' : '#666'
+}
+</script>
+
+<template>
+  <VueFlow :nodes="nodes" :edges="edges">
+    <MiniMap
+      :node-color="nodeColor"
+      :node-stroke-color="nodeStrokeColor"
+      :node-border-radius="8"
+      :mask-color="rgba(26, 25, 43, 0.8)"
+    />
+  </VueFlow>
+</template>
+```
+
+## Theme examples
+
+<Accordion title="Dark theme">
+```css
+:root {
+  --vf-node-bg: #1a192b;
+  --vf-node-text: #f8f8f8;
+  --vf-node-color: #ff0072;
+  --vf-handle: #ff0072;
+  --vf-connection-path: #ff0072;
+  --vf-box-shadow: 0 4px 6px rgba(255, 0, 114, 0.3);
+}
+
+.vue-flow {
+  background-color: #0d0d0d;
+}
+```
+</Accordion>
+
+<Accordion title="Blue theme">
+```css
+:root {
+  --vf-node-bg: #eef2ff;
+  --vf-node-text: #1e3a8a;
+  --vf-node-color: #3b82f6;
+  --vf-handle: #3b82f6;
+  --vf-connection-path: #3b82f6;
+  --vf-box-shadow: 0 4px 6px rgba(59, 130, 246, 0.2);
+}
+
+.vue-flow {
+  background-color: #f8fafc;
+}
+```
+</Accordion>
+
+<Accordion title="Purple theme">
+```css
+:root {
+  --vf-node-bg: #faf5ff;
+  --vf-node-text: #581c87;
+  --vf-node-color: #a855f7;
+  --vf-handle: #a855f7;
+  --vf-connection-path: #a855f7;
+  --vf-box-shadow: 0 4px 6px rgba(168, 85, 247, 0.2);
+}
+
+.vue-flow {
+  background-color: #f5f3ff;
+}
+```
+</Accordion>
+
+## Class name reference
+
+### Container classes
+
+| Class | Element |
+|-------|----------|
+| `.vue-flow` | Outer container |
+| `.vue-flow__container` | Wrapper for container elements |
+| `.vue-flow__viewport` | Inner container |
+| `.vue-flow__background` | Background component |
+| `.vue-flow__minimap` | MiniMap component |
+| `.vue-flow__controls` | Controls component |
+
+### Node classes
+
+| Class | Element |
+|-------|----------|
+| `.vue-flow__nodes` | Nodes wrapper |
+| `.vue-flow__node` | Individual node |
+| `.vue-flow__node-{type}` | Node by type (e.g., `.vue-flow__node-custom`) |
+| `.vue-flow__node.selected` | Selected node |
+
+### Edge classes
+
+| Class | Element |
+|-------|----------|
+| `.vue-flow__edges` | Edges wrapper |
+| `.vue-flow__edge` | Individual edge |
+| `.vue-flow__edge-{type}` | Edge by type (e.g., `.vue-flow__edge-custom`) |
+| `.vue-flow__edge.selected` | Selected edge |
+| `.vue-flow__edge.animated` | Animated edge |
+| `.vue-flow__edge-path` | SVG path element |
+| `.vue-flow__edge-text` | Edge label wrapper |
+| `.vue-flow__edge-textbg` | Edge label background |
+
+### Handle classes
+
+| Class | Element |
+|-------|----------|
+| `.vue-flow__handle` | Handle element |
+| `.vue-flow__handle-top` | Top-positioned handle |
+| `.vue-flow__handle-right` | Right-positioned handle |
+| `.vue-flow__handle-bottom` | Bottom-positioned handle |
+| `.vue-flow__handle-left` | Left-positioned handle |
+| `.vue-flow__handle-connecting` | Handle being connected |
+| `.vue-flow__handle-valid` | Valid connection target |
+
+## Best practices
+
+<Tip>
+- Use CSS variables for theme consistency across your application
+- Leverage CSS classes for reusable styles across multiple nodes or edges
+- Use inline styles for unique, one-off styling needs
+- Combine approaches: Use CSS variables for colors and CSS classes for layouts
+</Tip>
+
+## Next steps
+
+<Columns cols={2}>
+  <Card title="Custom nodes" icon="box" href="/guides/custom-nodes">
+    Build styled custom node components
+  </Card>
+  <Card title="Custom edges" icon="arrow-right" href="/guides/custom-edges">
+    Create styled custom edge components
+  </Card>
+</Columns>

@@ -1,0 +1,184 @@
+{
+  "projectType": "sdk-library",
+  "projectName": "Vue Flow",
+  "projectDescription": "A highly customizable Vue 3 flowchart component with seamless zoom, pan, and interactive node/edge editing.",
+  "theme": "palm",
+  "primaryColor": "#42b883",
+  "lightColor": "#42d392",
+  "darkColor": "#359268",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "installation",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "concepts/nodes",
+              "concepts/edges",
+              "concepts/handles",
+              "concepts/viewport",
+              "concepts/state-management"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/custom-nodes",
+              "guides/custom-edges",
+              "guides/styling-theming",
+              "guides/controlled-flow",
+              "guides/typescript",
+              "guides/troubleshooting"
+            ]
+          },
+          {
+            "group": "Components",
+            "pages": [
+              "components/vue-flow",
+              "components/background",
+              "components/controls",
+              "components/minimap",
+              "components/node-resizer",
+              "components/node-toolbar",
+              "components/panel"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Core API",
+            "pages": [
+              "api/components",
+              "api/composables",
+              "api/types",
+              "api/utilities"
+            ]
+          },
+          {
+            "group": "Composables",
+            "pages": [
+              "api/composables/use-vue-flow",
+              "api/composables/use-node",
+              "api/composables/use-edge",
+              "api/composables/use-handle",
+              "api/composables/use-zoom-pan-helper",
+              "api/composables/use-nodes-data",
+              "api/composables/use-edges-data"
+            ]
+          },
+          {
+            "group": "Types",
+            "pages": [
+              "api/types/node",
+              "api/types/edge",
+              "api/types/connection",
+              "api/types/flow",
+              "api/types/events"
+            ]
+          },
+          {
+            "group": "Plugin APIs",
+            "pages": [
+              "api/plugins/background",
+              "api/plugins/controls",
+              "api/plugins/minimap",
+              "api/plugins/node-resizer",
+              "api/plugins/node-toolbar",
+              "api/plugins/pathfinding-edge"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Examples",
+        "groups": [
+          {
+            "group": "Examples",
+            "pages": [
+              "examples/overview",
+              "examples/basic-flow",
+              "examples/custom-nodes",
+              "examples/custom-edges",
+              "examples/validation",
+              "examples/drag-and-drop",
+              "examples/save-restore",
+              "examples/interaction",
+              "examples/nested-flows"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Interactive flowchart component with zoom & pan",
+    "Custom nodes and edges support",
+    "Built-in components (Minimap, Controls, Background)",
+    "TypeScript support with full type definitions",
+    "Composable functions for state management",
+    "D3-powered transformations and interactions",
+    "Plugin system with additional components",
+    "Reactive state management with VueUse"
+  ],
+  "publicApiSurface": [
+    "VueFlow",
+    "Handle",
+    "Panel",
+    "BaseEdge",
+    "EdgeText",
+    "EdgeLabelRenderer",
+    "StraightEdge",
+    "StepEdge",
+    "BezierEdge",
+    "SimpleBezierEdge",
+    "SmoothStepEdge",
+    "useVueFlow",
+    "useNode",
+    "useEdge",
+    "useHandle",
+    "useZoomPanHelper",
+    "useConnection",
+    "useHandleConnections",
+    "useNodeConnections",
+    "useNodesData",
+    "useEdgesData",
+    "useNodesInitialized",
+    "useKeyPress",
+    "useNodeId",
+    "useGetPointerPosition",
+    "addEdge",
+    "updateEdge",
+    "getOutgoers",
+    "getIncomers",
+    "getConnectedEdges",
+    "getTransformForBounds",
+    "getRectOfNodes",
+    "pointToRendererPoint",
+    "rendererPointToPoint",
+    "getNodesInside",
+    "getBoundsofRects",
+    "connectionExists",
+    "isNode",
+    "isEdge",
+    "isGraphNode",
+    "isGraphEdge",
+    "@vue-flow/background",
+    "@vue-flow/controls",
+    "@vue-flow/minimap",
+    "@vue-flow/node-resizer",
+    "@vue-flow/node-toolbar",
+    "@vue-flow/pathfinding-edge"
+  ]
+}
